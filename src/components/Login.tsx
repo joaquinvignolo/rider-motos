@@ -24,17 +24,17 @@ function Login() {
         <h2>INICIO DE SESIÓN</h2>
         <input
           type="text"
-          placeholder="USUARIO"
+          placeholder="usuario"
           value={usuario}
           onChange={(e) => setUsuario(e.target.value)}
         />
         <input
           type="password"
-          placeholder="CONTRASEÑA"
+          placeholder="contraseña"
           value={contrasena}
           onChange={(e) => setContrasena(e.target.value)}
         />
-        <button onClick={handleLogin}>Iniciar</button>
+        <button onClick={handleLogin}>INICIAR</button>
       </div>
     </div>
   );
