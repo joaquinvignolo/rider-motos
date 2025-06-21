@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Login.css';
+import riderLogo from '../assets/rider-logo.png'; // Importa el logo
 
 function Login() {
   const [usuario, setUsuario] = useState('');
@@ -17,7 +18,7 @@ function Login() {
   return (
     <div className="login">
       <div className="login-logo">
-        <img src="/logo.png" alt="Rider Motos" />
+        <img src={riderLogo} alt="Rider Motos" />
       </div>
       <div className="login-form">
         <h2>INICIO DE SESIÓN</h2>
