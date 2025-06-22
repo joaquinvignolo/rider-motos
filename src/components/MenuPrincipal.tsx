@@ -11,22 +11,24 @@ function MenuPrincipal() {
 
   return (
     <div className="menu-principal">
-      <header>
-        <img src={riderLogo} alt="Rider Motos" className="logo-menu" />
-        <h1>PANEL PRINCIPAL</h1>
-        <button className="logout-btn" onClick={handleLogout}>CERRAR SESIÓN</button>
-      </header>
+      <div className="menu-content">
+        <header>
+          <img src={riderLogo} alt="Rider Motos" className="logo-menu" />
+          <h1>PANEL PRINCIPAL</h1>
+          <button className="logout-btn" onClick={handleLogout}>CERRAR SESIÓN</button>
+        </header>
 
-      <main className="menu-grid">
-        <button>PRODUCTOS</button>
-        <button>CLIENTES</button>
-        <button>VENTAS</button>
-        <button>PATENTAMIENTOS</button>
-        <button>REPORTES</button>
-      </main>
+        <main className="menu-grid">
+          <button>PRODUCTOS</button>
+          <button>CLIENTES</button>
+          <button>VENTAS</button>
+          <button>PATENTAMIENTOS</button>
+          <button>REPORTES</button>
+        </main>
 
-      <div className="motivational-message">
-        Gracias por utilizar nuestro sistema. Tu esfuerzo y dedicación son clave para el éxito de Rider Motos.
+        <div className="motivational-message">
+          Gracias por utilizar nuestro sistema. Tu esfuerzo y dedicación son clave para el éxito de Rider Motos.
+        </div>
       </div>
 
       <footer className="footer">
