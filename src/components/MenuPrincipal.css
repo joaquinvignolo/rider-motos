@@ -1,21 +1,25 @@
 .menu-principal {
-  background-color: #0e0e0e;
+  background: linear-gradient(135deg, #181818 60%, #232526 100%);
   color: white;
-  height: 100vh;
-  padding: 20px;
+  min-height: 100vh;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+/* Header moderno y responsive */
 header {
   display: grid;
-  grid-template-columns: 40px 1fr 140px;
+  grid-template-columns: 80px 1fr 140px;
   align-items: center;
-  padding: 0 8px;
+  padding: 24px 5vw 0 5vw;
   gap: 0;
   position: relative;
+  background: rgba(20, 20, 20, 0.98);
+  box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.10);
 }
 
 .logo-menu {
-  width: 32px; /* Más pequeño aún */
+  width: 60px;
   height: auto;
   justify-self: start;
 }
@@ -31,36 +35,130 @@ header h1 {
 .logout-btn {
   background-color: #a32020;
   color: white;
-  padding: 8px 16px;
+  padding: 10px 22px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
   justify-self: end;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
 
 .logout-btn:hover {
   background-color: #cc2e2e;
+  box-shadow: 0 4px 16px rgba(163,32,32,0.18);
 }
 
+/* Grilla moderna y responsive */
 .menu-grid {
   margin-top: 60px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 28px;
+  padding: 0 5vw;
 }
 
 .menu-grid button {
-  background-color: #1a1a1a;
+  background: #1a1a1a;
   color: white;
   font-size: 1.2rem;
   border: 2px solid #a32020;
-  border-radius: 8px;
-  padding: 20px 40px;
+  border-radius: 12px;
+  padding: 28px 0;
   cursor: pointer;
-  transition: 0.2s;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .menu-grid button:hover {
-  background-color: #a32020;
+  background: #a32020;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(163,32,32,0.18);
+}
+
+/* Mensaje motivacional */
+.motivational-message {
+  margin: 48px auto 0 auto;
+  text-align: center;
+  font-size: 1.3rem;
+  color: #e0e0e0;
+  font-style: italic;
+  letter-spacing: 1px;
+  max-width: 600px;
+  padding: 0 16px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+/* Footer moderno */
+.footer {
+  width: 100%;
+  background: rgba(20, 20, 20, 0.98);
+  color: #bbb;
+  text-align: center;
+  padding: 24px 8px 16px 8px;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  margin-top: 48px;
+  border-top: 1px solid #232526;
+  box-shadow: 0 -2px 12px 0 rgba(31, 38, 135, 0.10);
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  header {
+    grid-template-columns: 50px 1fr 90px;
+    padding: 18px 2vw 0 2vw;
+  }
+  .logo-menu {
+    width: 38px;
+  }
+  header h1 {
+    font-size: 1.1rem;
+  }
+  .logout-btn {
+    padding: 7px 12px;
+    font-size: 0.95rem;
+  }
+  .menu-grid {
+    gap: 14px;
+    padding: 0 2vw;
+  }
+  .menu-grid button {
+    font-size: 1rem;
+    padding: 14px 0;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    grid-template-columns: 32px 1fr 60px;
+    padding: 10px 1vw 0 1vw;
+  }
+  .logo-menu {
+    width: 24px;
+  }
+  .menu-grid {
+    gap: 8px;
+    padding: 0 1vw;
+  }
+  .menu-grid button {
+    font-size: 0.95rem;
+    padding: 10px 0;
+    border-radius: 7px;
+  }
+  .motivational-message {
+    font-size: 1rem;
+    margin-top: 28px;
+  }
+  .footer {
+    font-size: 0.95rem;
+    padding: 16px 4px 10px 4px;
+    margin-top: 28px;
+  }
 }

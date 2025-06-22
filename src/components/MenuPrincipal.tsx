@@ -13,17 +13,27 @@ function MenuPrincipal() {
     <div className="menu-principal">
       <header>
         <img src={riderLogo} alt="Rider Motos" className="logo-menu" />
-        <h1>Panel Principal</h1>
-        <button className="logout-btn" onClick={handleLogout}>Cerrar sesión</button>
+        <h1>PANEL PRINCIPAL</h1>
+        <button className="logout-btn" onClick={handleLogout}>CERRAR SESIÓN</button>
       </header>
 
       <main className="menu-grid">
-        <button>🛒 Productos</button>
-        <button>👥 Clientes</button>
-        <button>💰 Ventas</button>
-        <button>🛂 Patentamientos</button>
-        <button>📊 Reportes</button>
+        <button>PRODUCTOS</button>
+        <button>CLIENTES</button>
+        <button>VENTAS</button>
+        <button>PATENTAMIENTOS</button>
+        <button>REPORTES</button>
       </main>
+
+      <div className="motivational-message">
+        Gracias por utilizar nuestro sistema. Tu esfuerzo y dedicación son clave para el éxito de Rider Motos.
+      </div>
+
+      <footer className="footer">
+        <div>
+          &copy; {new Date().getFullYear()} Rider Motos. Sistema interno para uso exclusivo del personal.
+        </div>
+      </footer>
     </div>
   );
 }
