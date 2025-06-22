@@ -1,0 +1,66 @@
+.menu-principal {
+  background-color: #0e0e0e;
+  color: white;
+  height: 100vh;
+  padding: 20px;
+}
+
+header {
+  display: grid;
+  grid-template-columns: 40px 1fr 140px;
+  align-items: center;
+  padding: 0 8px;
+  gap: 0;
+  position: relative;
+}
+
+.logo-menu {
+  width: 32px; /* Más pequeño aún */
+  height: auto;
+  justify-self: start;
+}
+
+header h1 {
+  text-align: center;
+  margin: 0 auto;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.logout-btn {
+  background-color: #a32020;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  justify-self: end;
+}
+
+.logout-btn:hover {
+  background-color: #cc2e2e;
+}
+
+.menu-grid {
+  margin-top: 60px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.menu-grid button {
+  background-color: #1a1a1a;
+  color: white;
+  font-size: 1.2rem;
+  border: 2px solid #a32020;
+  border-radius: 8px;
+  padding: 20px 40px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.menu-grid button:hover {
+  background-color: #a32020;
+}

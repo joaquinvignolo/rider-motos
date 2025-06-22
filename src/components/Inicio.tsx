@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import './Inicio.css';
-import riderLogo from '../assets/rider-logo.png'; // Importa el logo
+import riderLogo from '../assets/rider-logo.png';
 
 function Inicio() {
   return (

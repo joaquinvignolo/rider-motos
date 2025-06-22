@@ -1,25 +1,27 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
-import riderLogo from '../assets/rider-logo.png'; // Importa el logo
+
+const usuarioValido = 'admin';
+const contrasenaValida = '1234';
 
 function Login() {
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
 
+  const navigate = useNavigate();
+  const [error, setError] = useState('');
+
   const handleLogin = () => {
-    if (usuario === 'admin' && contrasena === '1234') {
-      alert('Inicio de sesión exitoso');
-      // Aquí podrías redirigir a otro componente con useNavigate()
+    if (usuario === usuarioValido && contrasena === contrasenaValida) {
+      navigate('/menu');
     } else {
-      alert('Usuario o contraseña incorrectos');
+      setError('Usuario o contraseña incorrectos');
     }
   };
 
   return (
     <div className="login">
-      <div className="login-logo">
-        <img src={riderLogo} alt="Rider Motos" />
-      </div>
       <div className="login-form">
         <h2>INICIO DE SESIÓN</h2>
         <input
@@ -35,6 +37,7 @@ function Login() {
           onChange={(e) => setContrasena(e.target.value)}
         />
         <button onClick={handleLogin}>INICIAR</button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>
     </div>
   );
