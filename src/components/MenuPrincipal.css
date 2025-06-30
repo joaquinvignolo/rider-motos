@@ -1,10 +1,8 @@
-/* Evita el scroll en toda la página */
 body, html {
   overflow: hidden;
   height: 100%;
 }
 
-/* ...existing code... */
 .menu-principal {
   display: flex;
   flex-direction: column;
@@ -13,7 +11,6 @@ body, html {
   background: linear-gradient(135deg, #181818cc 60%, #232526cc 100%);
   color: white;
   overflow: hidden;
-  /* Elimina cualquier background-image aquí */
 }
 
 .menu-principal::before {
@@ -21,9 +18,9 @@ body, html {
   position: absolute;
   inset: 0;
   background: url("../assets/rider-logo.png") no-repeat center center;
-  background-size: cover;      /* Ocupa toda la pantalla */
+  background-size: cover;      
   opacity: 0.12;
-  filter: blur(6px);           /* Difuminado */
+  filter: blur(6px);          
   z-index: 0;
   pointer-events: none;
 }
@@ -33,7 +30,7 @@ body, html {
   display: flex;
   flex-direction: column;
 }
-/* HEADER Y TITULO CENTRADO */
+
 header {
   width: 100%;
   display: flex;
@@ -42,27 +39,26 @@ header {
   justify-content: center;
   position: relative;
   margin-top: 0;
-  min-height: 120px; /* Asegura espacio para el logo y el botón */
+  min-height: 120px; 
 }
 
 header h1 {
   flex: 1;
   text-align: center;
-  margin: 0;              /* Quita el margin-top aquí */
+  margin: 0;              
   font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: 1.5px;
   align-self: center;
 }
 
-/* El espaciado y el estilo solo en el rectángulo */
 .header-title-box {
   background: linear-gradient(135deg, #232526 60%, #181818 100%);
   border: 3.5px double #a32020;
   border-radius: 22px;
   box-shadow: 0 8px 36px 0 rgba(163,32,32,0.16), 0 2px 0 #a32020 inset;
   padding: 28px 48px;
-  margin: 80px auto 36px auto;   /* Solo aquí el margen superior */
+  margin: 80px auto 36px auto;   
   display: inline-block;
   max-width: 380px;
   width: 100%;
@@ -78,7 +74,6 @@ header h1 {
   font-family: 'Segoe UI', 'Arial', sans-serif;
 }
 
-/* Footer moderno */
 .footer {
   width: 100%;
   background: rgba(20, 20, 20, 0.98);
@@ -93,30 +88,29 @@ header h1 {
   position: relative;
 }
 
-/* BOTONES CENTRADOS EN EL MEDIO */
 .menu-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
   justify-items: center;
   justify-content: center;
-  margin: 180px auto 0 auto; /* Antes 380px, ahora más arriba */
+  margin: 180px auto 0 auto; 
   width: auto;
 }
 
 .menu-grid button {
   background: #1a1a1a;
   color: white;
-  font-size: 1.5rem;      /* Más grande */
+  font-size: 1.5rem;     
   border: 2px solid #a32020;
   border-radius: 12px;
-  padding: 22px 0;        /* Más alto */
+  padding: 22px 0;       
   cursor: pointer;
   font-weight: 600;
   letter-spacing: 1px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  width: 320px;           /* Más ancho */
+  width: 320px;           
   min-width: 200px;
   max-width: 400px;
   margin: 0;
@@ -132,10 +126,9 @@ header h1 {
 .menu-grid button:nth-child(5) {
   grid-column: 1 / span 2;
   justify-self: center;
-  width: 320px;           /* Igual ancho que los otros */
+  width: 320px;          
 }
 
-/* TEXTO MOTIVACIONAL CENTRADO Y ABAJO */
 .motivational-message {
   text-align: center;
   font-size: 1.2rem;
@@ -145,11 +138,10 @@ header h1 {
   max-width: 600px;
   padding: 0 10px;
   text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-  margin: 70px auto 0 auto; /* Subido un poquito */
+  margin: 70px auto 0 auto; 
   display: block;
 }
 
-/* ESTILO PARA EL BOTÓN DE LOGOUT */
 .logout-btn {
   background-color: #a32020;
   color: #fff;
@@ -164,7 +156,7 @@ header h1 {
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
   position: absolute;
   right: 40px;
-  bottom: 80px; /* <-- Más arriba que antes */
+  bottom: 80px; 
   margin: 0;
   z-index: 10;
 }
@@ -197,7 +189,7 @@ header h1 {
   }
   .menu-grid button {
     font-size: 1rem;
-    padding: 10px 0; /* <-- Antes 14px 0, ahora menos alto */
+    padding: 10px 0; 
     border-radius: 8px;
     width: 220px;
     min-width: 140px;
@@ -231,7 +223,7 @@ header h1 {
   }
   .menu-grid button {
     font-size: 0.95rem;
-    padding: 7px 0; /* <-- Antes 10px 0, ahora menos alto */
+    padding: 7px 0; 
     border-radius: 7px;
     width: 150px;
     min-width: 100px;

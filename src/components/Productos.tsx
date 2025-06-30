@@ -17,18 +17,15 @@ const Productos: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
-  // Un estado para cada lista
   const [productosMotos, setProductosMotos] = useState<Producto[]>([]);
   const [productosAccesorios, setProductosAccesorios] = useState<Producto[]>([]);
   const [productosRepuestos, setProductosRepuestos] = useState<Producto[]>([]);
 
-  // Campos del formulario
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [marca, setMarca] = useState("Primera marca");
 
-  // Obtiene la lista y el setter según la sección
   const getProductos = () => {
     if (seccion === "motos") return [productosMotos, setProductosMotos] as const;
     if (seccion === "accesorios") return [productosAccesorios, setProductosAccesorios] as const;
@@ -37,7 +34,6 @@ const Productos: React.FC = () => {
 
   const [productos, setProductos] = getProductos();
 
-  // Abrir modal para agregar o editar
   const handleAgregar = () => {
     setEditId(null);
     setNombre("");
@@ -47,7 +43,6 @@ const Productos: React.FC = () => {
     setShowModal(true);
   };
 
-  // Guardar producto (nuevo o editado)
   const handleGuardar = () => {
     if (!nombre.trim()) return;
     if (editId !== null) {
@@ -69,12 +64,10 @@ const Productos: React.FC = () => {
     setShowModal(false);
   };
 
-  // Eliminar producto
   const handleEliminar = (id: number) => {
     setProductos(productos.filter(p => p.id !== id));
   };
 
-  // Editar producto
   const handleEditar = (producto: Producto) => {
     setEditId(producto.id);
     setNombre(producto.nombre);
@@ -84,7 +77,6 @@ const Productos: React.FC = () => {
     setShowModal(true);
   };
 
-  // Renderiza el modal
   const renderModal = () => (
     <div className="modal-backdrop">
       <div className="modal">
@@ -118,7 +110,6 @@ const Productos: React.FC = () => {
     </div>
   );
 
-  // Renderiza el contenido principal según la sección
   const renderMainContent = () => (
     <>
       <h1>
