@@ -135,6 +135,7 @@ const Productos: React.FC = () => {
           <button className="motos-bar-btn buscar-btn">Buscar</button>
         </div>
       </div>
+      <hr className="separador-productos" />
       {/* Lista de productos */}
       <ul className="productos-lista">
         {productos.map(producto => (
@@ -167,8 +168,37 @@ const Productos: React.FC = () => {
           <button className="sidebar-btn" onClick={() => setSeccion("repuestos")}>Repuestos</button>
         )}
       </aside>
+      <div className="separador-vertical"></div>
       <main className="productos-main">
-        {renderMainContent()}
+        <h1>
+          {seccion === "motos"
+            ? "Motos"
+            : seccion === "accesorios"
+            ? "Accesorios"
+            : "Repuestos"}
+        </h1>
+        <div className="motos-bar">
+          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>Agregar</button>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <button className="motos-bar-btn marcas-btn">Marcas</button>
+            <button className="motos-bar-btn buscar-btn">Buscar</button>
+          </div>
+        </div>
+        <hr className="separador-productos" />
+        {/* Lista de productos */}
+        <ul className="productos-lista">
+          {productos.map(producto => (
+            <li key={producto.id} className="producto-item">
+              <span>{producto.nombre}</span>
+              <div className="producto-actions">
+                <button className="ver-btn motos-bar-btn" onClick={() => alert(JSON.stringify(producto, null, 2))}>Ver</button>
+                <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>Modificar</button>
+                <button className="eliminar-btn motos-bar-btn" onClick={() => handleEliminar(producto.id)}>Eliminar</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {showModal && renderModal()}
       </main>
     </div>
   );
