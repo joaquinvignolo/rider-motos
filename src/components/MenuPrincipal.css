@@ -1,12 +1,31 @@
+/* Evita el scroll en toda la página */
+body, html {
+  overflow: hidden;
+  height: 100%;
+}
+
 /* ...existing code... */
 .menu-principal {
   display: flex;
   flex-direction: column;
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(135deg, #181818 60%, #232526 100%);
+  background: linear-gradient(135deg, #181818cc 60%, #232526cc 100%);
   color: white;
-  padding: 0;
-  box-sizing: border-box;
+  overflow: hidden;
+  /* Elimina cualquier background-image aquí */
+}
+
+.menu-principal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("../assets/rider-logo.png") no-repeat center center;
+  background-size: cover;      /* Ocupa toda la pantalla */
+  opacity: 0.12;
+  filter: blur(6px);           /* Difuminado */
+  z-index: 0;
+  pointer-events: none;
 }
 
 .menu-content {
@@ -14,97 +33,49 @@
   display: flex;
   flex-direction: column;
 }
-
-/* Header moderno y responsive */
+/* HEADER Y TITULO CENTRADO */
 header {
-  display: grid;
-  grid-template-columns: 220px 1fr 140px; /* Ajusta si quieres más equilibrio */
-  align-items: center;
-  justify-items: stretch;
-  padding: 36px 8vw 0 8vw;
-  gap: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
   position: relative;
-  background: rgba(20, 20, 20, 0.98);
-  box-shadow: 0 2px 12px 0 rgba(31, 38, 135, 0.10);
-}
-
-.logo-menu {
-  width: 220px;
-  height: auto;
-  justify-self: start; /* Logo bien a la izquierda */
-  align-self: center;
-  margin-left: -36px; /* Fuerza el logo más a la izquierda */
+  margin-top: 0;
+  min-height: 120px; /* Asegura espacio para el logo y el botón */
 }
 
 header h1 {
+  flex: 1;
   text-align: center;
-  margin: 0 auto;
+  margin: 0;              /* Quita el margin-top aquí */
   font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: 1.5px;
-  justify-self: center; /* Centra el título en la columna central */
+  align-self: center;
 }
 
-.logout-btn {
-  background-color: #a32020;
-  color: white;
-  padding: 10px 22px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  justify-self: end;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-}
-
-.logout-btn:hover {
-  background-color: #cc2e2e;
-  box-shadow: 0 4px 16px rgba(163,32,32,0.18);
-}
-
-/* Grilla moderna y responsive */
-.menu-grid {
-  margin-top: 80px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 28px;
-  padding: 0 5vw;
-}
-
-.menu-grid button {
-  background: #1a1a1a;
-  color: white;
-  font-size: 1.2rem;
-  border: 2px solid #a32020;
-  border-radius: 12px;
-  padding: 28px 0;
-  cursor: pointer;
-  font-weight: 600;
-  letter-spacing: 1px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-}
-
-.menu-grid button:hover {
-  background: #a32020;
+/* El espaciado y el estilo solo en el rectángulo */
+.header-title-box {
+  background: linear-gradient(135deg, #232526 60%, #181818 100%);
+  border: 3.5px double #a32020;
+  border-radius: 22px;
+  box-shadow: 0 8px 36px 0 rgba(163,32,32,0.16), 0 2px 0 #a32020 inset;
+  padding: 28px 48px;
+  margin: 80px auto 36px auto;   /* Solo aquí el margen superior */
+  display: inline-block;
+  max-width: 380px;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  font-size: 2.4rem;
+  font-weight: 800;
   color: #fff;
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 8px 24px rgba(163,32,32,0.18);
-}
-
-/* Mensaje motivacional */
-.motivational-message {
-  margin: 64px auto 0 auto;
+  letter-spacing: 2px;
   text-align: center;
-  font-size: 1.3rem;
-  color: #e0e0e0;
-  font-style: italic;
-  letter-spacing: 1px;
-  max-width: 600px;
-  padding: 0 16px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.22);
+  transition: box-shadow 0.2s, border 0.2s;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
 }
 
 /* Footer moderno */
@@ -120,6 +91,89 @@ header h1 {
   border-top: 1px solid #232526;
   box-shadow: 0 -2px 12px 0 rgba(31, 38, 135, 0.10);
   position: relative;
+}
+
+/* BOTONES CENTRADOS EN EL MEDIO */
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  justify-items: center;
+  justify-content: center;
+  margin: 180px auto 0 auto; /* Antes 380px, ahora más arriba */
+  width: auto;
+}
+
+.menu-grid button {
+  background: #1a1a1a;
+  color: white;
+  font-size: 1.5rem;      /* Más grande */
+  border: 2px solid #a32020;
+  border-radius: 12px;
+  padding: 22px 0;        /* Más alto */
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  width: 320px;           /* Más ancho */
+  min-width: 200px;
+  max-width: 400px;
+  margin: 0;
+}
+
+.menu-grid button:hover {
+  background: #a32020;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(163,32,32,0.18);
+}
+
+.menu-grid button:nth-child(5) {
+  grid-column: 1 / span 2;
+  justify-self: center;
+  width: 320px;           /* Igual ancho que los otros */
+}
+
+/* TEXTO MOTIVACIONAL CENTRADO Y ABAJO */
+.motivational-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #e0e0e0;
+  font-style: italic;
+  letter-spacing: 1px;
+  max-width: 600px;
+  padding: 0 10px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  margin: 70px auto 0 auto; /* Subido un poquito */
+  display: block;
+}
+
+/* ESTILO PARA EL BOTÓN DE LOGOUT */
+.logout-btn {
+  background-color: #a32020;
+  color: #fff;
+  padding: 14px 32px;
+  border: 2px solid #a32020;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  position: absolute;
+  right: 40px;
+  bottom: 80px; /* <-- Más arriba que antes */
+  margin: 0;
+  z-index: 10;
+}
+
+.logout-btn:hover {
+  background: #cc2e2e;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(163,32,32,0.18);
 }
 
 @media (max-width: 900px) {
@@ -138,13 +192,19 @@ header h1 {
     font-size: 0.95rem;
   }
   .menu-grid {
-    gap: 14px;
+    gap: 12px;
     padding: 0 2vw;
   }
   .menu-grid button {
     font-size: 1rem;
-    padding: 14px 0;
+    padding: 10px 0; /* <-- Antes 14px 0, ahora menos alto */
     border-radius: 8px;
+    width: 220px;
+    min-width: 140px;
+    max-width: 260px;
+  }
+  .menu-grid button:nth-child(5) {
+    width: 220px;
   }
   .motivational-message {
     font-size: 1rem;
@@ -171,8 +231,14 @@ header h1 {
   }
   .menu-grid button {
     font-size: 0.95rem;
-    padding: 10px 0;
+    padding: 7px 0; /* <-- Antes 10px 0, ahora menos alto */
     border-radius: 7px;
+    width: 150px;
+    min-width: 100px;
+    max-width: 180px;
+  }
+  .menu-grid button:nth-child(5) {
+    width: 150px;
   }
   .motivational-message {
     font-size: 1rem;

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import './MenuPrincipal.css';
-import riderLogo from '../assets/rider-logo.png';
 
 function MenuPrincipal() {
   const navigate = useNavigate();
@@ -13,9 +12,7 @@ function MenuPrincipal() {
     <div className="menu-principal">
       <div className="menu-content">
         <header>
-          <img src={riderLogo} alt="Rider Motos" className="logo-menu" />
-          <h1>PANEL PRINCIPAL</h1>
-          <button className="logout-btn" onClick={handleLogout}>CERRAR SESIÓN</button>
+          <h1 className="header-title-box">PANEL PRINCIPAL</h1>
         </header>
 
         <main className="menu-grid">
@@ -25,11 +22,12 @@ function MenuPrincipal() {
           <button>PATENTAMIENTOS</button>
           <button>REPORTES</button>
         </main>
-
-        <div className="motivational-message">
-          Gracias por utilizar nuestro sistema. Tu esfuerzo y dedicación son clave para el éxito de Rider Motos.
-        </div>
       </div>
+
+      <div className="motivational-message">
+        Gracias por utilizar nuestro sistema. Tu esfuerzo y dedicación son clave para el éxito de Rider Motos.
+      </div>
+      <button className="logout-btn" onClick={handleLogout}>CERRAR SESIÓN</button>
 
       <footer className="footer">
         <div>
