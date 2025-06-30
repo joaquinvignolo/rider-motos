@@ -44,24 +44,25 @@ body {
 
 .sidebar-btn,
 .motos-bar-btn {
-  width: 180px;
-  padding: 22px 0;
   font-size: 1.3rem;
-  margin-bottom: 0;
-  background: #181818; /* Fondo negro */
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px 0 rgba(163,32,32,0.18), 0 2px 8px rgba(0,0,0,0.10);
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
-  outline: none;
-  position: relative;
-  overflow: hidden;
+  padding: 22px 0;
+  min-width: 220px;
 }
 
 .sidebar-btn {
-  margin-left: 18px; /* Puedes ajustar el valor, por ejemplo 12px, 18px, 24px */
+  background: #353535 !important; /* Gris elegante */
+  color: #fff;
+  margin-left: 32px; /* Mueve los botones un poco a la izquierda */
+  font-size: 1.3rem;
+  padding: 22px 0;
+  min-width: 220px;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
 }
 
 .sidebar-btn:hover,
@@ -192,8 +193,9 @@ body {
 }
 
 .agregar-btn,
-.buscar-btn {
-  background: #181818; /* Fondo negro */
+.buscar-btn,
+.marcas-btn {
+  background: #353535 !important; /* Gris elegante, solo color */
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -284,13 +286,12 @@ body {
 .productos-lista {
   list-style: none;
   padding: 0;
-  margin: 36px 0 0 0;
+  margin: 36px 0 0 80px; /* Más a la derecha */
   width: 100%;
   max-width: none;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  /* Quita align-items: flex-start; */
 }
 
 .producto-item {
@@ -326,16 +327,16 @@ body {
   background: #666;
 }
 .modificar-btn {
-  background: #1a6fa3;
+  background: #1976d2; /* Azul original */
 }
 .modificar-btn:hover {
-  background: #238ad6;
+  background: #1565c0; /* Azul más oscuro al pasar el mouse */
 }
 .eliminar-btn {
-  background: #a32020;
+  background: #d32f2f; /* Rojo original */
 }
 .eliminar-btn:hover {
-  background: #cc2e2e;
+  background: #b71c1c; /* Rojo más oscuro al pasar el mouse */
 }
 .separador-productos {
   border: none;
@@ -354,4 +355,29 @@ body {
   height: 100vh;
   min-height: 100%;
   margin: 0;
+}
+
+.productos-grid button {
+  background: #353535; /* Gris elegante */
+  color: white;
+  font-size: 1.5rem;
+  border: 2px solid #a32020;
+  border-radius: 12px;
+  padding: 22px 0;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  width: 320px;
+  min-width: 200px;
+  max-width: 400px;
+  margin: 0;
+}
+
+.productos-grid button:hover {
+  background: #a32020;
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(163,32,32,0.18);
 }

@@ -105,18 +105,18 @@ header h1 {
 }
 
 .menu-grid button {
-  background: #1a1a1a;
+  background: #353535; /* Antes #1a1a1a, ahora más gris */
   color: white;
-  font-size: 1.5rem;      /* Más grande */
+  font-size: 1.5rem;
   border: 2px solid #a32020;
   border-radius: 12px;
-  padding: 22px 0;        /* Más alto */
+  padding: 22px 0;
   cursor: pointer;
   font-weight: 600;
   letter-spacing: 1px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  width: 320px;           /* Más ancho */
+  width: 320px;
   min-width: 200px;
   max-width: 400px;
   margin: 0;
