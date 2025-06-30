@@ -1,0 +1,223 @@
+.productos-container {
+  display: flex;
+  height: 100vh;
+  background: linear-gradient(135deg, #181818 60%, #232526 100%);
+  color: white;
+}
+
+.productos-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  height: 100vh;
+  padding: 32px 24px 0 24px;
+  background: #202020;
+  min-width: 220px;
+  gap: 56px; /* Más separación entre los botones */
+  box-shadow: 2px 0 12px rgba(0,0,0,0.10);
+}
+
+.logo-productos {
+  width: 220px;         /* Más grande */
+  height: auto;
+  margin-bottom: 40px;
+  margin-top: 0;
+  align-self: flex-start;
+  display: block;
+}
+
+.sidebar-btn {
+  width: 180px;
+  padding: 22px 0;
+  font-size: 1.3rem;
+  margin-bottom: 0;
+  background: #a32020;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.sidebar-btn:disabled {
+  background: #444;
+  cursor: not-allowed;
+}
+
+.productos-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 60px 32px 0 32px;
+}
+
+.productos-main h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  letter-spacing: 1.5px;
+}
+
+.motos-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;    /* Más ancho para mayor separación */
+  margin: 32px auto 24px auto; /* Baja los botones respecto al título */
+  padding: 0 120px;     /* Más espacio a los costados */
+}
+
+.motos-bar-left {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.motos-bar-right {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.motos-bar-btn {
+  padding: 18px 60px;      /* Más ancho y alto */
+  font-size: 1.25rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background: #a32020;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  margin: 0 8px;
+  min-width: 150px;        /* Asegura que sean bien anchos */
+}
+
+.motos-bar-btn:hover {
+  background: #cc2e2e;
+  transform: scale(1.04);
+}
+
+.buscar-btn {
+  background: #232526;
+  color: #fff;
+}
+
+.buscar-btn:hover {
+  background: #444;
+}
+
+.agregar-btn {
+  /* Puedes personalizar si quieres otro color */
+}
+
+.marcas-btn {
+  /* Puedes personalizar si quieres otro color */
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #232526;
+  padding: 32px 28px;
+  border-radius: 16px;
+  min-width: 320px;
+  max-width: 90vw;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.1rem;
+  gap: 6px;
+}
+
+.modal input, .modal select {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.productos-lista {
+  list-style: none;
+  padding: 0;
+  margin: 36px 0 0 0;
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* Quita align-items: flex-start; */
+}
+
+.producto-item {
+  background: #181818;
+  border-radius: 10px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px; /* Más espacio entre nombre y botones */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  width: 100%;
+}
+
+.producto-item span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: left;
+  min-width: 120px; /* Puedes ajustar el mínimo si quieres */
+  word-break: break-word;
+}
+
+.producto-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;         /* Los botones no se encogen */
+}
+
+.ver-btn {
+  background: #444;
+}
+.ver-btn:hover {
+  background: #666;
+}
+.modificar-btn {
+  background: #1a6fa3;
+}
+.modificar-btn:hover {
+  background: #238ad6;
+}
+.eliminar-btn {
+  background: #a32020;
+}
+.eliminar-btn:hover {
+  background: #cc2e2e;
+}

@@ -19,7 +19,7 @@ function MenuPrincipal() {
         </header>
 
         <main className="menu-grid">
-          <button>PRODUCTOS</button>
+          <button onClick={() => navigate("/productos")}>PRODUCTOS</button>
           <button>CLIENTES</button>
           <button>VENTAS</button>
           <button>PATENTAMIENTOS</button>

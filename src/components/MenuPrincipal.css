@@ -1,3 +1,4 @@
+/* ...existing code... */
 .menu-principal {
   display: flex;
   flex-direction: column;
@@ -17,9 +18,10 @@
 /* Header moderno y responsive */
 header {
   display: grid;
-  grid-template-columns: 80px 1fr 140px;
+  grid-template-columns: 220px 1fr 140px; /* Ajusta si quieres más equilibrio */
   align-items: center;
-  padding: 24px 5vw 0 5vw;
+  justify-items: stretch;
+  padding: 36px 8vw 0 8vw;
   gap: 0;
   position: relative;
   background: rgba(20, 20, 20, 0.98);
@@ -27,17 +29,20 @@ header {
 }
 
 .logo-menu {
-  width: 60px;
+  width: 220px;
   height: auto;
-  justify-self: start;
+  justify-self: start; /* Logo bien a la izquierda */
+  align-self: center;
+  margin-left: -36px; /* Fuerza el logo más a la izquierda */
 }
 
 header h1 {
   text-align: center;
   margin: 0 auto;
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  justify-self: center; /* Centra el título en la columna central */
 }
 
 .logout-btn {
@@ -61,7 +66,7 @@ header h1 {
 
 /* Grilla moderna y responsive */
 .menu-grid {
-  margin-top: 60px;
+  margin-top: 80px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 28px;
@@ -91,7 +96,7 @@ header h1 {
 
 /* Mensaje motivacional */
 .motivational-message {
-  margin: 48px auto 0 auto;
+  margin: 64px auto 0 auto;
   text-align: center;
   font-size: 1.3rem;
   color: #e0e0e0;
@@ -111,7 +116,7 @@ header h1 {
   padding: 24px 8px 16px 8px;
   font-size: 1rem;
   letter-spacing: 1px;
-  margin-top: 48px;
+  margin-top: 64px;
   border-top: 1px solid #232526;
   box-shadow: 0 -2px 12px 0 rgba(31, 38, 135, 0.10);
   position: relative;
@@ -119,11 +124,11 @@ header h1 {
 
 @media (max-width: 900px) {
   header {
-    grid-template-columns: 50px 1fr 90px;
+    grid-template-columns: 80px 1fr 90px;
     padding: 18px 2vw 0 2vw;
   }
   .logo-menu {
-    width: 38px;
+    width: 60px;
   }
   header h1 {
     font-size: 1.1rem;
@@ -154,11 +159,11 @@ header h1 {
 
 @media (max-width: 600px) {
   header {
-    grid-template-columns: 32px 1fr 60px;
+    grid-template-columns: 48px 1fr 60px;
     padding: 10px 1vw 0 1vw;
   }
   .logo-menu {
-    width: 24px;
+    width: 36px;
   }
   .menu-grid {
     gap: 8px;
