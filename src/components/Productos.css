@@ -297,12 +297,14 @@ body {
 .producto-item {
   background: #181818;
   border-radius: 10px;
-  padding: 18px 24px;
+  padding: 14px 12px;         /* Menos padding lateral */
   display: flex;
   align-items: center;
-  gap: 24px; /* Más espacio entre nombre y botones */
+  justify-content: space-between;
+  gap: 12px;                  /* Menos separación */
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  width: 100%;
+  width: 98%;                 /* Un poco menos de ancho */
+  max-width: 900px;           /* Limita el ancho máximo */
 }
 
 .producto-item span {
@@ -316,8 +318,8 @@ body {
 
 .producto-actions {
   display: flex;
-  gap: 10px;
-  flex-shrink: 0;         /* Los botones no se encogen */
+  gap: 6px;                   /* Menos separación entre botones */
+  flex-shrink: 0;
 }
 
 .ver-btn {
@@ -380,4 +382,9 @@ body {
   color: #fff;
   transform: translateY(-2px) scale(1.04);
   box-shadow: 0 8px 24px rgba(163,32,32,0.18);
+}
+
+.producto-sin-stock {
+  background: linear-gradient(90deg, #ff8a8a 0%, #181818 100%);
+  color: #a32020;
 }
