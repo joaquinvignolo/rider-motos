@@ -327,11 +327,12 @@ body {
 .producto-descripcion {
   font-size: 1rem;
   color: #bbb;
-  margin: 0 18px;
+  margin-left: 18px;
   max-width: 320px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
 .producto-actions {

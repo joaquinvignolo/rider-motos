@@ -426,6 +426,7 @@ const Productos: React.FC = () => {
             }
           >
             <span>{producto.nombre}</span>
+            <span className="producto-descripcion">{producto.descripcion}</span>
             <div className="producto-actions">
               <button className="ver-btn motos-bar-btn" onClick={() => {
                 setProductoSeleccionado(producto);
@@ -704,6 +705,7 @@ const Productos: React.FC = () => {
               }
             >
               <span>{producto.nombre}</span>
+              <span className="producto-descripcion">{producto.descripcion}</span>
               <div className="producto-actions">
                 <button className="ver-btn motos-bar-btn" onClick={() => {
                   setProductoSeleccionado(producto);
