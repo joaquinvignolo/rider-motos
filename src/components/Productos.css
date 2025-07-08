@@ -240,12 +240,12 @@ body {
 
 .modal-backdrop {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
 }
 
 .modal {
@@ -259,6 +259,14 @@ body {
   flex-direction: column;
   gap: 18px;
   box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+}
+
+.modal.mini-modal {
+  background: #232526;
+  border-radius: 16px;
+  padding: 32px 28px 24px 28px;
+  min-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
 
 .modal label {
@@ -297,14 +305,14 @@ body {
 .producto-item {
   background: #181818;
   border-radius: 10px;
-  padding: 14px 12px;         /* Menos padding lateral */
+  padding: 14px 120px 14px 12px; /* padding-right aumentado a 120px */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;                  /* Menos separación */
+  gap: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  width: 98%;                 /* Un poco menos de ancho */
-  max-width: 900px;           /* Limita el ancho máximo */
+  width: 98%;
+  max-width: 900px;
 }
 
 .producto-item span {
@@ -314,6 +322,16 @@ body {
   text-align: left;
   min-width: 120px; /* Puedes ajustar el mínimo si quieres */
   word-break: break-word;
+}
+
+.producto-descripcion {
+  font-size: 1rem;
+  color: #bbb;
+  margin: 0 18px;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .producto-actions {
@@ -387,4 +405,15 @@ body {
 .producto-sin-stock {
   background: linear-gradient(90deg, #ff8a8a 0%, #181818 100%);
   color: #a32020;
+}
+
+.producto-con-stock {
+  background: #232526; /* Gris oscuro */
+  color: #fff;
+}
+
+.proveedor-btn {
+  background: #353535;
+  color: #fff;
+  margin-right: 8px;
 }
