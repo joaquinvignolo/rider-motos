@@ -2,9 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
-const usuarioValido = 'admin';
-const contrasenaValida = '1234';
-
 function Login() {
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -12,11 +9,20 @@ function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    if (usuario === usuarioValido && contrasena === contrasenaValida) {
-      navigate('/menu');
-    } else {
-      setError('Usuario o contraseña incorrectos');
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, contrasena }),
+      });
+      if (response.ok) {
+        navigate('/menu');
+      } else {
+        setError('Usuario o contraseña incorrectos');
+      }
+    } catch (err) {
+      setError('Error de conexión con el servidor');
     }
   };
 
