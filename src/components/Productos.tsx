@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import riderLogo from "../assets/rider-logo.png";
 import "./Productos.css";
 
-// Agrega proveedor al tipo Producto
+// Tipo de producto
 type Producto = {
   id: number;
   nombre: string;
@@ -11,7 +11,18 @@ type Producto = {
   cantidad: string;
   marca: string;
   descripcion: string;
-  proveedor?: string; // Nuevo campo
+  proveedor?: string;
+  tipo: "moto" | "accesorio" | "repuesto";
+};
+
+type Marca = {
+  id: number;
+  nombre: string;
+};
+
+type Proveedor = {
+  id: number;
+  nombre: string;
 };
 
 const Productos: React.FC = () => {
@@ -23,18 +34,18 @@ const Productos: React.FC = () => {
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(null);
 
-  // Un estado para cada lista
-  const [productosMotos, setProductosMotos] = useState<Producto[]>([]);
-  const [productosAccesorios, setProductosAccesorios] = useState<Producto[]>([]);
-  const [productosRepuestos, setProductosRepuestos] = useState<Producto[]>([]);
+  // Listas desde la base de datos
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
 
   // Campos del formulario
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [cantidad, setCantidad] = useState("");
-  const [marca, setMarca] = useState("Primera marca");
+  const [marca, setMarca] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [proveedor, setProveedor] = useState("OKN");
+  const [proveedor, setProveedor] = useState("");
 
   const [filtroMarca, setFiltroMarca] = useState<string | null>(null);
   const [mostrarFiltroMarcas, setMostrarFiltroMarcas] = useState(false);
@@ -45,14 +56,30 @@ const Productos: React.FC = () => {
   const [filtroProveedor, setFiltroProveedor] = useState<string | null>(null);
   const [mostrarFiltroProveedor, setMostrarFiltroProveedor] = useState(false);
 
-  // Obtiene la lista y el setter según la sección
-  const getProductos = () => {
-    if (seccion === "motos") return [productosMotos, setProductosMotos] as const;
-    if (seccion === "accesorios") return [productosAccesorios, setProductosAccesorios] as const;
-    return [productosRepuestos, setProductosRepuestos] as const;
-  };
+  // Cargar productos, marcas y proveedores desde el backend
+  useEffect(() => {
+    fetch("http://localhost:3001/api/productos?tipo=" + (
+      seccion === "motos" ? "moto" :
+      seccion === "accesorios" ? "accesorio" :
+      "repuesto"
+    ))
+      .then(res => res.json())
+      .then(data => setProductos(data));
+  }, [seccion]);
 
-  const [productos, setProductos] = getProductos();
+  useEffect(() => {
+    fetch("http://localhost:3001/api/marcas")
+      .then(res => res.json())
+      .then(data => setMarcas(data));
+  }, []);
+
+  useEffect(() => {
+    if (seccion === "repuestos") {
+      fetch("http://localhost:3001/api/proveedores")
+        .then(res => res.json())
+        .then(data => setProveedores(data));
+    }
+  }, [seccion]);
 
   // Abrir modal para agregar o editar
   const handleAgregar = () => {
@@ -60,48 +87,50 @@ const Productos: React.FC = () => {
     setNombre("");
     setPrecio("");
     setCantidad("");
-    setMarca("Primera marca");
+    setMarca("");
     setDescripcion("");
-    setProveedor("OKN");
+    setProveedor("");
     setShowModal(true);
   };
 
   // Guardar producto (nuevo o editado)
-  const handleGuardar = () => {
-    if (!nombre.trim()) return;
+  const handleGuardar = async () => {
+    if (!nombre.trim() || !marca.trim()) return;
+    const nuevoProducto: Producto = {
+      id: editId ?? 0,
+      nombre,
+      precio,
+      cantidad,
+      marca,
+      descripcion,
+      tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
+      ...(seccion === "repuestos" ? { proveedor } : {})
+    };
+
     if (editId !== null) {
-      setProductos(productos.map(p =>
-        p.id === editId
-          ? {
-              ...p,
-              nombre,
-              precio,
-              cantidad,
-              marca,
-              descripcion,
-              ...(seccion === "repuestos" ? { proveedor } : {}) // <-- agrega proveedor solo en repuestos
-            }
-          : p
-      ));
+      // Editar producto
+      await fetch(`http://localhost:3001/api/productos/${editId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoProducto)
+      });
+      setProductos(productos.map(p => p.id === editId ? { ...nuevoProducto, id: editId } : p));
     } else {
-      setProductos([
-        ...productos,
-        {
-          id: Date.now(),
-          nombre,
-          precio,
-          cantidad,
-          marca,
-          descripcion,
-          ...(seccion === "repuestos" ? { proveedor } : {}) // <-- agrega proveedor solo en repuestos
-        },
-      ]);
+      // Agregar producto
+      const res = await fetch("http://localhost:3001/api/productos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoProducto)
+      });
+      const data = await res.json();
+      setProductos([...productos, { ...nuevoProducto, id: data.id }]);
     }
     setShowModal(false);
   };
 
   // Eliminar producto
-  const handleEliminar = (id: number) => {
+  const handleEliminar = async (id: number) => {
+    await fetch(`http://localhost:3001/api/productos/${id}`, { method: "DELETE" });
     setProductos(productos.filter(p => p.id !== id));
   };
 
@@ -113,7 +142,7 @@ const Productos: React.FC = () => {
     setCantidad(producto.cantidad);
     setMarca(producto.marca);
     setDescripcion(producto.descripcion);
-    setProveedor(producto.proveedor);
+    setProveedor(producto.proveedor ?? "");
     setShowModal(true);
   };
 
@@ -127,7 +156,7 @@ const Productos: React.FC = () => {
   const renderModal = () => (
     <div className="modal-backdrop">
       <div className="modal">
-        <h2>Agregar {seccion === "motos" ? "Moto" : seccion === "accesorios" ? "Accesorio" : "Repuesto"}</h2>
+        <h2>{editId !== null ? "Modificar" : "Agregar"} {seccion === "motos" ? "Moto" : seccion === "accesorios" ? "Accesorio" : "Repuesto"}</h2>
         <label>
           Nombre {seccion === "motos" ? "de la moto" : seccion === "accesorios" ? "del accesorio" : "del repuesto"}:
           <input value={nombre} onChange={e => setNombre(e.target.value)} />
@@ -143,28 +172,8 @@ const Productos: React.FC = () => {
         <label>
           Marca:
           <select value={marca} onChange={e => setMarca(e.target.value)}>
-            {seccion === "motos" ? (
-              <>
-                <option>Keller</option>
-                <option>Yamaha</option>
-                <option>Honda</option>
-                <option>Suzuki</option>
-                <option>Bajaj</option>
-                <option>Corven</option>
-                <option>Gilera</option>
-                <option>Motomel</option>
-                <option>Voge</option>
-                <option>Zanella</option>
-                <option>Guerrero</option>
-                <option>Siam</option>
-                <option>Brava</option>
-              </>
-            ) : (
-              <>
-                <option>Primera marca</option>
-                <option>Segunda marca</option>
-              </>
-            )}
+            <option value="">Seleccionar marca</option>
+            {marcas.map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
           </select>
         </label>
         <label>
@@ -180,8 +189,8 @@ const Productos: React.FC = () => {
           <label>
             Proveedor:
             <select value={proveedor} onChange={e => setProveedor(e.target.value)}>
-              <option>OKN</option>
-              <option>Tablada</option>
+              <option value="">Seleccionar proveedor</option>
+              {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
             </select>
           </label>
         )}
@@ -201,25 +210,25 @@ const Productos: React.FC = () => {
       <div className="modal mini-modal">
         <h2 style={{marginBottom: 12, color: "#a32020"}}>Detalle</h2>
         <div>
-          <strong>Nombre:</strong> {productoSeleccionado.nombre}
+          <strong>Nombre:</strong> {productoSeleccionado?.nombre}
         </div>
         <div>
-          <strong>Descripción:</strong> {productoSeleccionado.descripcion}
+          <strong>Descripción:</strong> {productoSeleccionado?.descripcion}
         </div>
         <div>
-          <strong>Marca:</strong> {productoSeleccionado.marca}
+          <strong>Marca:</strong> {productoSeleccionado?.marca}
         </div>
         <div>
-          <strong>Cantidad:</strong> {productoSeleccionado.cantidad}
+          <strong>Cantidad:</strong> {productoSeleccionado?.cantidad}
         </div>
         {seccion === "repuestos" && (
           <div>
-            <strong>Proveedor:</strong> {productoSeleccionado.proveedor}
+            <strong>Proveedor:</strong> {productoSeleccionado?.proveedor}
           </div>
         )}
         {seccion === "motos" && (
           <div>
-            <strong>Precio:</strong> ${productoSeleccionado.precio}
+            <strong>Precio:</strong> ${productoSeleccionado?.precio}
           </div>
         )}
         <button
@@ -233,263 +242,9 @@ const Productos: React.FC = () => {
     </div>
   );
 
-  // Renderiza el contenido principal según la sección
-  const renderMainContent = () => (
-    <>
-      <h1>
-        {seccion === "motos"
-          ? "Motos"
-          : seccion === "accesorios"
-          ? "Accesorios"
-          : "Repuestos"}
-      </h1>
-      <div className="motos-bar">
-        <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>Agregar</button>
-        <div style={{ display: "flex", gap: "16px" }}>
-          {/* Botón Proveedor (solo habilitado en repuestos) */}
-          <div style={{ position: "relative" }}>
-            <button
-              className="motos-bar-btn proveedor-btn"
-              disabled={seccion !== "repuestos"}
-              style={{
-                opacity: seccion === "repuestos" ? 1 : 0.5,
-                cursor: seccion === "repuestos" ? "pointer" : "not-allowed"
-              }}
-              onClick={() => setMostrarFiltroProveedor(p => !p)}
-            >
-              Proveedor
-            </button>
-            {mostrarFiltroProveedor && seccion === "repuestos" && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "110%",
-                  left: 0,
-                  background: "#232526",
-                  border: "1px solid #a32020",
-                  borderRadius: 8,
-                  zIndex: 10,
-                  padding: 8,
-                  minWidth: 120,
-                }}
-              >
-                <button
-                  style={{
-                    background: filtroProveedor === null ? "#a32020" : "#353535",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 12px",
-                    marginBottom: 4,
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setFiltroProveedor(null)}
-                >
-                  Todos
-                </button>
-                <button
-                  style={{
-                    background: filtroProveedor === "OKN" ? "#a32020" : "#353535",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 12px",
-                    marginBottom: 4,
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setFiltroProveedor("OKN")}
-                >
-                  OKN
-                </button>
-                <button
-                  style={{
-                    background: filtroProveedor === "Tablada" ? "#a32020" : "#353535",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 12px",
-                    marginBottom: 4,
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setFiltroProveedor("Tablada")}
-                >
-                  Tablada
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Botón Marcas */}
-          <div style={{ position: "relative" }}>
-            <button
-              className="motos-bar-btn marcas-btn"
-              onClick={() => setMostrarFiltroMarcas(m => !m)}
-            >
-              Marcas
-            </button>
-            {mostrarFiltroMarcas && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "110%",
-                  left: 0,
-                  background: "#232526",
-                  border: "1px solid #a32020",
-                  borderRadius: 8,
-                  zIndex: 10,
-                  padding: 8,
-                  minWidth: 120,
-                }}
-              >
-                <button
-                  style={{
-                    background: filtroMarca === null ? "#a32020" : "#353535",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 12px",
-                    marginBottom: 4,
-                    width: "100%",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setFiltroMarca(null)}
-                >
-                  Todas
-                </button>
-                {/* Reemplaza esto por tus marcas reales */}
-                {marcas.map(marca => (
-                  <button
-                    key={marca}
-                    style={{
-                      background: filtroMarca === marca ? "#a32020" : "#353535",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 6,
-                      padding: "6px 12px",
-                      marginBottom: 4,
-                      width: "100%",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setFiltroMarca(marca)}
-                  >
-                    {marca}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Botón Buscar */}
-          <button
-            className="motos-bar-btn buscar-btn"
-            onClick={() => setMostrarBusqueda(b => !b)}
-          >
-            Buscar
-          </button>
-          {mostrarBusqueda && (
-            <input
-              type="text"
-              placeholder="Buscar producto..."
-              value={busqueda}
-              onChange={e => setBusqueda(e.target.value)}
-              style={{
-                marginLeft: 0,
-                marginTop: 12,
-                borderRadius: 6,
-                border: "1px solid #a32020",
-                padding: "6px 12px",
-                background: "#232526",
-                color: "#fff",
-                width: 180,
-                zIndex: 10,
-                display: "block"
-              }}
-              autoFocus
-            />
-          )}
-        </div>
-      </div>
-      <hr className="separador-productos" />
-      {/* Lista de productos */}
-      <ul className="productos-lista">
-        {productosFiltrados.map(producto => (
-          <li
-            key={producto.id}
-            className={
-              `producto-item` +
-              (producto.cantidad === "0"
-                ? " producto-sin-stock"
-                : " producto-con-stock")
-            }
-          >
-            <span>{producto.nombre}</span>
-            <span className="producto-descripcion">{producto.descripcion}</span>
-            <div className="producto-actions">
-              <button className="ver-btn motos-bar-btn" onClick={() => {
-                setProductoSeleccionado(producto);
-                setShowVerModal(true);
-              }}>
-                Ver
-              </button>
-              <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>Modificar</button>
-              <button
-                className="eliminar-btn motos-bar-btn"
-                onClick={() => setProductoAEliminar(producto)}
-              >
-                Eliminar
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      {showModal && renderModal()}
-      {showVerModal && productoSeleccionado && renderVerModal()}
-      {productoAEliminar && (
-        <div className="modal-backdrop">
-          <div className="modal mini-modal" style={{textAlign: "center"}}>
-            <h2 style={{color: "#a32020", marginBottom: 18}}>¿Estás seguro?</h2>
-            <p style={{marginBottom: 24, color: "#fff"}}>
-              Vas a eliminar <b>{productoAEliminar.nombre}</b>.<br />
-              Esta acción no se puede deshacer.
-            </p>
-            <div style={{display: "flex", justifyContent: "center", gap: 16}}>
-              <button
-                className="eliminar-btn motos-bar-btn"
-                style={{minWidth: 110}}
-                onClick={() => {
-                  handleEliminar(productoAEliminar.id);
-                  setProductoAEliminar(null);
-                }}
-              >
-                Eliminar
-              </button>
-              <button
-                className="motos-bar-btn"
-                style={{background: "#353535", minWidth: 110}}
-                onClick={() => setProductoAEliminar(null)}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-
-  const marcas =
-    seccion === "repuestos"
-      ? ["Primera marca", "Segunda marca"]
-      : [
-          "Keller", "Yamaha", "Honda", "Suzuki", "Bajaj", "Corven", "Gilera",
-          "Motomel", "Voge", "Zanella", "Guerrero", "Siam", "Brava"
-        ];
-
+  // Filtrado de productos
   const productosFiltrados = productos.filter(producto => {
-    const coincideMarca = !filtroMarca || producto.marca === filtroMarca;
+    const coincideMarca = !filtroMarca || producto.marca === filtroMarca || producto.marca == null;
     const coincideBusqueda =
       !busqueda ||
       producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
@@ -567,36 +322,24 @@ const Productos: React.FC = () => {
                   >
                     Todos
                   </button>
-                  <button
-                    style={{
-                      background: filtroProveedor === "OKN" ? "#a32020" : "#353535",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 6,
-                      padding: "6px 12px",
-                      marginBottom: 4,
-                      width: "100%",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setFiltroProveedor("OKN")}
-                  >
-                    OKN
-                  </button>
-                  <button
-                    style={{
-                      background: filtroProveedor === "Tablada" ? "#a32020" : "#353535",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 6,
-                      padding: "6px 12px",
-                      marginBottom: 4,
-                      width: "100%",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setFiltroProveedor("Tablada")}
-                  >
-                    Tablada
-                  </button>
+                  {proveedores.map(p => (
+                    <button
+                      key={p.id}
+                      style={{
+                        background: filtroProveedor === p.nombre ? "#a32020" : "#353535",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        marginBottom: 4,
+                        width: "100%",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setFiltroProveedor(p.nombre)}
+                    >
+                      {p.nombre}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -638,25 +381,43 @@ const Productos: React.FC = () => {
                   >
                     Todas
                   </button>
-                  {/* Reemplaza esto por tus marcas reales */}
-                  {marcas.map(marca => (
-                    <button
-                      key={marca}
-                      style={{
-                        background: filtroMarca === marca ? "#a32020" : "#353535",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 6,
-                        padding: "6px 12px",
-                        marginBottom: 4,
-                        width: "100%",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => setFiltroMarca(marca)}
-                    >
-                      {marca}
-                    </button>
-                  ))}
+                  {seccion === "motos"
+                    ? marcas.map(m => (
+                        <button
+                          key={m.id}
+                          style={{
+                            background: filtroMarca === m.nombre ? "#a32020" : "#353535",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "6px 12px",
+                            marginBottom: 4,
+                            width: "100%",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setFiltroMarca(m.nombre)}
+                        >
+                          {m.nombre}
+                        </button>
+                      ))
+                    : ["Primera marca", "Segunda marca"].map(m => (
+                        <button
+                          key={m}
+                          style={{
+                            background: filtroMarca === m ? "#a32020" : "#353535",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "6px 12px",
+                            marginBottom: 4,
+                            width: "100%",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setFiltroMarca(m)}
+                        >
+                          {m}
+                        </button>
+                      ))}
                 </div>
               )}
             </div>
@@ -707,10 +468,7 @@ const Productos: React.FC = () => {
               <span>{producto.nombre}</span>
               <span className="producto-descripcion">{producto.descripcion}</span>
               <div className="producto-actions">
-                <button className="ver-btn motos-bar-btn" onClick={() => {
-                  setProductoSeleccionado(producto);
-                  setShowVerModal(true);
-                }}>
+                <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)}>
                   Ver
                 </button>
                 <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>Modificar</button>
