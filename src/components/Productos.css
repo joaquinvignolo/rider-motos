@@ -335,6 +335,15 @@ body {
   vertical-align: middle;
 }
 
+.producto-previsualizacion {
+  display: block;
+  font-size: 0.95rem;
+  color: #e0e0e0;
+  margin-left: 18px;
+  margin-top: 2px;
+  letter-spacing: 1px;
+}
+
 .producto-actions {
   display: flex;
   gap: 6px;                   /* Menos separación entre botones */
@@ -417,4 +426,16 @@ body {
   background: #353535;
   color: #fff;
   margin-right: 8px;
+}
+
+.inicio-btn {
+  background: #a32020;
+  color: #fff;
+  font-weight: bold;
+  border: 2px solid #fff;
+  letter-spacing: 2px;
+}
+.inicio-btn:hover {
+  background: #fff;
+  color: #a32020;
 }

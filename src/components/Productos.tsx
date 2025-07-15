@@ -257,16 +257,33 @@ const Productos: React.FC = () => {
     <div className="productos-container">
       <aside className="productos-sidebar">
         <img src={riderLogo} alt="Rider Motos" className="logo-productos" />
-        <button className="sidebar-btn" onClick={() => navigate("/menu")}>Inicio</button>
-        {seccion !== "motos" && (
-          <button className="sidebar-btn" onClick={() => setSeccion("motos")}>Motos</button>
-        )}
-        {seccion !== "accesorios" && (
-          <button className="sidebar-btn" onClick={() => setSeccion("accesorios")}>Accesorios</button>
-        )}
-        {seccion !== "repuestos" && (
-          <button className="sidebar-btn" onClick={() => setSeccion("repuestos")}>Repuestos</button>
-        )}
+        <button
+          className={`sidebar-btn${seccion === "todos" ? " activo" : ""}`}
+          onClick={() => setSeccion("todos")}
+        >
+          TODOS
+        </button>
+        <button
+          className={`sidebar-btn${seccion === "motos" ? " activo" : ""}`}
+          onClick={() => setSeccion("motos")}
+        >
+          MOTOS
+        </button>
+        <button
+          className={`sidebar-btn${seccion === "accesorios" ? " activo" : ""}`}
+          onClick={() => setSeccion("accesorios")}
+        >
+          ACCESORIOS
+        </button>
+        <button
+          className={`sidebar-btn${seccion === "repuestos" ? " activo" : ""}`}
+          onClick={() => setSeccion("repuestos")}
+        >
+          REPUESTOS
+        </button>
+        <button className="sidebar-btn inicio-btn" onClick={() => navigate("/menu")}>
+          INICIO
+        </button>
       </aside>
       <div className="separador-vertical"></div>
       <main className="productos-main">
@@ -278,7 +295,7 @@ const Productos: React.FC = () => {
             : "Repuestos"}
         </h1>
         <div className="motos-bar">
-          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>Agregar</button>
+          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>AGREGAR</button>
           <div style={{ display: "flex", gap: "16px" }}>
             {/* Botón Proveedor (solo habilitado en repuestos) */}
             <div style={{ position: "relative" }}>
@@ -465,8 +482,11 @@ const Productos: React.FC = () => {
                   : " producto-con-stock")
               }
             >
-              <span>{producto.nombre}</span>
-              <span className="producto-descripcion">{producto.descripcion}</span>
+              <span>{producto.nombre.toUpperCase()}</span>
+              <span className="producto-descripcion">{producto.descripcion.toUpperCase()}</span>
+              <span className="producto-previsualizacion">
+                {producto.marca.toUpperCase()} | STOCK: {producto.cantidad} | ${producto.precio}
+              </span>
               <div className="producto-actions">
                 <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)}>
                   Ver
