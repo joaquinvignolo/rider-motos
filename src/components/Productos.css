@@ -294,9 +294,9 @@ body {
 .productos-lista {
   list-style: none;
   padding: 0;
-  margin: 36px 0 0 80px; /* Más a la derecha */
+  margin: 36px 0 0 60px; /* Mueve el bloque 60px a la derecha */
   width: 100%;
-  max-width: none;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -305,14 +305,14 @@ body {
 .producto-item {
   background: #181818;
   border-radius: 10px;
-  padding: 14px 120px 14px 12px; /* padding-right aumentado a 120px */
+  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  width: 98%;
-  max-width: 900px;
+  width: 100%;
+  max-width: 1150px;        /* Más ancho hacia la derecha */
 }
 
 .producto-item span {
@@ -348,6 +348,10 @@ body {
   display: flex;
   gap: 6px;                   /* Menos separación entre botones */
   flex-shrink: 0;
+}
+
+.producto-actions button {
+  text-transform: uppercase;
 }
 
 .ver-btn {
