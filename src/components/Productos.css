@@ -429,13 +429,18 @@ body {
 }
 
 .inicio-btn {
-  background: #a32020;
-  color: #fff;
-  font-weight: bold;
-  border: 2px solid #fff;
-  letter-spacing: 2px;
-}
-.inicio-btn:hover {
   background: #fff;
   color: #a32020;
+  font-weight: bold;
+  border: 2px solid #a32020;
+  letter-spacing: 2px;
+  box-shadow: 0 0 12px 2px #a32020;
+  font-size: 1.5rem;      /* Más grande */
+  text-transform: uppercase; /* MAYÚSCULA */
+  margin-bottom: 24px;    /* Espacio debajo */
+}
+.inicio-btn:hover {
+  background: #a32020;
+  color: #fff;
+  box-shadow: 0 0 18px 4px #a32020;
 }

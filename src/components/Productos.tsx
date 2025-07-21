@@ -258,10 +258,11 @@ const Productos: React.FC = () => {
       <aside className="productos-sidebar">
         <img src={riderLogo} alt="Rider Motos" className="logo-productos" />
         <button
-          className={`sidebar-btn${seccion === "todos" ? " activo" : ""}`}
-          onClick={() => setSeccion("todos")}
+          className="sidebar-btn inicio-btn"
+          style={{ fontSize: "1.5rem" }}
+          onClick={() => navigate("/menu")}
         >
-          TODOS
+          INICIO
         </button>
         <button
           className={`sidebar-btn${seccion === "motos" ? " activo" : ""}`}
@@ -280,9 +281,6 @@ const Productos: React.FC = () => {
           onClick={() => setSeccion("repuestos")}
         >
           REPUESTOS
-        </button>
-        <button className="sidebar-btn inicio-btn" onClick={() => navigate("/menu")}>
-          INICIO
         </button>
       </aside>
       <div className="separador-vertical"></div>
