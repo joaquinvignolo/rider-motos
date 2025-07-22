@@ -18,7 +18,7 @@ function MenuPrincipal() {
         <main className="menu-grid">
           <button onClick={() => navigate("/productos")}>PRODUCTOS</button>
           <button>CLIENTES</button>
-          <button>VENTAS</button>
+          <button onClick={() => navigate("/ventas")}>VENTAS</button>
           <button>PATENTAMIENTOS</button>
           <button>REPORTES</button>
         </main>

@@ -1,0 +1,178 @@
+.ventas-container {
+  background: linear-gradient(135deg, #181818 60%, #232526 100%);
+  color: #fff;
+  min-height: 100vh;
+  padding: 40px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.venta-form {
+  background: #232526;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  padding: 32px 36px;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.datos-cliente label,
+.resumen-venta label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.datos-cliente input,
+.resumen-venta input,
+.venta-form select {
+  background: #181818;
+  color: #fff;
+  border: 1px solid #a32020;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  font-size: 1rem;
+}
+
+.tipo-selector {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.tipo-btn {
+  background: #353535;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 28px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tipo-btn.activo {
+  background: linear-gradient(90deg, #a32020 60%, #d32f2f 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(163,32,32,0.18);
+}
+
+.productos-lista-venta {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.producto-venta-item {
+  background: #181818;
+  border-radius: 10px;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.producto-venta-preview {
+  font-size: 1.1rem;
+  color: #ffd700;
+  font-weight: 700;
+  margin-left: 18px;
+}
+
+.agregar-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.agregar-btn:hover {
+  background: #1565c0;
+}
+
+.resumen-venta {
+  background: #181818;
+  border-radius: 10px;
+  padding: 18px 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.resumen-venta h2 {
+  margin-bottom: 12px;
+  color: #ffd700;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.resumen-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.eliminar-btn {
+  background: #a32020;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 12px;
+  transition: background 0.2s;
+}
+
+.eliminar-btn:hover {
+  background: #d32f2f;
+}
+
+.total-venta {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #ffd700;
+  margin-top: 18px;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+
+.confirmar-venta-btn {
+  background: linear-gradient(90deg, #1976d2 60%, #1565c0 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 32px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  margin-top: 24px;
+  box-shadow: 0 4px 16px 0 rgba(25,118,210,0.18);
+  transition: background 0.2s;
+}
+
+.confirmar-venta-btn:hover {
+  background: linear-gradient(90deg, #1565c0 60%, #1976d2 100%);
+}
