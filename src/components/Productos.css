@@ -460,3 +460,19 @@ body {
   padding: 6px 18px;
   min-width: 70px;
 }
+
+.producto-bajo-stock {
+  background: linear-gradient(90deg, #fff3cd 0%, #181818 100%);
+  color: #a32020;
+  border: 2px solid #ffd700;
+}
+
+.alerta-bajo-stock {
+  color: #a32020;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-left: 8px;
+  background: #fff3cd;
+  border-radius: 6px;
+  padding: 2px 8px;
+}

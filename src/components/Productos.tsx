@@ -98,12 +98,17 @@ const Productos: React.FC = () => {
 
   // Guardar producto (nuevo o editado)
   const handleGuardar = async () => {
-    if (!nombre.trim() || !marca.trim()) return;
+    if (!nombre.trim()) return alert("El nombre es obligatorio.");
+    if (!precio.trim() || isNaN(Number(precio)) || Number(precio) <= 0) return alert("El precio debe ser un número positivo.");
+    if (!cantidad.trim() || isNaN(Number(cantidad)) || Number(cantidad) <= 0) return alert("La cantidad debe ser un número positivo.");
+    if (!marca.trim()) return alert("La marca es obligatoria.");
+    if (seccion === "repuestos" && !proveedor.trim()) return alert("El proveedor es obligatorio.");
+
     const nuevoProducto: Producto = {
       id: editId ?? 0,
       nombre,
-      precio,
-      cantidad,
+      precio: String(precio),
+      cantidad: String(cantidad),
       marca,
       descripcion,
       tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
@@ -140,11 +145,16 @@ const Productos: React.FC = () => {
   // Editar producto
   const handleEditar = (producto: Producto) => {
     setEditId(producto.id);
-    setNombre(producto.nombre);
-    setPrecio(producto.precio);
-    setCantidad(producto.cantidad);
-    setMarca(producto.marca);
-    setDescripcion(producto.descripcion);
+    setNombre(producto.nombre ?? "");
+    setPrecio(String(producto.precio ?? ""));      // <-- fuerza a string
+    setCantidad(String(producto.cantidad ?? ""));  // <-- fuerza a string
+    // Si es accesorio o repuesto, fuerza la marca si no es válida
+    if (seccion !== "motos" && !["Primera marca", "Segunda marca"].includes(producto.marca)) {
+      setMarca("Primera marca");
+    } else {
+      setMarca(producto.marca ?? "");
+    }
+    setDescripcion(producto.descripcion ?? "");
     setProveedor(producto.proveedor ?? "");
     setShowModal(true);
   };
@@ -166,17 +176,30 @@ const Productos: React.FC = () => {
         </label>
         <label>
           Precio:
-          <input type="number" value={precio} onChange={e => setPrecio(e.target.value)} />
+          <input type="number" value={precio} onChange={e => setPrecio(e.target.value)} min={1} />
         </label>
         <label>
           Cantidad:
-          <input type="number" value={cantidad} onChange={e => setCantidad(e.target.value)} />
+          <input type="number" value={cantidad} onChange={e => setCantidad(e.target.value)} min={1} />
         </label>
         <label>
           Marca:
-          <select value={marca} onChange={e => setMarca(e.target.value)}>
+          <select value={marca || ""} onChange={e => setMarca(e.target.value)}>
             <option value="">Seleccionar marca</option>
-            {marcas.map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
+            {seccion === "motos"
+              ? marcas.map(m => (
+                  <option key={m.id} value={m.nombre}>{m.nombre}</option>
+                ))
+              : ["Primera marca", "Segunda marca"].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))
+            }
+            {seccion !== "motos" && marca && !["Primera marca", "Segunda marca"].includes(marca) && (
+              <option value={marca}>{marca}</option>
+            )}
+            {seccion === "motos" && marca && !marcas.some(m => m.nombre === marca) && (
+              <option value={marca}>{marca}</option>
+            )}
           </select>
         </label>
         <label>
@@ -198,7 +221,17 @@ const Productos: React.FC = () => {
           </label>
         )}
         <div className="modal-actions">
-          <button className="motos-bar-btn agregar-btn" onClick={handleGuardar}>
+          <button
+            className="motos-bar-btn agregar-btn"
+            onClick={handleGuardar}
+            disabled={
+              !nombre.trim() ||
+              !precio.trim() ||
+              !cantidad.trim() ||
+              !marca.trim() ||
+              (seccion === "repuestos" && !proveedor.trim())
+            }
+          >
             {editId !== null ? "Modificar" : "Agregar"}
           </button>
           <button className="motos-bar-btn" onClick={() => setShowModal(false)}>Cancelar</button>
@@ -264,6 +297,15 @@ const Productos: React.FC = () => {
   useEffect(() => {
     setPaginaActual(1);
   }, [filtroMarca, filtroProveedor, busqueda, seccion]);
+
+  // Determina el mínimo de stock según tipo
+  const getMinimoStock = (producto: Producto) => {
+    if (producto.tipo === "moto") return 1;
+    return 5; // Puedes ajustar este valor para accesorios/repuestos
+  };
+
+  const esBajoStock = (producto: Producto) =>
+    Number(producto.cantidad) <= getMinimoStock(producto);
 
   return (
     <div className="productos-container">
@@ -481,6 +523,19 @@ const Productos: React.FC = () => {
         </div>
         <hr className="separador-productos" />
         {/* Lista de productos */}
+        {productosFiltrados.some(esBajoStock) && (
+          <div style={{
+            background: "#fff3cd",
+            color: "#a32020",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            padding: "8px 18px",
+            marginBottom: "18px",
+            textAlign: "center"
+          }}>
+            ¡Atención! Hay productos con bajo stock.
+          </div>
+        )}
         <ul className="productos-lista">
           {productosPaginados.map(producto => (
             <li
@@ -489,13 +544,18 @@ const Productos: React.FC = () => {
                 `producto-item` +
                 (producto.cantidad === "0"
                   ? " producto-sin-stock"
-                  : " producto-con-stock")
+                  : esBajoStock(producto)
+                    ? " producto-bajo-stock"
+                    : " producto-con-stock")
               }
             >
               <span>{producto.nombre}</span>
               <span className="producto-descripcion">{producto.descripcion}</span>
               <span className="producto-previsualizacion">
                 {producto.marca.toUpperCase()} | STOCK: {producto.cantidad} | ${producto.precio}
+                {esBajoStock(producto) && (
+                  <span className="alerta-bajo-stock"> &nbsp;¡Bajo stock!</span>
+                )}
               </span>
               <div className="producto-actions">
                 <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)}>
