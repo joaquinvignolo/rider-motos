@@ -56,6 +56,9 @@ const Productos: React.FC = () => {
   const [filtroProveedor, setFiltroProveedor] = useState<string | null>(null);
   const [mostrarFiltroProveedor, setMostrarFiltroProveedor] = useState(false);
 
+  const [paginaActual, setPaginaActual] = useState(1);
+  const productosPorPagina = 10;
+
   // Cargar productos, marcas y proveedores desde el backend
   useEffect(() => {
     fetch("http://localhost:3001/api/productos?tipo=" + (
@@ -242,7 +245,6 @@ const Productos: React.FC = () => {
     </div>
   );
 
-  // Filtrado de productos
   const productosFiltrados = productos.filter(producto => {
     const coincideMarca = !filtroMarca || producto.marca === filtroMarca || producto.marca == null;
     const coincideBusqueda =
@@ -252,6 +254,16 @@ const Productos: React.FC = () => {
       seccion !== "repuestos" || !filtroProveedor || producto.proveedor === filtroProveedor;
     return coincideMarca && coincideBusqueda && coincideProveedor;
   });
+
+  const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
+  const productosPaginados = productosFiltrados.slice(
+    (paginaActual - 1) * productosPorPagina,
+    paginaActual * productosPorPagina
+  );
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [filtroMarca, filtroProveedor, busqueda, seccion]);
 
   return (
     <div className="productos-container">
@@ -470,7 +482,7 @@ const Productos: React.FC = () => {
         <hr className="separador-productos" />
         {/* Lista de productos */}
         <ul className="productos-lista">
-          {productosFiltrados.map(producto => (
+          {productosPaginados.map(producto => (
             <li
               key={producto.id}
               className={
@@ -480,8 +492,8 @@ const Productos: React.FC = () => {
                   : " producto-con-stock")
               }
             >
-              <span>{producto.nombre.toUpperCase()}</span>
-              <span className="producto-descripcion">{producto.descripcion.toUpperCase()}</span>
+              <span>{producto.nombre}</span>
+              <span className="producto-descripcion">{producto.descripcion}</span>
               <span className="producto-previsualizacion">
                 {producto.marca.toUpperCase()} | STOCK: {producto.cantidad} | ${producto.precio}
               </span>
@@ -530,6 +542,28 @@ const Productos: React.FC = () => {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div className="paginacion-productos">
+            <button
+              className="motos-bar-btn"
+              disabled={paginaActual === 1}
+              onClick={() => setPaginaActual(paginaActual - 1)}
+            >
+              Anterior
+            </button>
+            <span style={{margin: "0 12px", fontWeight: 700}}>
+              Página {paginaActual} de {totalPaginas}
+            </span>
+            <button
+              className="motos-bar-btn"
+              disabled={paginaActual === totalPaginas}
+              onClick={() => setPaginaActual(paginaActual + 1)}
+            >
+              Siguiente
+            </button>
           </div>
         )}
       </main>

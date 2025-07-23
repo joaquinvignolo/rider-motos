@@ -17,14 +17,16 @@ body {
 .productos-sidebar {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center; /* Centra los elementos horizontalmente */
   justify-content: flex-start;
   height: 100vh;
-  padding: 0;                /* Quita el padding derecho */
-  background: #202020;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #202020 60%, #a32020 100%);
   min-width: 220px;
   gap: 56px;
   box-shadow: 2px 0 12px rgba(0,0,0,0.10);
+  position: sticky;
+  top: 0;
 }
 
 .logo-productos {
@@ -50,38 +52,36 @@ body {
 }
 
 .sidebar-btn {
-  background: #353535 !important; /* Gris elegante */
+  background: linear-gradient(90deg, #8a2323 60%, #232526 100%);
   color: #fff;
-  margin-left: 32px; /* Mueve los botones un poco a la izquierda */
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   padding: 22px 0;
   min-width: 220px;
   border: none;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(138,35,35,0.14), 0 2px 8px rgba(0,0,0,0.10);
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  font-weight: 700;
+  letter-spacing: 2px;
   position: relative;
   overflow: hidden;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
-.sidebar-btn:hover,
-.motos-bar-btn:hover {
-  background: linear-gradient(90deg, #d32f2f 60%, #a32020 100%); /* Rojo degradado */
-  box-shadow: 0 8px 32px 0 rgba(163,32,32,0.28), 0 4px 16px rgba(0,0,0,0.18);
+.sidebar-btn:hover {
+  background: linear-gradient(90deg, #a32020 60%, #353535 100%);
+  box-shadow: 0 8px 32px 0 rgba(138,35,35,0.18), 0 4px 16px rgba(0,0,0,0.18);
   transform: translateY(-2px) scale(1.04);
 }
 
-.sidebar-btn:active,
-.motos-bar-btn:active {
+.sidebar-btn:active {
   background: #a32020;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   transform: scale(0.98);
 }
 
 /* Brillo sutil al pasar el mouse */
-.sidebar-btn::after,
-.motos-bar-btn::after {
+.sidebar-btn::after {
   content: "";
   display: block;
   position: absolute;
@@ -90,11 +90,10 @@ body {
   opacity: 0;
   transition: opacity 0.2s;
   pointer-events: none;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
-.sidebar-btn:hover::after,
-.motos-bar-btn:hover::after {
+.sidebar-btn:hover::after {
   opacity: 1;
 }
 
@@ -102,9 +101,11 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* Cambia a stretch para que los hijos ocupen todo el ancho */
+  align-items: stretch;
   justify-content: flex-start;
-  padding: 60px 0 0 0; /* Quita padding lateral para la línea */
+  padding: 60px 0 0 0;
+  min-height: 100vh; /* Permite que crezca hacia abajo */
+  overflow-y: unset; /* Quita el scroll vertical */
 }
 
 .productos-main h1 {
@@ -299,59 +300,46 @@ body {
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px; /* Menor espacio entre productos */
 }
 
 .producto-item {
   background: #181818;
   border-radius: 10px;
-  padding: 14px 24px;
+  padding: 10px 18px;      /* Más espacio */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 12px;              /* Menor separación interna */
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   width: 100%;
   max-width: 1150px;        /* Más ancho hacia la derecha */
 }
 
 .producto-item span {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
-  text-align: left;
-  min-width: 120px; /* Puedes ajustar el mínimo si quieres */
-  word-break: break-word;
+  font-size: 1.15rem;    /* Más grande */
+  font-weight: 500;
 }
 
 .producto-descripcion {
-  font-size: 1rem;
-  color: #bbb;
-  margin-left: 18px;
-  max-width: 320px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: middle;
+  font-size: 1.05rem;
 }
 
 .producto-previsualizacion {
-  display: block;
-  font-size: 0.95rem;
-  color: #e0e0e0;
-  margin-left: 18px;
-  margin-top: 2px;
-  letter-spacing: 1px;
+  font-size: 1rem;
 }
 
 .producto-actions {
   display: flex;
-  gap: 6px;                   /* Menos separación entre botones */
+  gap: 4px;              /* Menos separación entre botones */
   flex-shrink: 0;
 }
 
 .producto-actions button {
   text-transform: uppercase;
+  font-size: 0.85rem;    /* Botones más chicos */
+  padding: 6px 10px;     /* Menor padding */
+  min-width: 70px;
 }
 
 .ver-btn {
@@ -383,11 +371,14 @@ body {
 }
 
 .separador-vertical {
+  position: fixed;
+  left: 220px; /* Ajusta según el ancho del sidebar */
+  top: 0;
   width: 2px;
   background: #fff;
   opacity: 0.18;
   height: 100vh;
-  min-height: 100%;
+  z-index: 1;
   margin: 0;
 }
 
@@ -443,8 +434,22 @@ body {
   text-transform: uppercase; /* MAYÚSCULA */
   margin-bottom: 24px;    /* Espacio debajo */
 }
+
 .inicio-btn:hover {
-  background: #a32020;
-  color: #fff;
-  box-shadow: 0 0 18px 4px #a32020;
+  background: linear-gradient(90deg, #4b2b27 60%, #5f4137 100%) !important;
+}
+
+.paginacion-productos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 38px 0 0 0; /* Más abajo de la lista */
+  font-size: 0.95rem;
+}
+
+.paginacion-productos .motos-bar-btn {
+  font-size: 0.85rem;
+  padding: 6px 18px;
+  min-width: 70px;
 }
