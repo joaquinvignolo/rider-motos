@@ -301,7 +301,7 @@ const Productos: React.FC = () => {
   // Determina el mínimo de stock según tipo
   const getMinimoStock = (producto: Producto) => {
     if (producto.tipo === "moto") return 1;
-    return 5; // Puedes ajustar este valor para accesorios/repuestos
+    return 3; // Puedes ajustar este valor para accesorios/repuestos
   };
 
   const esBajoStock = (producto: Producto) =>
