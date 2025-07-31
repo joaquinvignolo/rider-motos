@@ -176,3 +176,14 @@
 .confirmar-venta-btn:hover {
   background: linear-gradient(90deg, #1565c0 60%, #1976d2 100%);
 }
+
+html, body {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.ventas-container {
+  /* Si ya existe esta clase, no la modifiques. 
+  Solo verifica que no tenga una altura fija que impida el scroll. */
+  min-height: 100vh;
+}
