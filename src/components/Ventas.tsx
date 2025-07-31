@@ -24,13 +24,21 @@ const Ventas: React.FC = () => {
   const [fecha, setFecha] = useState<string>(new Date().toISOString().slice(0, 10));
   const [metodoPago, setMetodoPago] = useState<"efectivo" | "tarjeta" | "transferencia">("efectivo");
   const [porcentajeTarjeta, setPorcentajeTarjeta] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Cargar productos según tipo seleccionado
+  // Cargar productos según tipo seleccionado y término de búsqueda
   useEffect(() => {
-    fetch("http://localhost:3001/api/productos?tipo=" + tipoSeleccionado)
+    let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}`;
+    if (searchTerm) {
+      url += `&search=${searchTerm}`;
+    } else {
+      url += `&limit=5`; // Limita a los 5 últimos si no hay búsqueda
+    }
+
+    fetch(url)
       .then(res => res.json())
       .then(data => setProductos(data));
-  }, [tipoSeleccionado]);
+  }, [tipoSeleccionado, searchTerm]);
 
   // Agregar producto a la venta
   const agregarProductoAVenta = (producto: ProductoVenta) => {
@@ -135,24 +143,40 @@ const Ventas: React.FC = () => {
             <button
               type="button"
               className={tipoSeleccionado === "moto" ? "tipo-btn activo" : "tipo-btn"}
-              onClick={() => setTipoSeleccionado("moto")}
+              onClick={() => {
+                setTipoSeleccionado("moto");
+                setSearchTerm("");
+              }}
             >
               MOTO
             </button>
             <button
               type="button"
               className={tipoSeleccionado === "accesorio" ? "tipo-btn activo" : "tipo-btn"}
-              onClick={() => setTipoSeleccionado("accesorio")}
+              onClick={() => {
+                setTipoSeleccionado("accesorio");
+                setSearchTerm("");
+              }}
             >
               ACCESORIO
             </button>
             <button
               type="button"
               className={tipoSeleccionado === "repuesto" ? "tipo-btn activo" : "tipo-btn"}
-              onClick={() => setTipoSeleccionado("repuesto")}
+              onClick={() => {
+                setTipoSeleccionado("repuesto");
+                setSearchTerm("");
+              }}
             >
               REPUESTO
             </button>
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              className="buscador-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <ul className="productos-lista-venta">
             {productos.map(prod => (

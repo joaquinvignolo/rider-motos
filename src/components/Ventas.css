@@ -46,6 +46,7 @@
   display: flex;
   gap: 18px;
   margin-bottom: 18px;
+  align-items: center; /* Asegura la alineación vertical */
 }
 
 .tipo-btn {
@@ -67,6 +68,16 @@
   box-shadow: 0 2px 8px rgba(163,32,32,0.18);
 }
 
+.buscador-input {
+  background: #181818;
+  color: #fff;
+  border: 1px solid #a32020;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  flex-grow: 1; /* Esto hace que el input ocupe el espacio restante */
+}
+
 .productos-lista-venta {
   list-style: none;
   padding: 0;
@@ -74,6 +85,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  max-height: 400px; /* Limita la altura de la lista */
+  overflow-y: auto; /* Agrega el scroll cuando sea necesario */
+  padding-right: 15px; /* Evita que el scrollbar tape los bordes */
 }
 
 .producto-venta-item {
@@ -183,7 +197,5 @@ html, body {
 }
 
 .ventas-container {
-  /* Si ya existe esta clase, no la modifiques. 
-  Solo verifica que no tenga una altura fija que impida el scroll. */
   min-height: 100vh;
 }
