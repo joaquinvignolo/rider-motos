@@ -347,7 +347,7 @@ const Productos: React.FC = () => {
             : "Repuestos"}
         </h1>
         <div className="motos-bar">
-          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>AGREGAR</button>
+          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>✚</button>
           <div style={{ display: "flex", gap: "16px" }}>
             {/* Botón Proveedor (solo habilitado en repuestos) */}
             <div style={{ position: "relative" }}>
@@ -559,14 +559,14 @@ const Productos: React.FC = () => {
               </span>
               <div className="producto-actions">
                 <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)}>
-                  Ver
+                  👁️
                 </button>
-                <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>Modificar</button>
+                <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>✏️</button>
                 <button
                   className="eliminar-btn motos-bar-btn"
                   onClick={() => setProductoAEliminar(producto)}
                 >
-                  Eliminar
+                  🗑️
                 </button>
               </div>
             </li>
