@@ -462,17 +462,17 @@ body {
 }
 
 .producto-bajo-stock {
-  background: linear-gradient(90deg, #fff3cd 0%, #181818 100%);
-  color: #a32020;
+  background: linear-gradient(90deg, #18160f 0%, #181818 100%);
+  color: lab(38.21% 54.19 35.84);
   border: 2px solid #ffd700;
 }
 
 .alerta-bajo-stock {
-  color: #a32020;
+  color: #301717;
   font-weight: bold;
   font-size: 1rem;
   margin-left: 8px;
-  background: #fff3cd;
+  background: #ece1b1;
   border-radius: 6px;
   padding: 2px 8px;
 }
