@@ -476,3 +476,9 @@ body {
   border-radius: 6px;
   padding: 2px 8px;
 }
+
+.producto-inactivo {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  background: #222 !important;
+}

@@ -33,11 +33,12 @@ const Productos: React.FC = () => {
   const [showVerModal, setShowVerModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(null);
+  const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
   // Listas desde la base de datos
   const [productos, setProductos] = useState<Producto[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]>);
 
   // Campos del formulario
   const [nombre, setNombre] = useState("");
@@ -61,14 +62,16 @@ const Productos: React.FC = () => {
 
   // Cargar productos, marcas y proveedores desde el backend
   useEffect(() => {
-    fetch("http://localhost:3001/api/productos?tipo=" + (
+    let url = "http://localhost:3001/api/productos?tipo=" + (
       seccion === "motos" ? "moto" :
       seccion === "accesorios" ? "accesorio" :
       "repuesto"
-    ))
+    );
+    if (mostrarInactivos) url += "&inactivos=1";
+    fetch(url)
       .then(res => res.json())
       .then(data => setProductos(data));
-  }, [seccion]);
+  }, [seccion, mostrarInactivos]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/marcas")
@@ -112,7 +115,8 @@ const Productos: React.FC = () => {
       marca,
       descripcion,
       tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
-      ...(seccion === "repuestos" ? { proveedor } : {})
+      ...(seccion === "repuestos" ? { proveedor } : {}),
+      activo: Number(cantidad) > 0 ? 1 : 0
     };
 
     if (editId !== null) {
@@ -139,7 +143,7 @@ const Productos: React.FC = () => {
   // Eliminar producto
   const handleEliminar = async (id: number) => {
     await fetch(`http://localhost:3001/api/productos/${id}`, { method: "DELETE" });
-    setProductos(productos.filter(p => p.id !== id));
+    setProductos(productos.map(p => p.id === id ? { ...p, activo: 0 } : p));
   };
 
   // Editar producto
@@ -347,7 +351,23 @@ const Productos: React.FC = () => {
             : "Repuestos"}
         </h1>
         <div className="motos-bar">
-          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>✚</button>
+          <button
+            className="motos-bar-btn"
+            style={{ marginRight: 12 }}
+            onClick={() => setMostrarInactivos(v => !v)}
+          >
+            {mostrarInactivos ? "Ver activos" : "Ver inactivos"}
+          </button>
+          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>
+            <span style={{display: "inline-flex", alignItems: "center", gap: 10}}>
+              <svg width="22" height="22" viewBox="0 0 22 22" style={{marginRight: 2}}>
+                <circle cx="11" cy="11" r="11" fill="#a32020"/>
+                <rect x="10" y="5" width="2" height="12" rx="1" fill="white"/>
+                <rect x="5" y="10" width="12" height="2" rx="1" fill="white"/>
+              </svg>
+              Agregar
+            </span>
+          </button>
           <div style={{ display: "flex", gap: "16px" }}>
             {/* Botón Proveedor (solo habilitado en repuestos) */}
             <div style={{ position: "relative" }}>
@@ -542,11 +562,13 @@ const Productos: React.FC = () => {
               key={producto.id}
               className={
                 `producto-item` +
-                (producto.cantidad === "0"
-                  ? " producto-sin-stock"
-                  : esBajoStock(producto)
-                    ? " producto-bajo-stock"
-                    : " producto-con-stock")
+                (producto.activo === 0
+                  ? " producto-inactivo"
+                  : producto.cantidad === "0"
+                    ? " producto-sin-stock"
+                    : esBajoStock(producto)
+                      ? " producto-bajo-stock"
+                      : " producto-con-stock")
               }
             >
               <span>{producto.nombre}</span>

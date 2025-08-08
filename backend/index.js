@@ -60,12 +60,21 @@ app.get('/api/proveedores', (req, res) => {
 
 // Obtener productos por tipo
 app.get('/api/productos', (req, res) => {
-  const { tipo } = req.query;
-  let sql = 'SELECT p.id, p.nombre, p.descripcion, p.precio, p.cantidad, m.nombre as marca, pr.nombre as proveedor, p.tipo FROM productos p LEFT JOIN marcas m ON p.marca_id = m.id LEFT JOIN proveedores pr ON p.proveedor_id = pr.id';
+  const { tipo, inactivos } = req.query;
+  let sql = 'SELECT p.id, p.nombre, p.descripcion, p.precio, p.cantidad, m.nombre as marca, pr.nombre as proveedor, p.tipo, p.activo FROM productos p LEFT JOIN marcas m ON p.marca_id = m.id LEFT JOIN proveedores pr ON p.proveedor_id = pr.id';
   const params = [];
+  let where = [];
   if (tipo) {
-    sql += ' WHERE p.tipo = ?';
+    where.push('p.tipo = ?');
     params.push(tipo);
+  }
+  if (!inactivos) {
+    where.push('p.activo = 1');
+  } else if (inactivos === "1") {
+    where.push('p.activo = 0');
+  }
+  if (where.length) {
+    sql += ' WHERE ' + where.join(' AND ');
   }
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: 'Error en el servidor' });
@@ -108,9 +117,9 @@ app.post('/api/productos', (req, res) => {
   });
 });
 
-// Eliminar producto
+// Eliminar producto (eliminado lógico)
 app.delete('/api/productos/:id', (req, res) => {
-  db.query('DELETE FROM productos WHERE id = ?', [req.params.id], (err) => {
+  db.query('UPDATE productos SET activo = 0 WHERE id = ?', [req.params.id], (err) => {
     if (err) return res.status(500).json({ error: 'Error al eliminar producto' });
     res.json({ success: true });
   });
@@ -119,6 +128,8 @@ app.delete('/api/productos/:id', (req, res) => {
 // Editar producto
 app.put('/api/productos/:id', (req, res) => {
   const { nombre, descripcion, precio, cantidad, marca, proveedor, tipo } = req.body;
+  const activo = Number(cantidad) > 0 ? 1 : 0; // Determina si el producto está activo según la cantidad
+
   db.query('SELECT id FROM marcas WHERE nombre = ?', [marca], (err, marcaRows) => {
     if (err || marcaRows.length === 0) return res.status(400).json({ error: 'Marca no encontrada' });
     const marca_id = marcaRows[0].id;
@@ -128,8 +139,8 @@ app.put('/api/productos/:id', (req, res) => {
         if (err2 || provRows.length === 0) return res.status(400).json({ error: 'Proveedor no encontrado' });
         const proveedor_id = provRows[0].id;
         db.query(
-          'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=?, tipo=? WHERE id=?',
-          [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo, req.params.id],
+          'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=?, tipo=?, activo=? WHERE id=?',
+          [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo, activo, req.params.id],
           (err3) => {
             if (err3) return res.status(500).json({ error: 'Error al editar producto' });
             res.json({ success: true });
@@ -138,8 +149,8 @@ app.put('/api/productos/:id', (req, res) => {
       });
     } else {
       db.query(
-        'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=NULL, tipo=? WHERE id=?',
-        [nombre, descripcion, precio, cantidad, marca_id, tipo, req.params.id],
+        'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=NULL, tipo=?, activo=? WHERE id=?',
+        [nombre, descripcion, precio, cantidad, marca_id, tipo, activo, req.params.id],
         (err3) => {
           if (err3) return res.status(500).json({ error: 'Error al editar producto' });
           res.json({ success: true });

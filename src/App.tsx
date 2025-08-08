@@ -3,7 +3,7 @@ import Inicio from './components/Inicio';
 import Login from './components/Login';
 import MenuPrincipal from './components/MenuPrincipal';
 import Productos from './components/Productos';
-import Ventas from './components/Ventas'; // Agrega esta línea
+import Ventas from './components/Ventas'; 
 
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/menu" element={<MenuPrincipal />} />
         <Route path="/productos" element={<Productos />} />
-        <Route path="/ventas" element={<Ventas />} /> {/* Agrega esta línea */}
+        <Route path="/ventas" element={<Ventas />} /> {}
       </Routes>
     </Router>
   );
