@@ -100,13 +100,32 @@ const Productos: React.FC = () => {
   };
 
   // Guardar producto (nuevo o editado)
-  const handleGuardar = async () => {
-    if (!nombre.trim()) return alert("El nombre es obligatorio.");
-    if (!precio.trim() || isNaN(Number(precio)) || Number(precio) <= 0) return alert("El precio debe ser un número positivo.");
-    if (!cantidad.trim() || isNaN(Number(cantidad)) || Number(cantidad) <= 0) return alert("La cantidad debe ser un número positivo.");
-    if (!marca.trim()) return alert("La marca es obligatoria.");
-    if (seccion === "repuestos" && !proveedor.trim()) return alert("El proveedor es obligatorio.");
+  const [mensajeValidacion, setMensajeValidacion] = useState<string | null>(null);
 
+  const handleGuardar = async () => {
+    setMensajeValidacion(null);
+    if (!nombre.trim()) {
+      setMensajeValidacion("⚠️ El nombre es obligatorio.");
+      return;
+    }
+    if (!precio.trim() || isNaN(Number(precio)) || Number(precio) <= 0) {
+      setMensajeValidacion("⚠️ El precio debe ser un número positivo.");
+      return;
+    }
+    if (!cantidad.trim() || isNaN(Number(cantidad)) || Number(cantidad) < 1) {
+      setMensajeValidacion("⚠️ La cantidad debe ser un número mayor a 0.");
+      return;
+    }
+    if (!marca.trim()) {
+      setMensajeValidacion("⚠️ La marca es obligatoria.");
+      return;
+    }
+    if (seccion === "repuestos" && !proveedor.trim()) {
+      setMensajeValidacion("⚠️ El proveedor es obligatorio.");
+      return;
+    }
+
+    const cantidadNum = Number(cantidad);
     const nuevoProducto: Producto = {
       id: editId ?? 0,
       nombre,
@@ -116,7 +135,7 @@ const Productos: React.FC = () => {
       descripcion,
       tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
       ...(seccion === "repuestos" ? { proveedor } : {}),
-      activo: Number(cantidad) > 0 ? 1 : 0
+      activo: cantidadNum > 0 ? 1 : 0 // Si cantidad es 0, va a inactivo
     };
 
     if (editId !== null) {
@@ -184,7 +203,12 @@ const Productos: React.FC = () => {
         </label>
         <label>
           Cantidad:
-          <input type="number" value={cantidad} onChange={e => setCantidad(e.target.value)} min={1} />
+          <input
+            type="number"
+            value={cantidad}
+            onChange={e => setCantidad(e.target.value)}
+            min={1}
+          />
         </label>
         <label>
           Marca:
@@ -223,6 +247,9 @@ const Productos: React.FC = () => {
               {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
             </select>
           </label>
+        )}
+        {mensajeValidacion && (
+          <div className="mensaje-validacion">{mensajeValidacion}</div>
         )}
         <div className="modal-actions">
           <button
@@ -352,12 +379,6 @@ const Productos: React.FC = () => {
         </h1>
         <div className="motos-bar" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
-            className="motos-bar-btn"
-            onClick={() => setMostrarInactivos(v => !v)}
-          >
-            {mostrarInactivos ? "Ver activos" : "Ver inactivos"}
-          </button>
-          <button
             className="motos-bar-btn agregar-btn"
             onClick={handleAgregar}
           >
@@ -370,182 +391,192 @@ const Productos: React.FC = () => {
               Agregar
             </span>
           </button>
-          <div style={{ display: "flex", gap: "16px" }}>
-            {/* Botón Proveedor (solo habilitado en repuestos) */}
-            <div style={{ position: "relative" }}>
-              <button
-                className="motos-bar-btn proveedor-btn"
-                disabled={seccion !== "repuestos"}
-                style={{
-                  opacity: seccion === "repuestos" ? 1 : 0.5,
-                  cursor: seccion === "repuestos" ? "pointer" : "not-allowed"
-                }}
-                onClick={() => setMostrarFiltroProveedor(p => !p)}
-              >
-                Proveedor
-              </button>
-              {mostrarFiltroProveedor && seccion === "repuestos" && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
-                    background: "#232526",
-                    border: "1px solid #a32020",
-                    borderRadius: 8,
-                    zIndex: 10,
-                    padding: 8,
-                    minWidth: 120,
-                  }}
-                >
-                  <button
-                    style={{
-                      background: filtroProveedor === null ? "#a32020" : "#353535",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 6,
-                      padding: "6px 12px",
-                      marginBottom: 4,
-                      width: "100%",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setFiltroProveedor(null)}
-                  >
-                    Todos
-                  </button>
-                  {proveedores.map(p => (
-                    <button
-                      key={p.id}
-                      style={{
-                        background: filtroProveedor === p.nombre ? "#a32020" : "#353535",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 6,
-                        padding: "6px 12px",
-                        marginBottom: 4,
-                        width: "100%",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => setFiltroProveedor(p.nombre)}
-                    >
-                      {p.nombre}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Botón Marcas */}
-            <div style={{ position: "relative" }}>
-              <button
-                className="motos-bar-btn marcas-btn"
-                onClick={() => setMostrarFiltroMarcas(m => !m)}
-              >
-                Marcas
-              </button>
-              {mostrarFiltroMarcas && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
-                    background: "#232526",
-                    border: "1px solid #a32020",
-                    borderRadius: 8,
-                    zIndex: 10,
-                    padding: 8,
-                    minWidth: 120,
-                  }}
-                >
-                  <button
-                    style={{
-                      background: filtroMarca === null ? "#a32020" : "#353535",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 6,
-                      padding: "6px 12px",
-                      marginBottom: 4,
-                      width: "100%",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setFiltroMarca(null)}
-                  >
-                    Todas
-                  </button>
-                  {seccion === "motos"
-                    ? marcas.map(m => (
-                        <button
-                          key={m.id}
-                          style={{
-                            background: filtroMarca === m.nombre ? "#a32020" : "#353535",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 6,
-                            padding: "6px 12px",
-                            marginBottom: 4,
-                            width: "100%",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => setFiltroMarca(m.nombre)}
-                        >
-                          {m.nombre}
-                        </button>
-                      ))
-                    : ["Primera marca", "Segunda marca"].map(m => (
-                        <button
-                          key={m}
-                          style={{
-                            background: filtroMarca === m ? "#a32020" : "#353535",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 6,
-                            padding: "6px 12px",
-                            marginBottom: 4,
-                            width: "100%",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => setFiltroMarca(m)}
-                        >
-                          {m}
-                        </button>
-                      ))}
-                </div>
-              )}
-            </div>
-
-            {/* Botón Buscar */}
+          <div style={{ flex: 1 }} />
+          {/* Botón Activo/Inactivo con ícono */}
+          <button
+            className="motos-bar-btn activo-btn"
+            style={{ fontSize: "1.2rem", padding: "6px 12px", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}
+            onClick={() => setMostrarInactivos(v => !v)}
+            title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
+          >
+            {mostrarInactivos ? (
+              <span style={{color: "#43a047", fontSize: "1.4em"}}>✔️</span>
+            ) : (
+              <span style={{color: "#d32f2f", fontSize: "1.4em"}}>❌</span>
+            )}
+          </button>
+          {/* Botón Proveedor (solo habilitado en repuestos) */}
+          <div style={{ position: "relative", display: "inline-block" }}>
             <button
-              className="motos-bar-btn buscar-btn"
-              onClick={() => setMostrarBusqueda(b => !b)}
+              className="motos-bar-btn proveedor-btn"
+              disabled={seccion !== "repuestos"}
+              style={{
+                opacity: seccion === "repuestos" ? 1 : 0.5,
+                cursor: seccion === "repuestos" ? "pointer" : "not-allowed"
+              }}
+              onClick={() => setMostrarFiltroProveedor(p => !p)}
             >
-              Buscar
+              Proveedor
             </button>
-            {mostrarBusqueda && (
-              <input
-                type="text"
-                placeholder="Buscar producto..."
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
+            {mostrarFiltroProveedor && seccion === "repuestos" && (
+              <div
                 style={{
-                  marginLeft: 0,
-                  marginTop: 12,
-                  borderRadius: 6,
-                  border: "1px solid #a32020",
-                  padding: "6px 12px",
+                  position: "absolute",
+                  top: "110%",
+                  left: 0,
                   background: "#232526",
-                  color: "#fff",
-                  width: 180,
+                  border: "1px solid #a32020",
+                  borderRadius: 8,
                   zIndex: 10,
-                  display: "block"
+                  padding: 8,
+                  minWidth: 120,
                 }}
-                autoFocus
-              />
+              >
+                <button
+                  style={{
+                    background: filtroProveedor === null ? "#a32020" : "#353535",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "6px 12px",
+                    marginBottom: 4,
+                    width: "100%",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setFiltroProveedor(null)}
+                >
+                  Todos
+                </button>
+                {proveedores.map(p => (
+                  <button
+                    key={p.id}
+                    style={{
+                      background: filtroProveedor === p.nombre ? "#a32020" : "#353535",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "6px 12px",
+                      marginBottom: 4,
+                      width: "100%",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setFiltroProveedor(p.nombre)}
+                  >
+                    {p.nombre}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
+          {/* Botón Marcas */}
+          <div style={{ position: "relative" }}>
+            <button
+              className="motos-bar-btn marcas-btn"
+              onClick={() => setMostrarFiltroMarcas(m => !m)}
+            >
+              Marcas
+            </button>
+            {mostrarFiltroMarcas && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "110%",
+                  left: 0,
+                  background: "#232526",
+                  border: "1px solid #a32020",
+                  borderRadius: 8,
+                  zIndex: 10,
+                  padding: 8,
+                  minWidth: 120,
+                }}
+              >
+                <button
+                  style={{
+                    background: filtroMarca === null ? "#a32020" : "#353535",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "6px 12px",
+                    marginBottom: 4,
+                    width: "100%",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setFiltroMarca(null)}
+                >
+                  Todas
+                </button>
+                {seccion === "motos"
+                  ? marcas.map(m => (
+                      <button
+                        key={m.id}
+                        style={{
+                          background: filtroMarca === m.nombre ? "#a32020" : "#353535",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "6px 12px",
+                          marginBottom: 4,
+                          width: "100%",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setFiltroMarca(m.nombre)}
+                      >
+                        {m.nombre}
+                      </button>
+                    ))
+                  : ["Primera marca", "Segunda marca"].map(m => (
+                      <button
+                        key={m}
+                        style={{
+                          background: filtroMarca === m ? "#a32020" : "#353535",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "6px 12px",
+                          marginBottom: 4,
+                          width: "100%",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setFiltroMarca(m)}
+                      >
+                        {m}
+                      </button>
+                    ))}
+              </div>
+            )}
+          </div>
+          {/* Botón Buscar */}
+          <button
+            className="motos-bar-btn buscar-btn"
+            onClick={() => setMostrarBusqueda(b => !b)}
+          >
+            Buscar
+          </button>
+          {mostrarBusqueda && (
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              style={{
+                marginLeft: 0,
+                marginTop: 12,
+                borderRadius: 6,
+                border: "1px solid #a32020",
+                padding: "6px 12px",
+                background: "#232526",
+                color: "#fff",
+                width: 180,
+                zIndex: 10,
+                display: "block"
+              }}
+              autoFocus
+            />
+          )}
         </div>
         <hr className="separador-productos" />
         {/* Lista de productos */}
-        {productosFiltrados.some(esBajoStock) && (
+        {!mostrarInactivos && productosFiltrados.some(esBajoStock) && (
           <div style={{
             background: "#fff3cd",
             color: "#a32020",
@@ -577,7 +608,7 @@ const Productos: React.FC = () => {
               <span className="producto-descripcion">{producto.descripcion}</span>
               <span className="producto-previsualizacion">
                 {producto.marca.toUpperCase()} | STOCK: {producto.cantidad} | ${producto.precio}
-                {esBajoStock(producto) && (
+                {(producto.activo !== 0 && esBajoStock(producto)) && (
                   <span className="alerta-bajo-stock"> &nbsp;¡Bajo stock!</span>
                 )}
               </span>
