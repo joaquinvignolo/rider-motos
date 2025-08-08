@@ -38,7 +38,7 @@ const Productos: React.FC = () => {
   // Listas desde la base de datos
   const [productos, setProductos] = useState<Producto[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]>);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
 
   // Campos del formulario
   const [nombre, setNombre] = useState("");
@@ -350,15 +350,17 @@ const Productos: React.FC = () => {
             ? "Accesorios"
             : "Repuestos"}
         </h1>
-        <div className="motos-bar">
+        <div className="motos-bar" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button
             className="motos-bar-btn"
-            style={{ marginRight: 12 }}
             onClick={() => setMostrarInactivos(v => !v)}
           >
             {mostrarInactivos ? "Ver activos" : "Ver inactivos"}
           </button>
-          <button className="motos-bar-btn agregar-btn" onClick={handleAgregar}>
+          <button
+            className="motos-bar-btn agregar-btn"
+            onClick={handleAgregar}
+          >
             <span style={{display: "inline-flex", alignItems: "center", gap: 10}}>
               <svg width="22" height="22" viewBox="0 0 22 22" style={{marginRight: 2}}>
                 <circle cx="11" cy="11" r="11" fill="#a32020"/>
