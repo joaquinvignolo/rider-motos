@@ -160,6 +160,56 @@ app.put('/api/productos/:id', (req, res) => {
   });
 });
 
+// Obtener clientes (solo activos por defecto, todos si ?inactivos=1)
+app.get('/api/clientes', (req, res) => {
+  const { inactivos } = req.query;
+  let sql = 'SELECT * FROM clientes';
+  if (!inactivos) sql += ' WHERE activo = 1';
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error en el servidor' });
+    res.json(results);
+  });
+});
+
+// Agregar cliente
+app.post('/api/clientes', (req, res) => {
+  const { nombre, apellido, telefono, correo } = req.body;
+  db.query(
+    'INSERT INTO clientes (nombre, apellido, telefono, correo, activo) VALUES (?, ?, ?, ?, 1)',
+    [nombre, apellido, telefono, correo],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: 'Error al agregar cliente' });
+      res.json({ success: true, id: result.insertId });
+    }
+  );
+});
+
+// Editar cliente
+app.put('/api/clientes/:id', (req, res) => {
+  const { nombre, apellido, telefono, correo } = req.body;
+  db.query(
+    'UPDATE clientes SET nombre=?, apellido=?, telefono=?, correo=? WHERE id=?',
+    [nombre, apellido, telefono, correo, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: 'Error al editar cliente' });
+      res.json({ success: true });
+    }
+  );
+});
+
+// Activar/Inactivar cliente
+app.patch('/api/clientes/:id/activo', (req, res) => {
+  const { activo } = req.body;
+  db.query(
+    'UPDATE clientes SET activo=? WHERE id=?',
+    [activo, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: 'Error al cambiar estado' });
+      res.json({ success: true });
+    }
+  );
+});
+
 app.listen(3001, () => {
   console.log('API corriendo en http://localhost:3001');
 });
