@@ -138,7 +138,22 @@ const Ventas: React.FC = () => {
     <div className="ventas-container">
       <button
         className="inicio-btn"
-        style={{ fontSize: "1.18rem", alignSelf: "flex-start", marginLeft: 40, marginBottom: 18 }}
+        style={{
+          position: "fixed",
+          top: 32,
+          left: 32,
+          zIndex: 100,
+          fontSize: "1.18rem",
+          padding: "10px 28px",
+          borderRadius: 8,
+          fontWeight: 700,
+          background: "#a32020",
+          color: "#fff",
+          border: "none",
+          boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
+          cursor: "pointer",
+          transition: "background 0.18s, box-shadow 0.18s"
+        }}
         onClick={() => navigate("/menu")}
       >
         INICIO
