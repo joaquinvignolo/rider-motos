@@ -1,4 +1,3 @@
-// backend/index.js
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -8,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configura tu conexión MySQL
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -160,7 +158,7 @@ app.put('/api/productos/:id', (req, res) => {
   });
 });
 
-// Obtener clientes (solo activos por defecto, todos si ?inactivos=1)
+// Obtener clientes (solo activos por defecto
 app.get('/api/clientes', (req, res) => {
   const { inactivos } = req.query;
   let sql = 'SELECT * FROM clientes';

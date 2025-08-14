@@ -109,17 +109,15 @@ const Clientes: React.FC = () => {
     cargarClientes();
   };
 
-  const cambiarEstado = async (cliente: Cliente) => {
+  const [confirmarDesactivar, setConfirmarDesactivar] = useState<Cliente | null>(null);
+  const [confirmarReactivar, setConfirmarReactivar] = useState<Cliente | null>(null);
+
+  const cambiarEstado = (cliente: Cliente) => {
     if (cliente.activo) {
-      const confirmar = window.confirm("¿Seguro que deseas desactivar este cliente?");
-      if (!confirmar) return;
+      setConfirmarDesactivar(cliente);
+    } else {
+      setConfirmarReactivar(cliente);
     }
-    await fetch(`http://localhost:3001/api/clientes/${cliente.id}/activo`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activo: cliente.activo ? 0 : 1 })
-    });
-    cargarClientes();
   };
 
   // Filtro y paginación
@@ -321,6 +319,78 @@ const Clientes: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {confirmarDesactivar && (
+          <div className="clientes-modal-backdrop">
+            <div className="clientes-modal" style={{ maxWidth: 340, textAlign: "center" }}>
+              <h2 style={{ color: "#a32020" }}>Desactivar cliente</h2>
+              <p>
+                ¿Seguro que deseas desactivar a<br />
+                <b>{confirmarDesactivar.nombre} {confirmarDesactivar.apellido}</b>?
+              </p>
+              <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 18 }}>
+                <button
+                  className="clientes-btn"
+                  style={{ background: "#a32020" }}
+                  onClick={async () => {
+                    await fetch(`http://localhost:3001/api/clientes/${confirmarDesactivar.id}/activo`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ activo: 0 })
+                    });
+                    setConfirmarDesactivar(null);
+                    cargarClientes();
+                  }}
+                >
+                  Sí, desactivar
+                </button>
+                <button
+                  className="clientes-btn"
+                  style={{ background: "#353535" }}
+                  onClick={() => setConfirmarDesactivar(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {confirmarReactivar && (
+          <div className="clientes-modal-backdrop">
+            <div className="clientes-modal" style={{ maxWidth: 340, textAlign: "center" }}>
+              <h2 style={{ color: "#80c481" }}>Reactivar cliente</h2>
+              <p>
+                ¿Seguro que deseas reactivar a<br />
+                <b>{confirmarReactivar.nombre} {confirmarReactivar.apellido}</b>?
+              </p>
+              <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 18 }}>
+                <button
+                  className="clientes-btn"
+                  style={{ background: "#80c481", color: "#232526" }}
+                  onClick={async () => {
+                    await fetch(`http://localhost:3001/api/clientes/${confirmarReactivar.id}/activo`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ activo: 1 })
+                    });
+                    setConfirmarReactivar(null);
+                    cargarClientes();
+                  }}
+                >
+                  Sí, reactivar
+                </button>
+                <button
+                  className="clientes-btn"
+                  style={{ background: "#353535" }}
+                  onClick={() => setConfirmarReactivar(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
