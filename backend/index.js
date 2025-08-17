@@ -235,7 +235,25 @@ app.post('/api/ventas', (req, res) => {
             console.error("Error al registrar detalle de venta:", err2);
             return res.status(500).json({ error: 'Error al registrar detalle de venta' });
           }
-          res.json({ success: true, venta_id });
+          // Descontar stock de cada producto vendido
+          const updates = productos.map(p =>
+            new Promise((resolve, reject) => {
+              db.query(
+                'UPDATE productos SET cantidad = cantidad - ? WHERE id = ?',
+                [p.cantidad, p.id],
+                (err3) => {
+                  if (err3) reject(err3);
+                  else resolve();
+                }
+              );
+            })
+          );
+          Promise.all(updates)
+            .then(() => res.json({ success: true, venta_id }))
+            .catch(err3 => {
+              console.error("Error al actualizar stock:", err3);
+              res.status(500).json({ error: 'Error al actualizar stock' });
+            });
         }
       );
     }

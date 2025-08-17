@@ -181,15 +181,33 @@ const Ventas: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setMensajeError(""); 
-        setMensajeExito("¡Venta registrada correctamente!"); 
-        // Limpiar formulario
+        setMensajeError("");
+        setMensajeExito("¡Venta registrada correctamente!");
         setProductosEnVenta([]);
         setClienteSeleccionado(null);
         setMetodoPago("efectivo");
         setPorcentajeTarjeta(0);
         setBusquedaCliente("");
         setClientesSugeridos([]);
+
+        // Recargar productos para actualizar el stock visual
+        let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}`;
+        if (searchTerm) {
+          url += `&search=${encodeURIComponent(searchTerm)}`;
+        }
+        fetch(url)
+          .then(res => res.json())
+          .then(data => {
+            const term = searchTerm.toLowerCase();
+            setProductos(
+              data.filter(
+                p =>
+                  p.nombre.toLowerCase().includes(term) ||
+                  p.marca.toLowerCase().includes(term) ||
+                  (p.proveedor && p.proveedor.toLowerCase().includes(term))
+              )
+            );
+          });
       } else {
         setMensajeError(data.error || "Error al registrar la venta.");
       }
@@ -227,7 +245,7 @@ const Ventas: React.FC = () => {
       <h1>REGISTRAR VENTA</h1>
       <form className="venta-form" onSubmit={e => { e.preventDefault(); registrarVenta(); }}>
         
-        {/* Selección de productos */}
+        {}
         <section className="productos-venta">
           <h2>PRODUCTOS</h2>
           <div className="tipo-selector">
@@ -482,24 +500,7 @@ const Ventas: React.FC = () => {
                   )}
                 </div>
               )}
-              {clienteSeleccionado && (
-                <div style={{
-                  color: "#80c481",
-                  marginLeft: 12,
-                  display: "flex",
-                  flexDirection: "column",
-                  minWidth: 260,
-                  maxWidth: 380,
-                  wordBreak: "break-all"
-                }}>
-                  <span style={{ fontWeight: 700 }}>
-                    {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
-                  </span>
-                  <span style={{ fontSize: "0.98rem", color: "#ffd700" }}>
-                    {clienteSeleccionado.telefono} &nbsp;|&nbsp; {clienteSeleccionado.correo}
-                  </span>
-                </div>
-              )}
+
             </div>
           )}
         </div>
@@ -510,7 +511,6 @@ const Ventas: React.FC = () => {
             <div><b>Teléfono:</b> {clienteSeleccionado.telefono}</div>
           </div>
         )}
-
         {mensajeError && (
           <div style={{
             background: "#a32020",
