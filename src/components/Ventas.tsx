@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Ventas.css";
 
@@ -12,9 +12,12 @@ type ProductoVenta = {
 };
 
 type Cliente = {
+  id: number;
   nombre: string;
-  correo: string;
+  apellido: string;
   telefono: string;
+  correo: string;
+  activo: number;
 };
 
 const Ventas: React.FC = () => {
@@ -22,11 +25,17 @@ const Ventas: React.FC = () => {
   const [productos, setProductos] = useState<ProductoVenta[]>([]);
   const [tipoSeleccionado, setTipoSeleccionado] = useState<"moto" | "accesorio" | "repuesto">("moto");
   const [productosEnVenta, setProductosEnVenta] = useState<ProductoVenta[]>([]);
-  const [cliente, setCliente] = useState<Cliente>({ nombre: "", correo: "", telefono: "" });
+  const [cliente, setCliente] = useState<Cliente>({ id: 0, nombre: "", apellido: "", telefono: "", correo: "", activo: 1 });
   const [fecha, setFecha] = useState<string>(new Date().toISOString().slice(0, 10));
   const [metodoPago, setMetodoPago] = useState<"efectivo" | "tarjeta" | "transferencia">("efectivo");
   const [porcentajeTarjeta, setPorcentajeTarjeta] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [busquedaCliente, setBusquedaCliente] = useState("");
+  const [clientesSugeridos, setClientesSugeridos] = useState<Cliente[]>([]);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+  const [mensajeError, setMensajeError] = useState<string>("");
+  const [mensajeExito, setMensajeExito] = useState<string>("");
 
   // Cargar productos según tipo seleccionado y término de búsqueda
   useEffect(() => {
@@ -49,16 +58,34 @@ const Ventas: React.FC = () => {
       });
   }, [tipoSeleccionado, searchTerm]);
 
+  // Cargar clientes
+  useEffect(() => {
+    fetch("http://localhost:3001/api/clientes")
+      .then(res => res.json())
+      .then(data => setClientes(data));
+  }, []);
+
+  // Buscar clientes en tiempo real por nombre
+  useEffect(() => {
+    if (busquedaCliente.length > 1) {
+      fetch(`http://localhost:3001/api/clientes?search=${encodeURIComponent(busquedaCliente)}`)
+        .then(res => res.json())
+        .then(data => setClientesSugeridos(data));
+    } else {
+      setClientesSugeridos([]);
+    }
+  }, [busquedaCliente]);
+
   // Agregar producto a la venta
   const agregarProductoAVenta = (producto: ProductoVenta) => {
     const enVenta = productosEnVenta.find(p => p.id === producto.id);
     const cantidadEnVenta = enVenta ? enVenta.cantidad : 0;
     if (cantidadEnVenta + 1 > producto.cantidad) {
-      alert("No hay suficiente stock disponible.");
+      setMensajeError(`No hay suficiente stock disponible para "${producto.nombre}".`);
       return;
     }
+    setMensajeError(""); 
     if (producto.tipo === "moto") {
-      // Si ya hay una moto, reemplázala; si no, agrégala sin eliminar los otros productos
       const otros = productosEnVenta.filter(p => p.tipo !== "moto");
       setProductosEnVenta([ ...otros, { ...producto, cantidad: 1 } ]);
     } else {
@@ -78,9 +105,10 @@ const Ventas: React.FC = () => {
   const cambiarCantidad = (id: number, cantidad: number) => {
     const producto = productos.find(p => p.id === id);
     if (producto && cantidad > producto.cantidad) {
-      alert("No hay suficiente stock disponible.");
+      setMensajeError(`No hay suficiente stock disponible para "${producto.nombre}".`);
       return;
     }
+    setMensajeError("");
     setProductosEnVenta(productosEnVenta.map(p =>
       p.id === id ? { ...p, cantidad: cantidad } : p
     ));
@@ -97,39 +125,77 @@ const Ventas: React.FC = () => {
     ? totalSinExtra * (1 + porcentajeTarjeta / 100)
     : totalSinExtra;
 
-  // Registrar venta (simulado)
-  const registrarVenta = () => {
+  // Registrar venta
+  const registrarVenta = async () => {
     if (productosEnVenta.length === 0) {
-      alert("Agregue al menos un producto.");
+      setMensajeError("Agregue al menos un producto.");
       return;
     }
 
     const incluyeMoto = productosEnVenta.some(p => p.tipo === "moto");
 
     if (incluyeMoto) {
-      if (!cliente.nombre.trim() || cliente.nombre.trim().length < 2) {
-        alert("Ingrese un nombre válido.");
+      if (!clienteSeleccionado) {
+        setMensajeError("Debe seleccionar un cliente para ventas de motos.");
+        return;
+      }
+      if (!clienteSeleccionado.nombre.trim() || clienteSeleccionado.nombre.trim().length < 2) {
+        setMensajeError("Ingrese un nombre válido.");
         return;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(cliente.correo)) {
-        alert("Ingrese un correo válido.");
+      if (!emailRegex.test(clienteSeleccionado.correo)) {
+        setMensajeError("Ingrese un correo válido.");
         return;
       }
       const telRegex = /^[0-9]{8,}$/;
-      if (!telRegex.test(cliente.telefono)) {
-        alert("Ingrese un teléfono válido (solo números, mínimo 8 dígitos).");
+      if (!telRegex.test(clienteSeleccionado.telefono)) {
+        setMensajeError("Ingrese un teléfono válido (solo números, mínimo 8 dígitos).");
         return;
       }
     }
 
-    // Aquí iría el fetch al backend para registrar la venta
-    alert("Venta registrada correctamente.");
-    // Limpiar formulario
-    setProductosEnVenta([]);
-    setCliente({ nombre: "", correo: "", telefono: "" });
-    setMetodoPago("efectivo");
-    setPorcentajeTarjeta(0);
+    if (incluyeMoto && !clienteSeleccionado) {
+      setMensajeError("Debe seleccionar un cliente para ventas de motos.");
+      return;
+    }
+    const cliente_id = incluyeMoto && clienteSeleccionado ? clienteSeleccionado.id : null;
+
+    const payload = {
+      cliente_id,
+      total: totalFinal,
+      tipo_venta: incluyeMoto ? "moto" : "accesorio/repuesto",
+      metodo_pago: metodoPago,
+      productos: productosEnVenta.map(p => ({
+        id: p.id,
+        cantidad: p.cantidad,
+        precio: p.precio
+      }))
+    };
+
+    try {
+      const res = await fetch("http://localhost:3001/api/ventas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMensajeError(""); 
+        setMensajeExito("¡Venta registrada correctamente!"); 
+        // Limpiar formulario
+        setProductosEnVenta([]);
+        setClienteSeleccionado(null);
+        setMetodoPago("efectivo");
+        setPorcentajeTarjeta(0);
+        setBusquedaCliente("");
+        setClientesSugeridos([]);
+      } else {
+        setMensajeError(data.error || "Error al registrar la venta.");
+      }
+    } catch (err) {
+      setMensajeError("Error de conexión al registrar la venta.");
+    }
   };
 
   const incluyeMoto = productosEnVenta.some(p => p.tipo === "moto");
@@ -160,51 +226,7 @@ const Ventas: React.FC = () => {
       </button>
       <h1>REGISTRAR VENTA</h1>
       <form className="venta-form" onSubmit={e => { e.preventDefault(); registrarVenta(); }}>
-        {/* Datos del cliente */}
-        <section className="datos-cliente">
-          <label>
-            NOMBRE DEL CLIENTE:
-            <input
-              type="text"
-              value={cliente.nombre}
-              onChange={e => setCliente({ ...cliente, nombre: e.target.value })}
-              required={incluyeMoto}
-              disabled={!incluyeMoto}
-              placeholder={incluyeMoto ? "" : "No requerido para accesorios/repuestos"}
-            />
-          </label>
-          <label>
-            CORREO:
-            <input
-              type="email"
-              value={cliente.correo}
-              onChange={e => setCliente({ ...cliente, correo: e.target.value })}
-              required={incluyeMoto}
-              disabled={!incluyeMoto}
-              placeholder={incluyeMoto ? "" : "No requerido para accesorios/repuestos"}
-            />
-          </label>
-          <label>
-            TELÉFONO:
-            <input
-              type="text"
-              value={cliente.telefono}
-              onChange={e => setCliente({ ...cliente, telefono: e.target.value })}
-              required={incluyeMoto}
-              disabled={!incluyeMoto}
-              placeholder={incluyeMoto ? "" : "No requerido para accesorios/repuestos"}
-            />
-          </label>
-          <label>
-            FECHA:
-            <input
-              type="date"
-              value={fecha}
-              onChange={e => setFecha(e.target.value)}
-            />
-          </label>
-        </section>
-
+        
         {/* Selección de productos */}
         <section className="productos-venta">
           <h2>PRODUCTOS</h2>
@@ -310,6 +332,211 @@ const Ventas: React.FC = () => {
             </label>
           )}
         </section>
+
+        <div style={{
+          marginBottom: 24,
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start"
+        }}>
+          {!incluyeMoto ? (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 18,
+              background: "#181818",
+              borderRadius: 10,
+              padding: "14px 24px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+              fontWeight: 700,
+              fontSize: "1.1rem",
+              color: "#ffd700"
+            }}>
+              Cliente: <span style={{ color: "#fff" }}>Consumidor Final</span>
+              <button
+                type="button"
+                title="Agregar cliente"
+                onClick={() => navigate("/clientes?agregar=1")}
+                style={{
+                  background: "#2196f3",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
+                  <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 18,
+                background: "#181818",
+                borderRadius: 10,
+                padding: "14px 24px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                fontWeight: 700,
+                fontSize: "1.1rem",
+                position: "relative",
+                width: 420
+              }}
+            >
+              <input
+                type="text"
+                className="buscador-input"
+                placeholder="Buscar cliente por nombre..."
+                value={busquedaCliente}
+                onChange={e => {
+                  setBusquedaCliente(e.target.value);
+                  setClienteSeleccionado(null);
+                }}
+                style={{ width: 260, zIndex: 11 }}
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                title="Agregar cliente"
+                onClick={() => navigate("/clientes?agregar=1")}
+                style={{
+                  background: "#2196f3",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
+                  <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {}
+              {busquedaCliente.length > 1 && clientesSugeridos.length > 0 && (
+                <div
+                  className="sugerencias-clientes"
+                  style={{
+                    position: "absolute",
+                    top: 48,
+                    left: 0,
+                    width: 260,
+                    background: "#232526",
+                    borderRadius: 10,
+                    boxShadow: "0 4px 16px rgba(25,118,210,0.18)",
+                    zIndex: 20,
+                    marginTop: 2,
+                    padding: "4px 0",
+                    maxHeight: 320,
+                    overflowY: "auto"
+                  }}
+                >
+                  {clientesSugeridos.slice(0, 8).map(c => (
+                    <div
+                      key={c.id}
+                      className="sugerencia-cliente"
+                      onClick={() => {
+                        setClienteSeleccionado(c);
+                        setBusquedaCliente(`${c.nombre} ${c.apellido}`);
+                        setClientesSugeridos([]);
+                      }}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                        background: "#232526",
+                        color: "#fff",
+                        padding: "10px 18px",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #353535",
+                        fontSize: "1.08rem",
+                        transition: "background 0.15s"
+                      }}
+                      onMouseOver={e => (e.currentTarget.style.background = "#353535")}
+                      onMouseOut={e => (e.currentTarget.style.background = "#232526")}
+                    >
+                      <span style={{ fontWeight: 700, color: "#80c481" }}>
+                        {c.nombre} {c.apellido}
+                      </span>
+                      <span style={{ fontSize: "0.98rem", color: "#ffd700" }}>
+                        {c.telefono} &nbsp;|&nbsp; {c.correo}
+                      </span>
+                    </div>
+                  ))}
+                  {clientesSugeridos.length > 8 && (
+                    <div style={{
+                      textAlign: "center",
+                      color: "#bbb",
+                      fontSize: "0.95rem",
+                      padding: "6px 0"
+                    }}>
+                      Mostrando los primeros 8 resultados...
+                    </div>
+                  )}
+                </div>
+              )}
+              {clienteSeleccionado && (
+                <div style={{
+                  color: "#80c481",
+                  marginLeft: 12,
+                  display: "flex",
+                  flexDirection: "column",
+                  minWidth: 260,
+                  maxWidth: 380,
+                  wordBreak: "break-all"
+                }}>
+                  <span style={{ fontWeight: 700 }}>
+                    {clienteSeleccionado.nombre} {clienteSeleccionado.apellido}
+                  </span>
+                  <span style={{ fontSize: "0.98rem", color: "#ffd700" }}>
+                    {clienteSeleccionado.telefono} &nbsp;|&nbsp; {clienteSeleccionado.correo}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {incluyeMoto && clienteSeleccionado && (
+          <div style={{ marginTop: 8, color: "#fff" }}>
+            <div><b>Correo:</b> {clienteSeleccionado.correo}</div>
+            <div><b>Teléfono:</b> {clienteSeleccionado.telefono}</div>
+          </div>
+        )}
+
+        {mensajeError && (
+          <div style={{
+            background: "#a32020",
+            color: "#fff",
+            padding: "12px 20px",
+            borderRadius: 8,
+            marginBottom: 18,
+            fontWeight: 700,
+            boxShadow: "0 2px 8px rgba(163,32,32,0.18)"
+          }}>
+            {mensajeError}
+          </div>
+        )}
+        {mensajeExito && (
+          <div style={{
+            background: "#1e7e34",
+            color: "#fff",
+            padding: "12px 20px",
+            borderRadius: 8,
+            marginBottom: 18,
+            fontWeight: 700,
+            boxShadow: "0 2px 8px rgba(30,126,52,0.18)"
+          }}>
+            {mensajeExito}
+          </div>
+        )}
 
         <button className="confirmar-venta-btn" type="submit">
           CONFIRMAR VENTA

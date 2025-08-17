@@ -199,3 +199,26 @@ html, body {
 .ventas-container {
   min-height: 100vh;
 }
+
+.sugerencias-clientes {
+  position: absolute;
+  background: #232526;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(25,118,210,0.18);
+  z-index: 20;
+  margin-top: 2px;
+  width: 260px; 
+  padding: 4px 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.sugerencia-cliente {
+  border-bottom: 1px solid #353535;
+  transition: background 0.15s;
+}
+.sugerencia-cliente:last-child {
+  border-bottom: none;
+}
+.sugerencia-cliente:hover {
+  background: #353535;
+}

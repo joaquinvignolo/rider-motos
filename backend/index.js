@@ -158,13 +158,17 @@ app.put('/api/productos/:id', (req, res) => {
   });
 });
 
-// Obtener clientes (solo activos por defecto
+// Obtener clientes. solo activos por defecto
 app.get('/api/clientes', (req, res) => {
-  const { inactivos } = req.query;
-  let sql = 'SELECT * FROM clientes';
-  if (!inactivos) sql += ' WHERE activo = 1';
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ error: 'Error en el servidor' });
+  const { search } = req.query;
+  let sql = 'SELECT * FROM clientes WHERE activo=1';
+  let params = [];
+  if (search) {
+    sql += ' AND (nombre LIKE ? OR apellido LIKE ?)';
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener clientes' });
     res.json(results);
   });
 });
@@ -204,6 +208,36 @@ app.patch('/api/clientes/:id/activo', (req, res) => {
     (err) => {
       if (err) return res.status(500).json({ error: 'Error al cambiar estado' });
       res.json({ success: true });
+    }
+  );
+});
+
+// Registrar venta
+app.post('/api/ventas', (req, res) => {
+  const { cliente_id, total, tipo_venta, metodo_pago, productos } = req.body;
+  const clienteIdFinal = typeof cliente_id === "undefined" ? null : cliente_id;
+  console.log("Datos recibidos en /api/ventas:", req.body);
+  db.query(
+    'INSERT INTO ventas (cliente_id, fecha, total, tipo_venta, metodo_pago) VALUES (?, NOW(), ?, ?, ?)',
+    [clienteIdFinal, total, tipo_venta, metodo_pago],
+    (err, result) => {
+      if (err) {
+        console.error("Error al registrar venta:", err);
+        return res.status(500).json({ error: 'Error al registrar venta' });
+      }
+      const venta_id = result.insertId;
+      const detalles = productos.map(p => [venta_id, p.id, p.cantidad, p.precio]);
+      db.query(
+        'INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario) VALUES ?',
+        [detalles],
+        (err2) => {
+          if (err2) {
+            console.error("Error al registrar detalle de venta:", err2);
+            return res.status(500).json({ error: 'Error al registrar detalle de venta' });
+          }
+          res.json({ success: true, venta_id });
+        }
+      );
     }
   );
 });
