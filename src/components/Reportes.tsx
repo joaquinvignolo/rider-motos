@@ -153,7 +153,7 @@ const Reportes: React.FC = () => {
               </div>
             </div>
           ))
-        }
+        )}
       </div>
       {ventaSeleccionada && (
         <div className="reporte-modal">
