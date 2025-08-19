@@ -4,7 +4,8 @@ import Login from './components/Login';
 import MenuPrincipal from './components/MenuPrincipal';
 import Productos from './components/Productos';
 import Ventas from './components/Ventas';
-import Clientes from './components/Clientes'; 
+import Clientes from './components/Clientes';
+import Reportes from './components/Reportes'; 
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/productos" element={<Productos />} />
         <Route path="/ventas" element={<Ventas />} />
         <Route path="/clientes" element={<Clientes />} />
+        <Route path="/reportes" element={<Reportes />} />
       </Routes>
     </Router>
   );
