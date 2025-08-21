@@ -20,7 +20,7 @@ function MenuPrincipal() {
           <button onClick={() => navigate("/clientes")}>CLIENTES</button>
           <button onClick={() => navigate("/ventas")}>VENTAS</button>
           <button>PATENTAMIENTOS</button>
-          <button>REPORTES</button>
+          <button onClick={() => navigate("/reportes")}>REPORTES</button>
         </main>
       </div>
 

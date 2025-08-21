@@ -270,6 +270,46 @@ app.post('/api/ventas', (req, res) => {
   );
 });
 
+// Obtener todas las ventas
+app.get('/api/ventas', async (req, res) => {
+  try {
+    // 1. Traer todas las ventas
+    const [ventas] = await db.promise().query(`
+      SELECT v.id, v.fecha, v.total, v.tipo_venta, v.metodo_pago,
+             IFNULL(c.nombre, 'Consumidor final') as cliente
+      FROM ventas v
+      LEFT JOIN clientes c ON v.cliente_id = c.id
+      ORDER BY v.fecha DESC
+    `);
+
+    // 2. Traer detalles de todas las ventas
+    const [detalles] = await db.promise().query(`
+      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario,
+             p.nombre, p.descripcion, p.marca
+      FROM detalle_ventas dv
+      JOIN productos p ON dv.producto_id = p.id
+    `);
+
+    // 3. Asociar detalles a cada venta
+    const ventasConDetalles = ventas.map(venta => ({
+      ...venta,
+      detalles: detalles
+        .filter(d => d.venta_id === venta.id)
+        .map(d => ({
+          nombre: d.nombre,
+          descripcion: d.descripcion,
+          marca: d.marca,
+          cantidad: d.cantidad,
+          precio: d.precio_unitario
+        }))
+    }));
+
+    res.json(ventasConDetalles);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener ventas' });
+  }
+});
+
 app.listen(3001, () => {
   console.log('API corriendo en http://localhost:3001');
 });
