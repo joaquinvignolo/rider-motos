@@ -160,12 +160,22 @@ app.put('/api/productos/:id', (req, res) => {
 
 // Obtener clientes. solo activos por defecto
 app.get('/api/clientes', (req, res) => {
-  const { search } = req.query;
-  let sql = 'SELECT * FROM clientes WHERE activo=1';
+  const { search, inactivos } = req.query;
+  let sql = 'SELECT * FROM clientes';
   let params = [];
+  let where = [];
+
+  if (inactivos === "1") {
+    where.push('activo=0');
+  } else {
+    where.push('activo=1');
+  }
   if (search) {
-    sql += ' AND (nombre LIKE ? OR apellido LIKE ?)';
+    where.push('(nombre LIKE ? OR apellido LIKE ?)');
     params.push(`%${search}%`, `%${search}%`);
+  }
+  if (where.length) {
+    sql += ' WHERE ' + where.join(' AND ');
   }
   db.query(sql, params, (err, results) => {
     if (err) return res.status(500).json({ error: 'Error al obtener clientes' });
