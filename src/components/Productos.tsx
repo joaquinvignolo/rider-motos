@@ -169,8 +169,8 @@ const Productos: React.FC = () => {
   const handleEditar = (producto: Producto) => {
     setEditId(producto.id);
     setNombre(producto.nombre ?? "");
-    setPrecio(String(producto.precio ?? ""));      // <-- fuerza a string
-    setCantidad(String(producto.cantidad ?? ""));  // <-- fuerza a string
+    setPrecio(String(producto.precio ?? ""));      
+    setCantidad(String(producto.cantidad ?? ""));  
     // Si es accesorio o repuesto, fuerza la marca si no es válida
     if (seccion !== "motos" && !["Primera marca", "Segunda marca"].includes(producto.marca)) {
       setMarca("Primera marca");
@@ -332,7 +332,7 @@ const Productos: React.FC = () => {
   // Determina el mínimo de stock según tipo
   const getMinimoStock = (producto: Producto) => {
     if (producto.tipo === "moto") return 1;
-    return 3; // Puedes ajustar este valor para accesorios/repuestos
+    return 3; 
   };
 
   const esBajoStock = (producto: Producto) =>
@@ -392,7 +392,7 @@ const Productos: React.FC = () => {
             </span>
           </button>
           <div style={{ flex: 1 }} />
-          {/* Botón Activo/Inactivo con ícono */}
+          {}
           <button
             className="motos-bar-btn activo-btn"
             style={{ fontSize: "1.2rem", padding: "6px 12px", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}
@@ -579,7 +579,7 @@ const Productos: React.FC = () => {
         {!mostrarInactivos && productosFiltrados.some(esBajoStock) && (
           <div style={{
             background: "#fff3cd",
-            color: "#a32020",
+            color: "#010101ff",
             fontWeight: "bold",
             borderRadius: "8px",
             padding: "8px 18px",
