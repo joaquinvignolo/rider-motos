@@ -405,13 +405,13 @@ const Productos: React.FC = () => {
             className="motos-bar-btn agregar-btn"
             onClick={handleAgregar}
           >
-            <span style={{display: "inline-flex", alignItems: "center", gap: 10}}>
-              <svg width="22" height="22" viewBox="0 0 22 22" style={{marginRight: 2}}>
+            <span style={{display: "inline-flex", alignItems: "center", gap: 8}}>
+              <svg width="20" height="20" viewBox="0 0 22 22" style={{marginRight: 2}}>
                 <circle cx="11" cy="11" r="11" fill="#a32020"/>
                 <rect x="10" y="5" width="2" height="12" rx="1" fill="white"/>
                 <rect x="5" y="10" width="12" height="2" rx="1" fill="white"/>
               </svg>
-              Agregar
+              Agregar Producto
             </span>
           </button>
           <div style={{ flex: 1 }} />
