@@ -158,6 +158,19 @@ app.put('/api/productos/:id', (req, res) => {
   });
 });
 
+// Activar/Inactivar producto
+app.patch('/api/productos/:id/activo', (req, res) => {
+  const { activo } = req.body;
+  db.query(
+    'UPDATE productos SET activo=? WHERE id=?',
+    [activo, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: 'Error al cambiar estado del producto' });
+      res.json({ success: true });
+    }
+  );
+});
+
 // Obtener clientes. solo activos por defecto
 app.get('/api/clientes', (req, res) => {
   const { search, inactivos } = req.query;

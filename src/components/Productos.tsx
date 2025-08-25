@@ -13,6 +13,7 @@ type Producto = {
   descripcion: string;
   proveedor?: string;
   tipo: "moto" | "accesorio" | "repuesto";
+  activo: number; // <-- AGREGA ESTA LÍNEA
 };
 
 type Marca = {
@@ -33,6 +34,7 @@ const Productos: React.FC = () => {
   const [showVerModal, setShowVerModal] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(null);
+  const [productoAReactivar, setProductoAReactivar] = useState<Producto | null>(null);
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
   // Listas desde la base de datos
@@ -338,6 +340,27 @@ const Productos: React.FC = () => {
   const esBajoStock = (producto: Producto) =>
     Number(producto.cantidad) <= getMinimoStock(producto);
 
+  const recargarProductos = () => {
+    let url = "http://localhost:3001/api/productos?tipo=" + (
+      seccion === "motos" ? "moto" :
+      seccion === "accesorios" ? "accesorio" :
+      "repuesto"
+    );
+    if (mostrarInactivos) url += "&inactivos=1";
+    fetch(url)
+      .then(res => res.json())
+      .then(data => setProductos(data));
+  };
+
+  const cambiarEstadoProducto = async (producto: Producto, nuevoEstado: number) => {
+    await fetch(`http://localhost:3001/api/productos/${producto.id}/activo`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activo: nuevoEstado })
+    });
+    recargarProductos();
+  };
+
   return (
     <div className="productos-container">
       <aside className="productos-sidebar">
@@ -396,7 +419,10 @@ const Productos: React.FC = () => {
           <button
             className="motos-bar-btn activo-btn"
             style={{ fontSize: "1.2rem", padding: "6px 12px", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}
-            onClick={() => setMostrarInactivos(v => !v)}
+            onClick={() => {
+              setMostrarInactivos(v => !v);
+              setTimeout(recargarProductos, 0); // recarga después de cambiar el filtro
+            }}
             title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
           >
             {mostrarInactivos ? (
@@ -616,13 +642,25 @@ const Productos: React.FC = () => {
                 <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)}>
                   👁️
                 </button>
-                <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>✏️</button>
-                <button
-                  className="eliminar-btn motos-bar-btn"
-                  onClick={() => setProductoAEliminar(producto)}
-                >
-                  🗑️
-                </button>
+                {producto.activo !== 0 ? (
+                  <>
+                    <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>✏️</button>
+                    <button
+                      className="eliminar-btn motos-bar-btn"
+                      onClick={() => setProductoAEliminar(producto)}
+                    >
+                      🗑️
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="activar-btn motos-bar-btn"
+                    style={{ background: "#43a047", color: "#fff" }}
+                    onClick={() => setProductoAReactivar(producto)}
+                  >
+                    🔄 Reactivar
+                  </button>
+                )}
               </div>
             </li>
           ))}
@@ -635,15 +673,15 @@ const Productos: React.FC = () => {
               <h2 style={{color: "#a32020", marginBottom: 18}}>¿Estás seguro?</h2>
               <p style={{marginBottom: 24, color: "#fff"}}>
                 Vas a eliminar <b>{productoAEliminar.nombre}</b>.<br />
-                Esta acción no se puede deshacer.
               </p>
               <div style={{display: "flex", justifyContent: "center", gap: 16}}>
                 <button
                   className="eliminar-btn motos-bar-btn"
                   style={{minWidth: 110}}
-                  onClick={() => {
-                    handleEliminar(productoAEliminar.id);
+                  onClick={async () => {
+                    await handleEliminar(productoAEliminar.id);
                     setProductoAEliminar(null);
+                    recargarProductos(); // <-- recarga la lista
                   }}
                 >
                   Eliminar
@@ -652,6 +690,41 @@ const Productos: React.FC = () => {
                   className="motos-bar-btn"
                   style={{background: "#353535", minWidth: 110}}
                   onClick={() => setProductoAEliminar(null)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {productoAReactivar && (
+          <div className="modal-backdrop">
+            <div className="modal mini-modal" style={{textAlign: "center"}}>
+              <h2 style={{color: "#43a047", marginBottom: 18}}>¿Reactivar producto?</h2>
+              <p style={{marginBottom: 24, color: "#fff"}}>
+                Vas a reactivar <b>{productoAReactivar.nombre}</b>.<br />
+              </p>
+              <div style={{display: "flex", justifyContent: "center", gap: 16}}>
+                <button
+                  className="motos-bar-btn"
+                  style={{background: "#43a047", minWidth: 110}}
+                  onClick={async () => {
+                    await fetch(`http://localhost:3001/api/productos/${productoAReactivar.id}/activo`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ activo: 1 })
+                    });
+                    setProductoAReactivar(null);
+                    setMostrarInactivos(false);
+                    setTimeout(recargarProductos, 0); // recarga la lista de activos
+                  }}
+                >
+                  Reactivar
+                </button>
+                <button
+                  className="motos-bar-btn"
+                  style={{background: "#353535", minWidth: 110}}
+                  onClick={() => setProductoAReactivar(null)}
                 >
                   Cancelar
                 </button>
