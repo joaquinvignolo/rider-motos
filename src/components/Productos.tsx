@@ -421,28 +421,28 @@ const Productos: React.FC = () => {
             style={{
               fontSize: "1.2rem",
               padding: "6px 12px",
-              minWidth: 55, 
-              minHeight: 55, 
+              minWidth: 55,
+              minHeight: 55,
               display: "flex",
               alignItems: "center",
-              justifyContent: "center", 
+              justifyContent: "center",
               gap: 6
             }}
             onClick={() => {
               setMostrarInactivos(v => !v);
-              setTimeout(recargarProductos, 0);
             }}
             title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
           >
+            {}
             {mostrarInactivos ? (
-              <svg width="22" height="22" viewBox="0 0 22 22">
-                <circle cx="11" cy="11" r="11" fill="#43a047"/>
-                <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              </svg>
-            ) : (
               <svg width="22" height="22" viewBox="0 0 22 22">
                 <circle cx="11" cy="11" r="11" fill="#a32020"/>
                 <path d="M7 7l8 8M15 7l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 22 22">
+                <circle cx="11" cy="11" r="11" fill="#43a047"/>
+                <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
               </svg>
             )}
           </button>
