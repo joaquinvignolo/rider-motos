@@ -418,17 +418,32 @@ const Productos: React.FC = () => {
           {}
           <button
             className="motos-bar-btn activo-btn"
-            style={{ fontSize: "1.2rem", padding: "6px 12px", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}
+            style={{
+              fontSize: "1.2rem",
+              padding: "6px 12px",
+              minWidth: 55, 
+              minHeight: 55, 
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center", 
+              gap: 6
+            }}
             onClick={() => {
               setMostrarInactivos(v => !v);
-              setTimeout(recargarProductos, 0); // recarga después de cambiar el filtro
+              setTimeout(recargarProductos, 0);
             }}
             title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
           >
             {mostrarInactivos ? (
-              <span style={{color: "#43a047", fontSize: "1.4em"}}>✔️</span>
+              <svg width="22" height="22" viewBox="0 0 22 22">
+                <circle cx="11" cy="11" r="11" fill="#43a047"/>
+                <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              </svg>
             ) : (
-              <span style={{color: "#d32f2f", fontSize: "1.4em"}}>❌</span>
+              <svg width="22" height="22" viewBox="0 0 22 22">
+                <circle cx="11" cy="11" r="11" fill="#a32020"/>
+                <path d="M7 7l8 8M15 7l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
             )}
           </button>
           {/* Botón Proveedor (solo habilitado en repuestos) */}
@@ -639,17 +654,29 @@ const Productos: React.FC = () => {
                 )}
               </span>
               <div className="producto-actions">
-                <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)}>
-                  👁️
+                {}
+                <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)} title="Ver">
+                  {}
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
                 </button>
                 {producto.activo !== 0 ? (
                   <>
-                    <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)}>✏️</button>
+                    {/* Editar */}
+                    <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)} title="Editar">
+                      {}
+                      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </button>
+                    {/* Eliminar/Inactivar */}
                     <button
                       className="eliminar-btn motos-bar-btn"
                       onClick={() => setProductoAEliminar(producto)}
+                      title="Inactivar"
                     >
-                      🗑️
+                      {}
+                      <svg width="18" height="18" viewBox="0 0 22 22">
+                        <circle cx="11" cy="11" r="11" fill="#a32020"/>
+                        <path d="M7 7l8 8M15 7l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
                     </button>
                   </>
                 ) : (
@@ -657,8 +684,13 @@ const Productos: React.FC = () => {
                     className="activar-btn motos-bar-btn"
                     style={{ background: "#43a047", color: "#fff" }}
                     onClick={() => setProductoAReactivar(producto)}
+                    title="Reactivar"
                   >
-                    🔄 Reactivar
+                    {}
+                    <svg width="18" height="18" viewBox="0 0 22 22">
+                      <circle cx="11" cy="11" r="11" fill="#80c481ff"/>
+                      <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    </svg>
                   </button>
                 )}
               </div>
