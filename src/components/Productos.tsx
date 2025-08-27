@@ -258,11 +258,11 @@ const Productos: React.FC = () => {
             className="motos-bar-btn agregar-btn"
             onClick={handleGuardar}
             disabled={
-              !nombre.trim() ||
-              !precio.trim() ||
-              !cantidad.trim() ||
-              !marca.trim() ||
-              (seccion === "repuestos" && !proveedor.trim())
+              !nombre.trim() &&
+              !precio.trim() &&
+              !cantidad.trim() &&
+              !marca.trim() &&
+              !(seccion === "repuestos" && !proveedor.trim())
             }
           >
             {editId !== null ? "Modificar" : "Agregar"}
