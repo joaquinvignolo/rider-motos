@@ -374,6 +374,10 @@ const Productos: React.FC = () => {
     recargarProductos();
   };
 
+  useEffect(() => {
+    setFiltroMarca(null);
+  }, [seccion]);
+
   return (
     <div className="productos-container">
       <aside className="productos-sidebar">
