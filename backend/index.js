@@ -298,9 +298,10 @@ app.get('/api/ventas', async (req, res) => {
     // 2. Traer detalles de todas las ventas
     const [detalles] = await db.promise().query(`
       SELECT dv.venta_id, dv.cantidad, dv.precio_unitario,
-             p.nombre, p.descripcion, p.marca
+             p.nombre, p.descripcion, m.nombre AS marca
       FROM detalle_ventas dv
       JOIN productos p ON dv.producto_id = p.id
+      LEFT JOIN marcas m ON p.marca_id = m.id
     `);
 
     // 3. Asociar detalles a cada venta
@@ -319,6 +320,7 @@ app.get('/api/ventas', async (req, res) => {
 
     res.json(ventasConDetalles);
   } catch (err) {
+    console.error("Error en /api/ventas:", err);
     res.status(500).json({ error: 'Error al obtener ventas' });
   }
 });

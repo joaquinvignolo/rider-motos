@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import "./Reportes.css";
 
 type Venta = {
@@ -17,14 +17,6 @@ type Venta = {
   }[];
 };
 
-const opcionesFiltro = [
-  { value: "todos", label: "Todos" },
-  { value: "dia", label: "Hoy" },
-  { value: "semana", label: "Esta semana" },
-  { value: "mes", label: "Este mes" },
-  { value: "anio", label: "Este año" },
-];
-
 function agruparPorFecha(ventas: Venta[]) {
   const agrupadas: { [fecha: string]: Venta[] } = {};
   ventas.forEach(v => {
@@ -38,9 +30,8 @@ function agruparPorFecha(ventas: Venta[]) {
 const Reportes: React.FC = () => {
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [ventaSeleccionada, setVentaSeleccionada] = useState<Venta | null>(null);
-  const [filtro, setFiltro] = useState("todos");
-  const [openFiltro, setOpenFiltro] = useState(false);
-  const filtroRef = useRef<HTMLDivElement>(null);
+  const [desde, setDesde] = useState<string>("");
+  const [hasta, setHasta] = useState<string>("");
 
   useEffect(() => {
     fetch("http://localhost:3001/api/ventas")
@@ -48,41 +39,17 @@ const Reportes: React.FC = () => {
       .then(data => setVentas(Array.isArray(data) ? data : []));
   }, []);
 
-  // Cerrar menú si se hace click fuera
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (filtroRef.current && !filtroRef.current.contains(e.target as Node)) {
-        setOpenFiltro(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
   // Filtrado
   const ventasFiltradas = ventas.filter(v => {
     const fechaVenta = new Date(v.fecha);
-    const hoy = new Date();
-    if (filtro === "dia") {
-      return fechaVenta.toDateString() === hoy.toDateString();
+    let ok = true;
+    if (desde) {
+      ok = ok && fechaVenta >= new Date(desde + "T00:00:00");
     }
-    if (filtro === "semana") {
-      const primerDiaSemana = new Date(hoy);
-      primerDiaSemana.setDate(hoy.getDate() - hoy.getDay());
-      const ultimoDiaSemana = new Date(primerDiaSemana);
-      ultimoDiaSemana.setDate(primerDiaSemana.getDate() + 6);
-      return fechaVenta >= primerDiaSemana && fechaVenta <= ultimoDiaSemana;
+    if (hasta) {
+      ok = ok && fechaVenta <= new Date(hasta + "T23:59:59");
     }
-    if (filtro === "mes") {
-      return (
-        fechaVenta.getMonth() === hoy.getMonth() &&
-        fechaVenta.getFullYear() === hoy.getFullYear()
-      );
-    }
-    if (filtro === "anio") {
-      return fechaVenta.getFullYear() === hoy.getFullYear();
-    }
-    return true;
+    return ok;
   });
 
   // Agrupar por fecha
@@ -100,34 +67,25 @@ const Reportes: React.FC = () => {
       <div className="reportes-box">
         <h1 className="reportes-titulo">REPORTES</h1>
         <hr className="reportes-divisor" />
-        <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 18 }}>
-          <div className="filtro-dropdown" ref={filtroRef}>
-            <button
-              className="filtro-dropdown-btn"
-              onClick={() => setOpenFiltro(f => !f)}
-            >
-              {opcionesFiltro.find(o => o.value === filtro)?.label}
-            </button>
-            {openFiltro && (
-              <div className="filtro-dropdown-menu">
-                {opcionesFiltro.map(op => (
-                  <button
-                    key={op.value}
-                    className={
-                      "filtro-dropdown-option" +
-                      (filtro === op.value ? " filtro-dropdown-option-activa" : "")
-                    }
-                    onClick={() => {
-                      setFiltro(op.value);
-                      setOpenFiltro(false);
-                    }}
-                  >
-                    {op.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 18, gap: 12 }}>
+          <label style={{ color: "#fff", fontWeight: 600 }}>
+            Desde:{" "}
+            <input
+              type="date"
+              value={desde}
+              onChange={e => setDesde(e.target.value)}
+              style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
+            />
+          </label>
+          <label style={{ color: "#fff", fontWeight: 600 }}>
+            Hasta:{" "}
+            <input
+              type="date"
+              value={hasta}
+              onChange={e => setHasta(e.target.value)}
+              style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
+            />
+          </label>
         </div>
         {Object.keys(agrupadas).length === 0 ? (
           <div className="reportes-vacio">

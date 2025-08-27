@@ -138,7 +138,7 @@ const Clientes: React.FC = () => {
   return (
     <>
       <div className="clientes-container">
-        <div style={{ display: "flex", gap: 16, position: "fixed", top: 32, left: 32, zIndex: 100 }}>
+        <div style={{ position: "fixed", top: 32, left: 32, zIndex: 100, display: "flex", flexDirection: "column", gap: 12 }}>
           <button
             className="inicio-btn"
             style={{
