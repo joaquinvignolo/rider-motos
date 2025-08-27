@@ -217,7 +217,7 @@ const Productos: React.FC = () => {
         <label>
           Marca:
           <select value={marca || ""} onChange={e => setMarca(e.target.value)}>
-            <option value="">Seleccionar marca</option>
+            {editId === null && <option value="">Seleccionar marca</option>}
             {seccion === "motos"
               ? marcas.map(m => (
                   <option key={m.id} value={m.nombre}>{m.nombre}</option>
@@ -247,8 +247,14 @@ const Productos: React.FC = () => {
           <label>
             Proveedor:
             <select value={proveedor} onChange={e => setProveedor(e.target.value)}>
-              <option value="">Seleccionar proveedor</option>
-              {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
+              {editId === null && <option value="">Seleccionar proveedor</option>}
+              {proveedores.map(p => (
+                <option key={p.id} value={p.nombre}>{p.nombre}</option>
+              ))}
+              {/* Si el proveedor actual no está en la lista (caso raro al editar), lo agregamos como opción */}
+              {proveedor && !proveedores.some(p => p.nombre === proveedor) && (
+                <option value={proveedor}>{proveedor}</option>
+              )}
             </select>
           </label>
         )}
