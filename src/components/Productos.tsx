@@ -98,6 +98,7 @@ const Productos: React.FC = () => {
     setMarca("");
     setDescripcion("");
     setProveedor("");
+    setMensajeValidacion(null);
     setShowModal(true);
   };
 
@@ -181,6 +182,7 @@ const Productos: React.FC = () => {
     }
     setDescripcion(producto.descripcion ?? "");
     setProveedor(producto.proveedor ?? "");
+    setMensajeValidacion(null);
     setShowModal(true);
   };
 
@@ -267,7 +269,12 @@ const Productos: React.FC = () => {
           >
             {editId !== null ? "Modificar" : "Agregar"}
           </button>
-          <button className="motos-bar-btn" onClick={() => setShowModal(false)}>Cancelar</button>
+          <button className="motos-bar-btn" onClick={() => {
+            setShowModal(false);
+            setMensajeValidacion(null);
+          }}>
+            Cancelar
+          </button>
         </div>
       </div>
     </div>
