@@ -3,11 +3,12 @@ import "./Reportes.css";
 
 type Venta = {
   id: number;
-  fecha: string; // formato ISO
+  fecha: string;
   cliente: string;
   productos: string;
   total: number;
   descripcion: string;
+  metodo_pago?: string;
   detalles: {
     nombre: string;
     descripcion: string;
@@ -27,11 +28,26 @@ function agruparPorFecha(ventas: Venta[]) {
   return agrupadas;
 }
 
+// Ícono de ojo
+const iconoOjo = (
+  <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
+);
+
+// Flecha doble SVG
+const flecha = (
+  <svg width="22" height="22" viewBox="0 0 22 22" style={{verticalAlign: "middle"}}>
+    <path d="M7 11h8M13 7l4 4-4 4" stroke="#a32020" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M15 11H7M11 15l-4-4 4-4" stroke="#a32020" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const Reportes: React.FC = () => {
   const [ventas, setVentas] = useState<Venta[]>([]);
-  const [ventaSeleccionada, setVentaSeleccionada] = useState<Venta | null>(null);
+  const [detalleDia, setDetalleDia] = useState<{ fecha: string, productos: any[], esMorado: boolean, cliente: string } | null>(null);
   const [desde, setDesde] = useState<string>("");
   const [hasta, setHasta] = useState<string>("");
+  const [pagina, setPagina] = useState(1);
+  const [tipo, setTipo] = useState<"ventas" | "compras">("ventas");
 
   useEffect(() => {
     fetch("http://localhost:3001/api/ventas")
@@ -43,29 +59,71 @@ const Reportes: React.FC = () => {
   const ventasFiltradas = ventas.filter(v => {
     const fechaVenta = new Date(v.fecha);
     let ok = true;
-    if (desde) {
-      ok = ok && fechaVenta >= new Date(desde + "T00:00:00");
-    }
-    if (hasta) {
-      ok = ok && fechaVenta <= new Date(hasta + "T23:59:59");
-    }
+    if (desde) ok = ok && fechaVenta >= new Date(desde + "T00:00:00");
+    if (hasta) ok = ok && fechaVenta <= new Date(hasta + "T23:59:59");
     return ok;
   });
 
   // Agrupar por fecha
   const agrupadas = agruparPorFecha(ventasFiltradas);
+  const fechas = Object.keys(agrupadas);
+  const diasPorPagina = 5;
+  const totalPaginas = Math.ceil(fechas.length / diasPorPagina);
+  const fechasPagina = fechas.slice((pagina - 1) * diasPorPagina, pagina * diasPorPagina);
 
-  // Eliminar venta
-  const eliminarVenta = async (id: number) => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta venta?")) return;
-    await fetch(`http://localhost:3001/api/ventas/${id}`, { method: "DELETE" });
-    setVentas(ventas.filter(v => v.id !== id));
+  // Botón volver al inicio
+  const handleVolverInicio = () => {
+    window.location.href = "/menu";
   };
 
   return (
     <div className="reportes-container">
+      {/* Botón volver al inicio */}
+      <div style={{ position: "fixed", top: 32, left: 32, zIndex: 100 }}>
+        <button
+          className="inicio-btn"
+          style={{
+            fontSize: "1.18rem",
+            padding: "10px 28px",
+            borderRadius: 8,
+            fontWeight: 700,
+            background: "#a32020",
+            color: "#fff",
+            border: "none",
+            boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
+            cursor: "pointer",
+            transition: "background 0.18s, box-shadow 0.18s"
+          }}
+          onClick={handleVolverInicio}
+        >
+          INICIO
+        </button>
+      </div>
       <div className="reportes-box">
         <h1 className="reportes-titulo">REPORTES</h1>
+        {/* Minitítulo con flecha */}
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 8 }}>
+          <button
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#a32020",
+              fontSize: 18,
+              marginRight: 4,
+              padding: 0,
+              display: "flex",
+              alignItems: "center"
+            }}
+            title="Cambiar entre ventas y compras"
+            onClick={() => setTipo(tipo === "ventas" ? "compras" : "ventas")}
+          >
+            {flecha}
+          </button>
+          <span style={{ fontSize: 18, color: "#bdbdbd", fontWeight: 600, letterSpacing: 1 }}>
+            {tipo === "ventas" ? "Ventas" : "Compras"}
+          </span>
+        </div>
         <hr className="reportes-divisor" />
         <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 18, gap: 12 }}>
           <label style={{ color: "#fff", fontWeight: 600 }}>
@@ -73,7 +131,7 @@ const Reportes: React.FC = () => {
             <input
               type="date"
               value={desde}
-              onChange={e => setDesde(e.target.value)}
+              onChange={e => { setDesde(e.target.value); setPagina(1); }}
               style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
             />
           </label>
@@ -82,70 +140,146 @@ const Reportes: React.FC = () => {
             <input
               type="date"
               value={hasta}
-              onChange={e => setHasta(e.target.value)}
+              onChange={e => { setHasta(e.target.value); setPagina(1); }}
               style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
             />
           </label>
         </div>
-        {Object.keys(agrupadas).length === 0 ? (
+        {fechasPagina.length === 0 ? (
           <div className="reportes-vacio">
-            <span role="img" aria-label="historial" style={{fontSize: 40, marginBottom: 12}}>📄</span>
+            <span role="img" aria-label="historial" style={{ fontSize: 40, marginBottom: 12 }}>📄</span>
             <div>No hay ventas registradas aún.</div>
           </div>
         ) : (
-          Object.entries(agrupadas).map(([fecha, ventasDelDia]) => (
-            <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
-              <div className="mini-titulo-fecha">{fecha}</div>
-              <div className="reportes-grid-cuadrada">
-                {ventasDelDia.map(v => (
-                  <div key={v.id} className="reporte-cuadro">
-                    <div className="reporte-cuadro-fecha">{fecha}</div>
-                    <div className="reporte-cuadro-total">${v.total}</div>
-                    <div className="reporte-cuadro-cliente">{v.cliente}</div>
-                    <div className="reporte-cuadro-botones">
-                      <button className="ver-btn" onClick={() => setVentaSeleccionada(v)}>Ver</button>
-                      <button className="eliminar-btn" onClick={() => eliminarVenta(v.id)}>Eliminar</button>
+          fechasPagina.map(fecha => {
+            const ventasDelDia = agrupadas[fecha];
+
+            // Agrupar: accesorios/repuestos (consumidor final) y motos (otros clientes)
+            const accesorios = ventasDelDia.filter(v => v.cliente === "Consumidor final");
+            const clientesMotos = ventasDelDia.filter(v => v.cliente !== "Consumidor final");
+            // Agrupar motos por cliente
+            const motosPorCliente: { [cliente: string]: Venta[] } = {};
+            clientesMotos.forEach(v => {
+              if (!motosPorCliente[v.cliente]) motosPorCliente[v.cliente] = [];
+              motosPorCliente[v.cliente].push(v);
+            });
+
+            // Calcular total del día para cada grupo (asegúrate de sumar como número)
+            const totalAccesorios = accesorios.reduce((acc, v) => acc + Number(v.total), 0);
+            const totalPorCliente: { [cliente: string]: number } = {};
+            Object.entries(motosPorCliente).forEach(([cliente, ventasCliente]) => {
+              totalPorCliente[cliente] = ventasCliente.reduce((acc, v) => acc + Number(v.total), 0);
+            });
+
+            return (
+              <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
+                <div className="mini-titulo-fecha">{fecha}</div>
+                <div className="reportes-grid-cuadrada">
+                  {/* Accesorios/Repuestos - Consumidor final */}
+                  {accesorios.length > 0 && (
+                    <div className="reporte-cuadro">
+                      <div className="reporte-cuadro-fecha">{fecha}</div>
+                      <div className="reporte-cuadro-total">
+                        ${Number(totalAccesorios).toFixed(2)}
+                      </div>
+                      <div className="reporte-cuadro-cliente">Consumidor final</div>
+                      <div className="reporte-cuadro-botones">
+                        <button
+                          className="ver-btn"
+                          onClick={() => {
+                            const productos = accesorios.flatMap(v => v.detalles.map(d => ({
+                              ...d,
+                              metodo_pago: v.metodo_pago,
+                              cliente: v.cliente,
+                              total: v.total
+                            })));
+                            const esMorado = accesorios.some(v =>
+                              v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia"
+                            );
+                            setDetalleDia({ fecha, productos, esMorado, cliente: "Consumidor final" });
+                          }}
+                          title="Ver detalle"
+                        >
+                          {iconoOjo}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )}
+                  {/* Motos - por cliente */}
+                  {Object.entries(motosPorCliente).map(([cliente, ventasCliente]) => (
+                    <div className="reporte-cuadro" key={cliente}>
+                      <div className="reporte-cuadro-fecha">{fecha}</div>
+                      <div className="reporte-cuadro-total">
+                        ${Number(totalPorCliente[cliente]).toFixed(2)}
+                      </div>
+                      <div className="reporte-cuadro-cliente">{cliente}</div>
+                      <div className="reporte-cuadro-botones">
+                        <button
+                          className="ver-btn"
+                          onClick={() => {
+                            const productos = ventasCliente.flatMap(v => v.detalles.map(d => ({
+                              ...d,
+                              metodo_pago: v.metodo_pago,
+                              cliente: v.cliente,
+                              total: v.total
+                            })));
+                            const esMorado = ventasCliente.some(v =>
+                              v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia"
+                            );
+                            setDetalleDia({ fecha, productos, esMorado, cliente });
+                          }}
+                          title="Ver detalle"
+                        >
+                          {iconoOjo}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
+        )}
+        {/* Paginación */}
+        {totalPaginas > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 18, gap: 10 }}>
+            <button
+              onClick={() => setPagina(p => Math.max(1, p - 1))}
+              disabled={pagina === 1}
+              style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#a32020", color: "#fff", fontWeight: 600, cursor: "pointer" }}
+            >
+              Anterior
+            </button>
+            <span style={{ color: "#fff" }}>
+              Página {pagina} de {totalPaginas}
+            </span>
+            <button
+              onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+              disabled={pagina === totalPaginas}
+              style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#a32020", color: "#fff", fontWeight: 600, cursor: "pointer" }}
+            >
+              Siguiente
+            </button>
+          </div>
         )}
       </div>
-      {ventaSeleccionada && (
+      {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
-            <h2 style={{ color: "#a32020", marginBottom: 18 }}>Detalle</h2>
-            {ventaSeleccionada.detalles.map((d, i) => (
+            <h2 style={{ color: detalleDia.esMorado ? "#a020f0" : "#a32020", marginBottom: 18 }}>
+              Detalle
+            </h2>
+            {detalleDia.productos.map((d, i) => (
               <div key={i} style={{ marginBottom: 12 }}>
                 <div><b>Nombre:</b> {d.nombre}</div>
                 <div><b>Descripción:</b> {d.descripcion}</div>
-                <div><b>Marca:</b> {d.marca}</div>
-                <div><b>Cantidad:</b> {d.cantidad}</div>
-                <div><b>Precio:</b> ${d.precio.toFixed(2)}</div>
+                <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
               </div>
             ))}
             <div style={{ display: "flex", width: "100%", justifyContent: "flex-end", alignItems: "center" }}>
               <button
-                className="imprimir-btn"
-                style={{
-                  background: "#353535",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 18px",
-                  fontSize: "0.98rem",
-                  marginRight: 8,
-                  cursor: "pointer"
-                }}
-                onClick={() => {/* sin función aún */}}
-              >
-                Imprimir
-              </button>
-              <button
                 className="cerrar-modal-btn"
-                onClick={() => setVentaSeleccionada(null)}
+                onClick={() => setDetalleDia(null)}
               >
                 Cerrar
               </button>
