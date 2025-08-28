@@ -218,6 +218,13 @@ const Ventas: React.FC = () => {
 
   const incluyeMoto = productosEnVenta.some(p => p.tipo === "moto");
 
+  useEffect(() => {
+    if (mensajeExito) {
+      const timer = setTimeout(() => setMensajeExito(""), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [mensajeExito]);
+
   return (
     <div className="ventas-container">
       <button
@@ -538,7 +545,7 @@ const Ventas: React.FC = () => {
           </div>
         )}
 
-        <button className="confirmar-venta-btn" type="submit">
+        <button className="confirmar-venta-btn" type="submit" disabled={!!mensajeExito}>
           CONFIRMAR VENTA
         </button>
       </form>
