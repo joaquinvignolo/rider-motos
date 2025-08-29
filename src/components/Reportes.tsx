@@ -260,16 +260,15 @@ const Reportes: React.FC = () => {
                         ${Number(totalPorCliente[cliente]).toFixed(2)}
                       </div>
                       {/* Datos del cliente */}
-                      <div className="reporte-cuadro-cliente">
-                        {ventasCliente[0].cliente_nombre && (
-                          <div>
-                            <b>{ventasCliente[0].cliente_nombre}</b>
-                            <div>Tel: {ventasCliente[0].cliente_telefono}</div>
-                            <div>Email: {ventasCliente[0].cliente_email}</div>
-                          </div>
+                      <div className="reporte-cuadro-cliente" style={{ marginBottom: 20 }}>
+                        <b style={{ display: "block", marginBottom: 4 }}>
+                          {(ventasCliente[0].cliente_nombre || "") + " " + (ventasCliente[0].cliente_apellido || "")}
+                        </b>
+                        {ventasCliente[0].cliente_telefono && (
+                          <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_telefono}</div>
                         )}
-                        {!ventasCliente[0].cliente_nombre && (
-                          <div>{cliente}</div>
+                        {ventasCliente[0].cliente_correo && (
+                          <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_correo}</div>
                         )}
                       </div>
                       <div className="reporte-cuadro-botones">

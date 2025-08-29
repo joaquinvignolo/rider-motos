@@ -286,10 +286,14 @@ app.post('/api/ventas', (req, res) => {
 // Obtener todas las ventas
 app.get('/api/ventas', async (req, res) => {
   try {
-    // 1. Traer todas las ventas
+    // 1. Traer todas las ventas con datos completos del cliente
     const [ventas] = await db.promise().query(`
       SELECT v.id, v.fecha, v.total, v.tipo_venta, v.metodo_pago,
-             IFNULL(c.nombre, 'Consumidor final') as cliente
+             IFNULL(c.nombre, 'Consumidor final') as cliente,
+             c.nombre AS cliente_nombre,
+             c.apellido AS cliente_apellido,
+             c.telefono AS cliente_telefono,
+             c.correo AS cliente_correo
       FROM ventas v
       LEFT JOIN clientes c ON v.cliente_id = c.id
       ORDER BY v.fecha DESC
