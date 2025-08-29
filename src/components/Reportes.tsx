@@ -389,8 +389,8 @@ const Reportes: React.FC = () => {
               display: "flex",
               width: "100%",
               justifyContent: "center",
-              alignItems: "flex-end", // <-- esto alinea la base de ambos botones
-              gap: 24,
+              alignItems: "flex-end",
+              gap: 64, // <-- más separación entre los botones
               marginTop: 28
             }}>
               <button
@@ -404,7 +404,7 @@ const Reportes: React.FC = () => {
                   fontWeight: 700,
                   fontSize: 16,
                   cursor: "pointer",
-                  minHeight: 48 // <-- fuerza el mismo alto
+                  minHeight: 48
                 }}
                 onClick={() => exportarDetalleAPDF(detalleDia)}
               >
@@ -421,7 +421,7 @@ const Reportes: React.FC = () => {
                   fontWeight: 700,
                   fontSize: 16,
                   cursor: "pointer",
-                  minHeight: 48 // <-- fuerza el mismo alto
+                  minHeight: 48
                 }}
                 onClick={() => setDetalleDia(null)}
               >
