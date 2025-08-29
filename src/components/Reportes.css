@@ -143,7 +143,7 @@
   box-shadow: 0 8px 32px #000a;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch; /* <-- importante para que los botones ocupen todo el ancho */
 }
 .reporte-modal-content h2 {
   color: #ffd700;

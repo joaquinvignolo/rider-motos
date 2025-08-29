@@ -67,16 +67,26 @@ const Reportes: React.FC = () => {
     let ok = true;
     if (desde) ok = ok && fechaVenta >= new Date(desde + "T00:00:00");
     if (hasta) ok = ok && fechaVenta <= new Date(hasta + "T23:59:59");
-    // Buscador: busca en productos, cliente, detalles
+
     if (busqueda.trim() !== "") {
       const texto = busqueda.toLowerCase();
-      const enProductos = v.productos?.toLowerCase().includes(texto);
-      const enCliente = v.cliente?.toLowerCase().includes(texto);
-      const enDetalles = v.detalles?.some(d =>
-        d.nombre?.toLowerCase().includes(texto) ||
-        d.descripcion?.toLowerCase().includes(texto)
-      );
-      ok = ok && (enProductos || enCliente || enDetalles);
+      if (v.cliente === "Consumidor final") {
+        // Si algún producto coincide, mostrar toda la venta
+        const enDetalles = v.detalles?.some(d =>
+          d.nombre?.toLowerCase().includes(texto) ||
+          d.descripcion?.toLowerCase().includes(texto)
+        );
+        ok = ok && enDetalles;
+      } else {
+        // Para motos, filtra como antes
+        const enProductos = v.productos?.toLowerCase().includes(texto);
+        const enCliente = v.cliente?.toLowerCase().includes(texto);
+        const enDetalles = v.detalles?.some(d =>
+          d.nombre?.toLowerCase().includes(texto) ||
+          d.descripcion?.toLowerCase().includes(texto)
+        );
+        ok = ok && (enProductos || enCliente || enDetalles);
+      }
     }
     return ok;
   });
@@ -321,19 +331,95 @@ const Reportes: React.FC = () => {
       {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
-            <h2 style={{ color: "#a32020", marginBottom: 18 }}>
+            <h2 style={{ color: "#a32020", marginBottom: 18, textAlign: "center", width: "100%" }}>
               Detalle
             </h2>
-            {detalleDia.productos.map((d, i) => (
-              <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
-                <div><b>Nombre:</b> {d.nombre}</div>
-                <div><b>Descripción:</b> {d.descripcion}</div>
-                <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
+            {/* Apartado de datos del cliente SOLO si existen */}
+            {(detalleDia.productos[0]?.cliente_nombre ||
+              detalleDia.productos[0]?.cliente_apellido ||
+              detalleDia.productos[0]?.cliente_telefono ||
+              detalleDia.productos[0]?.cliente_correo) && (
+              <div style={{
+                marginBottom: 18,
+                padding: "10px 18px",
+                background: "#232526",
+                borderRadius: 8,
+                border: "1px solid #a32020",
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 500,
+                display: "inline-block"
+              }}>
+                <div>
+                  <b>
+                    {(detalleDia.productos[0]?.cliente_nombre || "") + " " + (detalleDia.productos[0]?.cliente_apellido || "")}
+                  </b>
+                </div>
+                {detalleDia.productos[0]?.cliente_telefono && (
+                  <div>{detalleDia.productos[0].cliente_telefono}</div>
+                )}
+                {detalleDia.productos[0]?.cliente_correo && (
+                  <div>{detalleDia.productos[0].cliente_correo}</div>
+                )}
               </div>
+            )}
+            {/* Detalle de productos */}
+            {detalleDia.productos
+              .filter(d => {
+                // Si hay búsqueda y es consumidor final, solo mostrar productos que coincidan
+                if (busqueda.trim() && detalleDia.cliente === "Consumidor final") {
+                  const texto = busqueda.toLowerCase();
+                  return (
+                    d.nombre?.toLowerCase().includes(texto) ||
+                    d.descripcion?.toLowerCase().includes(texto)
+                  );
+                }
+                // Si no hay búsqueda o no es consumidor final, mostrar todos
+                return true;
+              })
+              .map((d, i) => (
+                <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
+                  <div><b>Nombre:</b> {d.nombre}</div>
+                  <div><b>Descripción:</b> {d.descripcion}</div>
+                  <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
+                </div>
             ))}
-            <div style={{ display: "flex", width: "100%", justifyContent: "flex-end", alignItems: "center" }}>
+            {/* Botones abajo alineados */}
+            <div style={{
+              display: "flex",
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 24
+            }}>
+              <button
+                className="exportar-pdf-btn"
+                style={{
+                  background: "#a32020",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "8px 22px",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  cursor: "pointer"
+                }}
+                onClick={() => exportarDetalleAPDF(detalleDia)}
+              >
+                Exportar a PDF
+              </button>
               <button
                 className="cerrar-modal-btn"
+                style={{
+                  background: "#a32020",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "8px 22px",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  cursor: "pointer"
+                }}
                 onClick={() => setDetalleDia(null)}
               >
                 Cerrar
@@ -345,5 +431,9 @@ const Reportes: React.FC = () => {
     </div>
   );
 };
+
+function exportarDetalleAPDF(detalle: any) {
+  alert("Funcionalidad de exportar a PDF pendiente de implementar.");
+}
 
 export default Reportes;
