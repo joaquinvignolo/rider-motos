@@ -9,12 +9,17 @@ type Venta = {
   total: number;
   descripcion: string;
   metodo_pago?: string;
+  // Estos campos deben existir en tu backend para motos:
+  cliente_nombre?: string;
+  cliente_telefono?: string;
+  cliente_email?: string;
   detalles: {
     nombre: string;
     descripcion: string;
     marca: string;
     cantidad: number;
     precio: number;
+    metodo_pago?: string; // Por si el método de pago está por producto
   }[];
 };
 
@@ -43,11 +48,12 @@ const flecha = (
 
 const Reportes: React.FC = () => {
   const [ventas, setVentas] = useState<Venta[]>([]);
-  const [detalleDia, setDetalleDia] = useState<{ fecha: string, productos: any[], esMorado: boolean, cliente: string } | null>(null);
+  const [detalleDia, setDetalleDia] = useState<{ fecha: string, productos: any[], cliente: string } | null>(null);
   const [desde, setDesde] = useState<string>("");
   const [hasta, setHasta] = useState<string>("");
   const [pagina, setPagina] = useState(1);
   const [tipo, setTipo] = useState<"ventas" | "compras">("ventas");
+  const [busqueda, setBusqueda] = useState<string>("");
 
   useEffect(() => {
     fetch("http://localhost:3001/api/ventas")
@@ -61,6 +67,17 @@ const Reportes: React.FC = () => {
     let ok = true;
     if (desde) ok = ok && fechaVenta >= new Date(desde + "T00:00:00");
     if (hasta) ok = ok && fechaVenta <= new Date(hasta + "T23:59:59");
+    // Buscador: busca en productos, cliente, detalles
+    if (busqueda.trim() !== "") {
+      const texto = busqueda.toLowerCase();
+      const enProductos = v.productos?.toLowerCase().includes(texto);
+      const enCliente = v.cliente?.toLowerCase().includes(texto);
+      const enDetalles = v.detalles?.some(d =>
+        d.nombre?.toLowerCase().includes(texto) ||
+        d.descripcion?.toLowerCase().includes(texto)
+      );
+      ok = ok && (enProductos || enCliente || enDetalles);
+    }
     return ok;
   });
 
@@ -123,6 +140,23 @@ const Reportes: React.FC = () => {
           <span style={{ fontSize: 18, color: "#bdbdbd", fontWeight: 600, letterSpacing: 1 }}>
             {tipo === "ventas" ? "Ventas" : "Compras"}
           </span>
+          {/* Buscador */}
+          <input
+            type="text"
+            placeholder="Buscar producto, cliente, etc..."
+            value={busqueda}
+            onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
+            style={{
+              marginLeft: "auto",
+              padding: "7px 14px",
+              borderRadius: 8,
+              border: "1.5px solid #a32020",
+              background: "#232526",
+              color: "#fff",
+              fontWeight: 600,
+              minWidth: 220
+            }}
+          />
         </div>
         <hr className="reportes-divisor" />
         <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 18, gap: 12 }}>
@@ -193,10 +227,7 @@ const Reportes: React.FC = () => {
                               cliente: v.cliente,
                               total: v.total
                             })));
-                            const esMorado = accesorios.some(v =>
-                              v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia"
-                            );
-                            setDetalleDia({ fecha, productos, esMorado, cliente: "Consumidor final" });
+                            setDetalleDia({ fecha, productos, cliente: "Consumidor final" });
                           }}
                           title="Ver detalle"
                         >
@@ -212,7 +243,19 @@ const Reportes: React.FC = () => {
                       <div className="reporte-cuadro-total">
                         ${Number(totalPorCliente[cliente]).toFixed(2)}
                       </div>
-                      <div className="reporte-cuadro-cliente">{cliente}</div>
+                      {/* Datos del cliente */}
+                      <div className="reporte-cuadro-cliente">
+                        {ventasCliente[0].cliente_nombre && (
+                          <div>
+                            <b>{ventasCliente[0].cliente_nombre}</b>
+                            <div>Tel: {ventasCliente[0].cliente_telefono}</div>
+                            <div>Email: {ventasCliente[0].cliente_email}</div>
+                          </div>
+                        )}
+                        {!ventasCliente[0].cliente_nombre && (
+                          <div>{cliente}</div>
+                        )}
+                      </div>
                       <div className="reporte-cuadro-botones">
                         <button
                           className="ver-btn"
@@ -223,10 +266,7 @@ const Reportes: React.FC = () => {
                               cliente: v.cliente,
                               total: v.total
                             })));
-                            const esMorado = ventasCliente.some(v =>
-                              v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia"
-                            );
-                            setDetalleDia({ fecha, productos, esMorado, cliente });
+                            setDetalleDia({ fecha, productos, cliente });
                           }}
                           title="Ver detalle"
                         >
@@ -266,11 +306,11 @@ const Reportes: React.FC = () => {
       {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
-            <h2 style={{ color: detalleDia.esMorado ? "#a020f0" : "#a32020", marginBottom: 18 }}>
+            <h2 style={{ color: "#a32020", marginBottom: 18 }}>
               Detalle
             </h2>
             {detalleDia.productos.map((d, i) => (
-              <div key={i} style={{ marginBottom: 12 }}>
+              <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
                 <div><b>Nombre:</b> {d.nombre}</div>
                 <div><b>Descripción:</b> {d.descripcion}</div>
                 <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
