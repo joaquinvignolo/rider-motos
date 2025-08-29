@@ -198,11 +198,15 @@ const Reportes: React.FC = () => {
               motosPorCliente[v.cliente].push(v);
             });
 
-            // Calcular total del día para cada grupo (asegúrate de sumar como número)
-            const totalAccesorios = accesorios.reduce((acc, v) => acc + Number(v.total), 0);
+            // Calcular total del día para cada grupo (solo efectivo)
+            const totalAccesorios = accesorios
+              .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
+              .reduce((acc, v) => acc + Number(v.total), 0);
             const totalPorCliente: { [cliente: string]: number } = {};
             Object.entries(motosPorCliente).forEach(([cliente, ventasCliente]) => {
-              totalPorCliente[cliente] = ventasCliente.reduce((acc, v) => acc + Number(v.total), 0);
+              totalPorCliente[cliente] = ventasCliente
+                .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
+                .reduce((acc, v) => acc + Number(v.total), 0);
             });
 
             return (
