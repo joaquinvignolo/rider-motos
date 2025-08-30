@@ -286,11 +286,22 @@ const Reportes: React.FC = () => {
                         <button
                           className="ver-btn"
                           onClick={() => {
-                            const productos = ventasCliente.flatMap(v => v.detalles.map(d => ({
+                            // Calcula el método de pago principal (igual que en el cuadro)
+                            const efectivo = ventasCliente
+                              .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia");
+                            const tarjTransf = ventasCliente
+                              .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia");
+                            const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
+
+                            const productos = ventasFiltradas.flatMap(v => v.detalles.map(d => ({
                               ...d,
                               metodo_pago: v.metodo_pago,
                               cliente: v.cliente,
-                              total: v.total
+                              total: v.total,
+                              cliente_nombre: v.cliente_nombre,
+                              cliente_apellido: v.cliente_apellido,
+                              cliente_telefono: v.cliente_telefono,
+                              cliente_correo: v.cliente_correo
                             })));
                             setDetalleDia({ fecha, productos, cliente });
                           }}
@@ -335,17 +346,37 @@ const Reportes: React.FC = () => {
             {/* Título y fecha */}
             <div style={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: "center",
               alignItems: "center",
-              marginBottom: 10,
+              position: "relative",
+              marginTop: 28, // <-- Bajá el header
+              marginBottom: 18,
               width: "100%"
             }}>
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <h2 style={{ color: "#a32020", marginBottom: 0 }}>
-                  Detalle
-                </h2>
-              </div>
-              <div style={{ color: "#bdbdbd", fontWeight: 600, fontSize: 16, marginLeft: 16, minWidth: 110, textAlign: "right" }}>
+              <h2 style={{
+                color: "#a32020",
+                margin: 0,
+                flex: "none",
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: 1
+              }}>
+                Detalle
+              </h2>
+              <div style={{
+                color: "#bdbdbd",
+                fontWeight: 600,
+                fontSize: 16,
+                position: "absolute",
+                right: 32,
+                top: "50%",
+                transform: "translateY(-50%)",
+                minWidth: 110,
+                textAlign: "right"
+              }}>
                 {detalleDia.fecha}
               </div>
             </div>
@@ -355,8 +386,8 @@ const Reportes: React.FC = () => {
                 style={{
                   position: "fixed",
                   top: "50%",
-                  left: "calc(50% + 320px)", // Ajustá 320px según el ancho de tu modal
-                  transform: "translateY(-50%)",
+                  left: "calc(50% + 260px)", // Ajusta 260px según el ancho de tu modal
+                  transform: "translateY(-210px)", // Sube el modal para que quede alineado arriba
                   background: "#232526",
                   border: "1.5px solid #a32020",
                   borderRadius: 10,
@@ -416,7 +447,20 @@ const Reportes: React.FC = () => {
               fontWeight: 600,
               fontSize: 16
             }}>
-              Total: ${detalleDia.productos.reduce((acc, d) => acc + Number(d.precio), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+              {(() => {
+                // Total en efectivo
+                const totalEfectivo = detalleDia.productos
+                  .filter(d => d.metodo_pago !== "tarjeta de crédito" && d.metodo_pago !== "transferencia")
+                  .reduce((acc, d) => acc + Number(d.precio), 0);
+                // Total en tarjeta/transferencia
+                const totalTarjTransf = detalleDia.productos
+                  .filter(d => d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia")
+                  .reduce((acc, d) => acc + Number(d.precio), 0);
+                const totalMostrar = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
+                return (
+                  <>Total: ${totalMostrar.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</>
+                );
+              })()}
             </div>
             {/* Botones */}
             <div style={{
@@ -502,11 +546,14 @@ function exportarDetalleAPDF(detalle: any) {
     }
   });
 
-  // Calcula el total
-  let total = 0;
-  detalle.productos.forEach((d: any) => {
-    total += Number(d.precio);
-  });
+  // Calcula el total con la misma lógica que el modal
+  const totalEfectivo = detalle.productos
+    .filter((d: any) => d.metodo_pago !== "tarjeta de crédito" && d.metodo_pago !== "transferencia")
+    .reduce((acc: number, d: any) => acc + Number(d.precio), 0);
+  const totalTarjTransf = detalle.productos
+    .filter((d: any) => d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia")
+    .reduce((acc: number, d: any) => acc + Number(d.precio), 0);
+  const total = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
 
   // Dibuja una línea divisoria
   y += 4;
