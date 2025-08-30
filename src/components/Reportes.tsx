@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Reportes.css";
+import jsPDF from "jspdf";
 
 type Venta = {
   id: number;
@@ -436,7 +437,72 @@ const Reportes: React.FC = () => {
 };
 
 function exportarDetalleAPDF(detalle: any) {
-  alert("Funcionalidad de exportar a PDF pendiente de implementar.");
-}
+  const doc = new jsPDF();
+  let y = 18;
 
-export default Reportes;
+  // Título
+  doc.setFontSize(20);
+  doc.setTextColor(163, 32, 32);
+  doc.text("Detalle", 105, y, { align: "center" });
+
+  // Fecha
+  y += 10;
+  doc.setFontSize(13);
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Fecha: ${detalle.fecha}`, 105, y, { align: "center" });
+
+  y += 12;
+
+  // Datos del cliente (si existen)
+  const cliente = detalle.productos[0];
+  if (
+    cliente?.cliente_nombre ||
+    cliente?.cliente_apellido ||
+    cliente?.cliente_telefono ||
+    cliente?.cliente_correo
+  ) {
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    let datos = "";
+    if (cliente.cliente_nombre || cliente.cliente_apellido)
+      datos += `${cliente.cliente_nombre || ""} ${cliente.cliente_apellido || ""}\n`;
+    if (cliente.cliente_telefono)
+      datos += `${cliente.cliente_telefono}\n`;
+    if (cliente.cliente_correo)
+      datos += `${cliente.cliente_correo}\n`;
+    doc.text(datos.trim(), 20, y);
+    y += 16;
+  }
+
+  // Productos
+  doc.setFontSize(13);
+  doc.setTextColor(0, 0, 0);
+  detalle.productos.forEach((d: any, i: number) => {
+    doc.text(`Nombre: ${d.nombre}`, 20, y);
+    y += 7;
+    doc.text(`Descripción: ${d.descripcion}`, 20, y);
+    y += 7;
+    doc.text(`Precio: $${Number(d.precio).toFixed(2)}`, 20, y);
+    y += 10;
+    if (y > 270) {
+      doc.addPage();
+      y = 18;
+    }
+  });
+
+  // Total del día (abajo a la derecha)
+  let total = 0;
+  detalle.productos.forEach((d: any) => {
+    total += Number(d.precio);
+  });
+  doc.setFontSize(15);
+  doc.setTextColor(163, 32, 32);
+  doc.text(
+    `Total: $${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
+    200,
+    290,
+    { align: "right" }
+  );
+
+  doc.save("detalle.pdf");
+}
