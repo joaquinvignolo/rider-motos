@@ -293,16 +293,20 @@ const Reportes: React.FC = () => {
                               .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia");
                             const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
 
-                            const productos = ventasFiltradas.flatMap(v => v.detalles.map(d => ({
-                              ...d,
-                              metodo_pago: v.metodo_pago,
-                              cliente: v.cliente,
-                              total: v.total,
-                              cliente_nombre: v.cliente_nombre,
-                              cliente_apellido: v.cliente_apellido,
-                              cliente_telefono: v.cliente_telefono,
-                              cliente_correo: v.cliente_correo
-                            })));
+                            // Solo incluí los productos de las ventas filtradas
+                            const productos = ventasFiltradas.flatMap(v =>
+                              v.detalles.map(d => ({
+                                ...d,
+                                metodo_pago: v.metodo_pago,
+                                cliente: v.cliente,
+                                total: v.total,
+                                cliente_nombre: v.cliente_nombre,
+                                cliente_apellido: v.cliente_apellido,
+                                cliente_telefono: v.cliente_telefono,
+                                cliente_correo: v.cliente_correo
+                              }))
+                            );
+
                             setDetalleDia({ fecha, productos, cliente });
                           }}
                           title="Ver detalle"
@@ -435,7 +439,9 @@ const Reportes: React.FC = () => {
                   <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
                     <div><b>Nombre:</b> {d.nombre}</div>
                     <div><b>Descripción:</b> {d.descripcion}</div>
-                    <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
+                    <div><b>Cantidad:</b> {d.cantidad}</div>
+                    <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
+                    <div><b>Subtotal:</b> ${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</div>
                   </div>
               ))}
             </div>
@@ -451,11 +457,11 @@ const Reportes: React.FC = () => {
                 // Total en efectivo
                 const totalEfectivo = detalleDia.productos
                   .filter(d => d.metodo_pago !== "tarjeta de crédito" && d.metodo_pago !== "transferencia")
-                  .reduce((acc, d) => acc + Number(d.precio), 0);
+                  .reduce((acc, d) => acc + Number(d.precio) * Number(d.cantidad), 0);
                 // Total en tarjeta/transferencia
                 const totalTarjTransf = detalleDia.productos
                   .filter(d => d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia")
-                  .reduce((acc, d) => acc + Number(d.precio), 0);
+                  .reduce((acc, d) => acc + Number(d.precio) * Number(d.cantidad), 0);
                 const totalMostrar = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
                 return (
                   <>Total: ${totalMostrar.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</>
@@ -539,6 +545,12 @@ function exportarDetalleAPDF(detalle: any) {
     doc.text(`Descripción: ${d.descripcion}`, 20, y);
     y += 7;
     doc.text(`Precio: $${Number(d.precio).toFixed(2)}`, 20, y);
+    y += 7;
+    doc.text(`Cantidad: ${d.cantidad}`, 20, y);
+    y += 7;
+    doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
+    y += 7;
+    doc.text(`Subtotal: $${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`, 20, y);
     y += 10;
     if (y > 230) { // deja espacio para el bloque de abajo
       doc.addPage();
@@ -549,10 +561,10 @@ function exportarDetalleAPDF(detalle: any) {
   // Calcula el total con la misma lógica que el modal
   const totalEfectivo = detalle.productos
     .filter((d: any) => d.metodo_pago !== "tarjeta de crédito" && d.metodo_pago !== "transferencia")
-    .reduce((acc: number, d: any) => acc + Number(d.precio), 0);
+    .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0);
   const totalTarjTransf = detalle.productos
     .filter((d: any) => d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia")
-    .reduce((acc: number, d: any) => acc + Number(d.precio), 0);
+    .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0);
   const total = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
 
   // Dibuja una línea divisoria
