@@ -332,112 +332,99 @@ const Reportes: React.FC = () => {
       {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
-            <h2 style={{ color: "#a32020", marginBottom: 18, textAlign: "center", width: "100%" }}>
-              Detalle
-            </h2>
-            {/* Apartado de datos del cliente SOLO si existen */}
-            {(detalleDia.productos[0]?.cliente_nombre ||
-              detalleDia.productos[0]?.cliente_apellido ||
-              detalleDia.productos[0]?.cliente_telefono ||
-              detalleDia.productos[0]?.cliente_correo) && (
-              <div style={{
-                marginBottom: 18,
-                padding: "10px 18px",
-                background: "#232526",
-                borderRadius: 8,
-                border: "1px solid #a32020",
-                color: "#fff",
-                fontSize: 15,
-                fontWeight: 500,
-                display: "inline-block"
-              }}>
-                <div>
-                  <b>
-                    {(detalleDia.productos[0]?.cliente_nombre || "") + " " + (detalleDia.productos[0]?.cliente_apellido || "")}
-                  </b>
-                </div>
-                {detalleDia.productos[0]?.cliente_telefono && (
-                  <div>{detalleDia.productos[0].cliente_telefono}</div>
-                )}
-                {detalleDia.productos[0]?.cliente_correo && (
-                  <div>{detalleDia.productos[0].cliente_correo}</div>
-                )}
-              </div>
-            )}
-            {/* Detalle de productos */}
-            {detalleDia.productos
-              .filter(d => {
-                // Si hay búsqueda y es consumidor final, solo mostrar productos que coincidan
-                if (busqueda.trim() && detalleDia.cliente === "Consumidor final") {
-                  const texto = busqueda.toLowerCase();
-                  return (
-                    d.nombre?.toLowerCase().includes(texto) ||
-                    d.descripcion?.toLowerCase().includes(texto)
-                  );
-                }
-                // Si no hay búsqueda o no es consumidor final, mostrar todos
-                return true;
-              })
-              .map((d, i) => (
-                <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
-                  <div><b>Nombre:</b> {d.nombre}</div>
-                  <div><b>Descripción:</b> {d.descripcion}</div>
-                  <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
-                </div>
-            ))}
-            {/* Bloque de resumen debajo de los productos */}
+            {/* Título y fecha */}
             <div style={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "flex-start",
-              marginTop: 18,
-              marginBottom: 8,
-              gap: 32
+              alignItems: "center",
+              marginBottom: 10,
+              width: "100%"
             }}>
-              {/* Columna izquierda: Fecha y total */}
-              <div style={{ minWidth: 140 }}>
-                <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
-                  Fecha de la venta
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <h2 style={{ color: "#a32020", marginBottom: 0 }}>
+                  Detalle
+                </h2>
+              </div>
+              <div style={{ color: "#bdbdbd", fontWeight: 600, fontSize: 16, marginLeft: 16, minWidth: 110, textAlign: "right" }}>
+                {detalleDia.fecha}
+              </div>
+            </div>
+            {/* Datos del cliente arriba a la derecha */}
+            {detalleDia.cliente !== "Consumidor final" && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: "50%",
+                  left: "calc(50% + 320px)", // Ajustá 320px según el ancho de tu modal
+                  transform: "translateY(-50%)",
+                  background: "#232526",
+                  border: "1.5px solid #a32020",
+                  borderRadius: 10,
+                  padding: "18px 28px",
+                  color: "#fff",
+                  minWidth: 220,
+                  zIndex: 9999,
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.18)"
+                }}
+              >
+                <div style={{ color: "#bdbdbd", fontWeight: 700, marginBottom: 6 }}>
+                  Nombre y apellido
                 </div>
-                <div style={{ marginBottom: 8 }}>{detalleDia.fecha}</div>
-                <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
-                  Total
+                <div style={{ marginBottom: 10 }}>
+                  {(detalleDia.productos[0]?.cliente_nombre || "") + " " + (detalleDia.productos[0]?.cliente_apellido || "")}
+                </div>
+                <div style={{ color: "#bdbdbd", fontWeight: 700, marginBottom: 6 }}>
+                  Teléfono
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  {detalleDia.productos[0]?.cliente_telefono || "-"}
+                </div>
+                <div style={{ color: "#bdbdbd", fontWeight: 700, marginBottom: 6 }}>
+                  Email
                 </div>
                 <div>
-                  ${detalleDia.productos.reduce((acc, d) => acc + Number(d.precio), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                  {detalleDia.productos[0]?.cliente_correo || "-"}
                 </div>
               </div>
-              {/* Columna derecha: Datos del cliente si NO es consumidor final */}
-              {detalleDia.cliente !== "Consumidor final" && (
-                <div style={{ minWidth: 180 }}>
-                  <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
-                    Nombre y apellido
+            )}
+            {/* Detalle de productos */}
+            <div style={{ marginTop: detalleDia.cliente !== "Consumidor final" ? 60 : 0 }}>
+              {detalleDia.productos
+                .filter(d => {
+                  if (busqueda.trim() && detalleDia.cliente === "Consumidor final") {
+                    const texto = busqueda.toLowerCase();
+                    return (
+                      d.nombre?.toLowerCase().includes(texto) ||
+                      d.descripcion?.toLowerCase().includes(texto)
+                    );
+                  }
+                  return true;
+                })
+                .map((d, i) => (
+                  <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
+                    <div><b>Nombre:</b> {d.nombre}</div>
+                    <div><b>Descripción:</b> {d.descripcion}</div>
+                    <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
                   </div>
-                  <div style={{ marginBottom: 8 }}>
-                    {(detalleDia.productos[0]?.cliente_nombre || "") + " " + (detalleDia.productos[0]?.cliente_apellido || "")}
-                  </div>
-                  <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
-                    Teléfono
-                  </div>
-                  <div style={{ marginBottom: 8 }}>
-                    {detalleDia.productos[0]?.cliente_telefono || "-"}
-                  </div>
-                  <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
-                    Email
-                  </div>
-                  <div>
-                    {detalleDia.productos[0]?.cliente_correo || "-"}
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
-            {/* Botones abajo alineados */}
+            {/* Total debajo de los productos */}
+            <div style={{
+              marginTop: 18,
+              marginBottom: 8,
+              color: "#bdbdbd",
+              fontWeight: 600,
+              fontSize: 16
+            }}>
+              Total: ${detalleDia.productos.reduce((acc, d) => acc + Number(d.precio), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+            </div>
+            {/* Botones */}
             <div style={{
               display: "flex",
               width: "100%",
               justifyContent: "center",
               alignItems: "flex-end",
-              gap: 64, // <-- más separación entre los botones
+              gap: 64,
               marginTop: 28
             }}>
               <button
