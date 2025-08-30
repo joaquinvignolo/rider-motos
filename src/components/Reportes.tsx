@@ -385,6 +385,52 @@ const Reportes: React.FC = () => {
                   <div><b>Precio:</b> ${Number(d.precio).toFixed(2)}</div>
                 </div>
             ))}
+            {/* Bloque de resumen debajo de los productos */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              marginTop: 18,
+              marginBottom: 8,
+              gap: 32
+            }}>
+              {/* Columna izquierda: Fecha y total */}
+              <div style={{ minWidth: 140 }}>
+                <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
+                  Fecha de la venta
+                </div>
+                <div style={{ marginBottom: 8 }}>{detalleDia.fecha}</div>
+                <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
+                  Total
+                </div>
+                <div>
+                  ${detalleDia.productos.reduce((acc, d) => acc + Number(d.precio), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              {/* Columna derecha: Datos del cliente si NO es consumidor final */}
+              {detalleDia.cliente !== "Consumidor final" && (
+                <div style={{ minWidth: 180 }}>
+                  <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
+                    Nombre y apellido
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    {(detalleDia.productos[0]?.cliente_nombre || "") + " " + (detalleDia.productos[0]?.cliente_apellido || "")}
+                  </div>
+                  <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
+                    Teléfono
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    {detalleDia.productos[0]?.cliente_telefono || "-"}
+                  </div>
+                  <div style={{ color: "#bdbdbd", fontWeight: 600, marginBottom: 2 }}>
+                    Email
+                  </div>
+                  <div>
+                    {detalleDia.productos[0]?.cliente_correo || "-"}
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Botones abajo alineados */}
             <div style={{
               display: "flex",
@@ -453,27 +499,6 @@ function exportarDetalleAPDF(detalle: any) {
 
   y += 12;
 
-  // Datos del cliente (si existen)
-  const cliente = detalle.productos[0];
-  if (
-    cliente?.cliente_nombre ||
-    cliente?.cliente_apellido ||
-    cliente?.cliente_telefono ||
-    cliente?.cliente_correo
-  ) {
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    let datos = "";
-    if (cliente.cliente_nombre || cliente.cliente_apellido)
-      datos += `${cliente.cliente_nombre || ""} ${cliente.cliente_apellido || ""}\n`;
-    if (cliente.cliente_telefono)
-      datos += `${cliente.cliente_telefono}\n`;
-    if (cliente.cliente_correo)
-      datos += `${cliente.cliente_correo}\n`;
-    doc.text(datos.trim(), 20, y);
-    y += 16;
-  }
-
   // Productos
   doc.setFontSize(13);
   doc.setTextColor(0, 0, 0);
@@ -484,25 +509,58 @@ function exportarDetalleAPDF(detalle: any) {
     y += 7;
     doc.text(`Precio: $${Number(d.precio).toFixed(2)}`, 20, y);
     y += 10;
-    if (y > 270) {
+    if (y > 230) { // deja espacio para el bloque de abajo
       doc.addPage();
       y = 18;
     }
   });
 
-  // Total del día (abajo a la derecha)
+  // Calcula el total
   let total = 0;
   detalle.productos.forEach((d: any) => {
     total += Number(d.precio);
   });
+
+  // Dibuja una línea divisoria
+  y += 4;
+  doc.setDrawColor(163, 32, 32);
+  doc.line(15, y, 195, y);
+
+  y += 10;
+
+  // Bloque de abajo: dos columnas
+  // Columna izquierda: Total vendido
   doc.setFontSize(15);
   doc.setTextColor(163, 32, 32);
   doc.text(
-    `Total: $${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
-    200,
-    290,
-    { align: "right" }
+    `Total vendido: $${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
+    20,
+    y
   );
+
+  // Columna derecha: Datos del cliente (si no es consumidor final)
+  const cliente = detalle.productos[0];
+  if (
+    cliente?.cliente_nombre ||
+    cliente?.cliente_apellido ||
+    cliente?.cliente_telefono ||
+    cliente?.cliente_correo
+  ) {
+    let datos = "";
+    if (cliente.cliente_nombre || cliente.cliente_apellido)
+      datos += `${cliente.cliente_nombre || ""} ${cliente.cliente_apellido || ""}\n`;
+    if (cliente.cliente_telefono)
+      datos += `${cliente.cliente_telefono}\n`;
+    if (cliente.cliente_correo)
+      datos += `${cliente.cliente_correo}\n`;
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    // Ajusta la posición X para la columna derecha
+    doc.text(datos.trim(), 120, y);
+  }
 
   doc.save("detalle.pdf");
 }
+
+export default Reportes;
