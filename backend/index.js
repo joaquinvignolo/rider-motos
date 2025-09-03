@@ -83,6 +83,7 @@ app.get('/api/productos', (req, res) => {
 // Agregar producto
 app.post('/api/productos', (req, res) => {
   const { nombre, descripcion, precio, cantidad, marca, proveedor, tipo } = req.body;
+  const cantidadFinal = cantidad === "" || cantidad == null ? 0 : cantidad;
 
   db.query('SELECT id FROM marcas WHERE nombre = ?', [marca], (err, marcaRows) => {
     if (err || marcaRows.length === 0) return res.status(400).json({ error: 'Marca no encontrada' });
@@ -94,7 +95,7 @@ app.post('/api/productos', (req, res) => {
         const proveedor_id = provRows[0].id;
         db.query(
           'INSERT INTO productos (nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo],
+          [nombre, descripcion, precio, cantidadFinal, marca_id, proveedor_id, tipo],
           (err3, result) => {
             if (err3) return res.status(500).json({ error: 'Error al agregar producto' });
             res.json({ success: true, id: result.insertId });
@@ -105,7 +106,7 @@ app.post('/api/productos', (req, res) => {
       // Para motos y accesorios (sin proveedor)
       db.query(
         'INSERT INTO productos (nombre, descripcion, precio, cantidad, marca_id, tipo) VALUES (?, ?, ?, ?, ?, ?)',
-        [nombre, descripcion, precio, cantidad, marca_id, tipo],
+        [nombre, descripcion, precio, cantidadFinal, marca_id, tipo],
         (err3, result) => {
           if (err3) return res.status(500).json({ error: 'Error al agregar producto' });
           res.json({ success: true, id: result.insertId });

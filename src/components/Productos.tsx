@@ -115,10 +115,6 @@ const Productos: React.FC = () => {
       setMensajeValidacion("⚠️ El precio debe ser un número positivo.");
       return;
     }
-    if (!cantidad.trim() || isNaN(Number(cantidad)) || Number(cantidad) < 1) {
-      setMensajeValidacion("⚠️ La cantidad debe ser un número mayor a 0.");
-      return;
-    }
     if (!marca.trim()) {
       setMensajeValidacion("⚠️ La marca es obligatoria.");
       return;
@@ -133,12 +129,14 @@ const Productos: React.FC = () => {
       id: editId ?? 0,
       nombre,
       precio: String(precio),
-      cantidad: String(cantidad),
+      cantidad: editId !== null ? String(cantidad) : "0",
       marca,
       descripcion,
       tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
       ...(seccion === "repuestos" ? { proveedor } : {}),
-      activo: cantidadNum > 0 ? 1 : 0 // Si cantidad es 0, va a inactivo
+      activo: editId !== null
+        ? (Number(cantidad) > 0 ? 1 : 0)
+        : 0
     };
 
     if (editId !== null) {
@@ -206,15 +204,6 @@ const Productos: React.FC = () => {
           <input type="number" value={precio} onChange={e => setPrecio(e.target.value)} min={1} />
         </label>
         <label>
-          Cantidad:
-          <input
-            type="number"
-            value={cantidad}
-            onChange={e => setCantidad(e.target.value)}
-            min={1}
-          />
-        </label>
-        <label>
           Marca:
           <select value={marca || ""} onChange={e => setMarca(e.target.value)}>
             {editId === null && <option value="">Seleccionar marca</option>}
@@ -251,13 +240,21 @@ const Productos: React.FC = () => {
               {proveedores.map(p => (
                 <option key={p.id} value={p.nombre}>{p.nombre}</option>
               ))}
-              {/* Si el proveedor actual no está en la lista (caso raro al editar), lo agregamos como opción */}
+              {}
               {proveedor && !proveedores.some(p => p.nombre === proveedor) && (
                 <option value={proveedor}>{proveedor}</option>
               )}
             </select>
           </label>
         )}
+        <label>
+          Stock actual:
+          <span style={{ fontWeight: 600, color: "#ffd700", marginLeft: 8 }}>
+            {editId !== null
+              ? cantidad
+              : "Se asigna desde Compras"}
+          </span>
+        </label>
         {mensajeValidacion && (
           <div className="mensaje-validacion">{mensajeValidacion}</div>
         )}
@@ -266,11 +263,10 @@ const Productos: React.FC = () => {
             className="motos-bar-btn agregar-btn"
             onClick={handleGuardar}
             disabled={
-              !nombre.trim() &&
-              !precio.trim() &&
-              !cantidad.trim() &&
-              !marca.trim() &&
-              !(seccion === "repuestos" && !proveedor.trim())
+              !nombre.trim() ||
+              !precio.trim() ||
+              !marca.trim() ||
+              (seccion === "repuestos" && !proveedor.trim())
             }
           >
             {editId !== null ? "Modificar" : "Agregar"}
@@ -351,7 +347,7 @@ const Productos: React.FC = () => {
   };
 
   const esBajoStock = (producto: Producto) =>
-    Number(producto.cantidad) <= getMinimoStock(producto);
+    Number(producto.cantidad) > 0 && Number(producto.cantidad) <= getMinimoStock(producto);
 
   const recargarProductos = () => {
     let url = "http://localhost:3001/api/productos?tipo=" + (
@@ -666,8 +662,15 @@ const Productos: React.FC = () => {
               <span className="producto-descripcion">{producto.descripcion}</span>
               <span className="producto-previsualizacion">
                 {producto.marca.toUpperCase()} | STOCK: {producto.cantidad} | ${producto.precio}
-                {(producto.activo !== 0 && esBajoStock(producto)) && (
-                  <span className="alerta-bajo-stock"> &nbsp;¡Bajo stock!</span>
+                {Number(producto.cantidad) === 0 && (
+                  <span className="alerta-bajo-stock" style={{ background: "#d85858ff", color: "#000000ff" }}>
+                    &nbsp;¡Sin stock!
+                  </span>
+                )}
+                {Number(producto.cantidad) > 0 && esBajoStock(producto) && (
+                  <span className="alerta-bajo-stock">
+                    &nbsp;¡Bajo stock!
+                  </span>
                 )}
               </span>
               <div className="producto-actions">

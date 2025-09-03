@@ -462,9 +462,9 @@ body {
 }
 
 .producto-bajo-stock {
-  background: linear-gradient(90deg, #18160f 0%, #181818 100%);
-  color: lab(97.03% 0.67 0.22);
-  border: 2px solid #ffd700;
+  background: #232526; 
+  color: #fff;
+  border: none;
 }
 
 .alerta-bajo-stock {
