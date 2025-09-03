@@ -25,7 +25,7 @@
 .reportes-titulo {
   font-size: 2.2rem;
   font-weight: bold;
-  color: #fff; /* Blanco */
+  color: #fff; 
   letter-spacing: 2px;
   margin-bottom: 28px;
   text-shadow: 0 2px 8px #0008;
@@ -127,12 +127,15 @@
 .reporte-modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
+
 .reporte-modal-content {
   background: #232526;
   padding: 36px 44px;
@@ -143,7 +146,7 @@
   box-shadow: 0 8px 32px #000a;
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* <-- importante para que los botones ocupen todo el ancho */
+  align-items: stretch;
 }
 .reporte-modal-content h2 {
   color: #ffd700;
@@ -197,7 +200,6 @@
   box-shadow: 0 4px 16px #a3202033;
 }
 
-/* Opciones del select (algunos navegadores) */
 .reportes-filtro option {
   background: #232526;
   color: #fff;
@@ -205,7 +207,6 @@
   padding: 8px 0;
 }
 
-/* Quita el destello amarillo de autofill en Chrome */
 .reportes-filtro:-webkit-autofill,
 .reportes-filtro:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px #232526 inset !important;
