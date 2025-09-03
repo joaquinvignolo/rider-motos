@@ -17,6 +17,7 @@ function Login() {
         body: JSON.stringify({ usuario, contrasena }),
       });
       if (response.ok) {
+        localStorage.setItem("logueado", "1"); 
         navigate('/menu');
       } else {
         setError('Usuario o contraseña incorrectos');

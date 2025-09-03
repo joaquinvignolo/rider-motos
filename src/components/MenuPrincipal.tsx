@@ -5,7 +5,8 @@ function MenuPrincipal() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    navigate('/');
+    localStorage.removeItem("logueado"); 
+    navigate('/login', { replace: true }); 
   };
 
   return (

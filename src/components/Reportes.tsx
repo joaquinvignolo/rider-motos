@@ -10,7 +10,6 @@ type Venta = {
   total: number;
   descripcion: string;
   metodo_pago?: string;
-  // Estos campos deben existir en tu backend para motos:
   cliente_nombre?: string;
   cliente_telefono?: string;
   cliente_email?: string;
@@ -20,7 +19,7 @@ type Venta = {
     marca: string;
     cantidad: number;
     precio: number;
-    metodo_pago?: string; // Por si el método de pago está por producto
+    metodo_pago?: string; 
   }[];
 };
 
@@ -34,12 +33,10 @@ function agruparPorFecha(ventas: Venta[]) {
   return agrupadas;
 }
 
-// Ícono de ojo
 const iconoOjo = (
   <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
 );
 
-// Flecha doble SVG
 const flecha = (
   <svg width="22" height="22" viewBox="0 0 22 22" style={{verticalAlign: "middle"}}>
     <path d="M7 11h8M13 7l4 4-4 4" stroke="#a32020" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
@@ -62,7 +59,6 @@ const Reportes: React.FC = () => {
       .then(data => setVentas(Array.isArray(data) ? data : []));
   }, []);
 
-  // Filtrado
   const ventasFiltradas = ventas.filter(v => {
     const fechaVenta = new Date(v.fecha);
     let ok = true;
@@ -72,14 +68,12 @@ const Reportes: React.FC = () => {
     if (busqueda.trim() !== "") {
       const texto = busqueda.toLowerCase();
       if (v.cliente === "Consumidor final") {
-        // Si algún producto coincide, mostrar toda la venta
         const enDetalles = v.detalles?.some(d =>
           d.nombre?.toLowerCase().includes(texto) ||
           d.descripcion?.toLowerCase().includes(texto)
         );
         ok = ok && enDetalles;
       } else {
-        // Para motos, filtra como antes
         const enProductos = v.productos?.toLowerCase().includes(texto);
         const enCliente = v.cliente?.toLowerCase().includes(texto);
         const enDetalles = v.detalles?.some(d =>
@@ -92,14 +86,12 @@ const Reportes: React.FC = () => {
     return ok;
   });
 
-  // Agrupar por fecha
   const agrupadas = agruparPorFecha(ventasFiltradas);
   const fechas = Object.keys(agrupadas);
   const diasPorPagina = 5;
   const totalPaginas = Math.ceil(fechas.length / diasPorPagina);
   const fechasPagina = fechas.slice((pagina - 1) * diasPorPagina, pagina * diasPorPagina);
 
-  // Botón volver al inicio
   const handleVolverInicio = () => {
     window.location.href = "/menu";
   };
@@ -286,7 +278,7 @@ const Reportes: React.FC = () => {
                         <button
                           className="ver-btn"
                           onClick={() => {
-                            // Calcula el método de pago principal (igual que en el cuadro)
+                            // Calcula el método de pago principal
                             const efectivo = ventasCliente
                               .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia");
                             const tarjTransf = ventasCliente
@@ -353,7 +345,7 @@ const Reportes: React.FC = () => {
               justifyContent: "center",
               alignItems: "center",
               position: "relative",
-              marginTop: 28, // <-- Bajá el header
+              marginTop: 28, 
               marginBottom: 18,
               width: "100%"
             }}>
@@ -384,14 +376,14 @@ const Reportes: React.FC = () => {
                 {detalleDia.fecha}
               </div>
             </div>
-            {/* Datos del cliente arriba a la derecha */}
+            {}
             {detalleDia.cliente !== "Consumidor final" && (
               <div
                 style={{
                   position: "fixed",
                   top: "50%",
-                  left: "calc(50% + 260px)", // Ajusta 260px según el ancho de tu modal
-                  transform: "translateY(-210px)", // Sube el modal para que quede alineado arriba
+                  left: "calc(50% + 260px)", 
+                  transform: "translateY(-210px)", 
                   background: "#232526",
                   border: "1.5px solid #a32020",
                   borderRadius: 10,
@@ -552,7 +544,7 @@ function exportarDetalleAPDF(detalle: any) {
     y += 7;
     doc.text(`Subtotal: $${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`, 20, y);
     y += 10;
-    if (y > 230) { // deja espacio para el bloque de abajo
+    if (y > 230) { 
       doc.addPage();
       y = 18;
     }
@@ -602,7 +594,6 @@ function exportarDetalleAPDF(detalle: any) {
 
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    // Ajusta la posición X para la columna derecha
     doc.text(datos.trim(), 120, y);
   }
 
