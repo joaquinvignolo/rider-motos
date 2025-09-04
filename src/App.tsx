@@ -7,6 +7,7 @@ import Ventas from './components/Ventas';
 import Clientes from './components/Clientes';
 import Reportes from './components/Reportes';
 import RutaPrivada from './components/RutaPrivada'; 
+import Compras from './components/Compras';
 
 
 function App() {
@@ -38,6 +39,11 @@ function App() {
         <Route path="/reportes" element={
           <RutaPrivada>
             <Reportes />
+          </RutaPrivada>
+        } />
+        <Route path="/compras" element={
+          <RutaPrivada>
+            <Compras />
           </RutaPrivada>
         } />
       </Routes>
