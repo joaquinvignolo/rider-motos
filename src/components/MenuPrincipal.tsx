@@ -16,12 +16,28 @@ function MenuPrincipal() {
           <h1 className="header-title-box">PANEL PRINCIPAL</h1>
         </header>
 
-        <main className="menu-grid">
-          <button onClick={() => navigate("/productos")}>PRODUCTOS</button>
-          <button onClick={() => navigate("/clientes")}>CLIENTES</button>
-          <button onClick={() => navigate("/ventas")}>VENTAS</button>
-          <button>PATENTAMIENTOS</button>
-          <button onClick={() => navigate("/reportes")}>REPORTES</button>
+        <main
+          className="menu-grid"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "64px",
+            marginTop: "140px" // <-- Bajá este valor según lo que necesites
+          }}
+        >
+          {/* Columna izquierda */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+            <button onClick={() => navigate("/compras")}>COMPRAS</button>
+            <button onClick={() => navigate("/productos")}>PRODUCTOS</button>
+            <button onClick={() => navigate("/ventas")}>VENTAS</button>
+          </div>
+          {/* Columna derecha */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+            <button onClick={() => navigate("/clientes")}>CLIENTES</button>
+            <button>PATENTAMIENTOS</button>
+            <button onClick={() => navigate("/reportes")}>REPORTES</button>
+          </div>
         </main>
       </div>
 
