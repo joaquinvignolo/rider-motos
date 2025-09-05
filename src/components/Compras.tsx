@@ -41,12 +41,6 @@ const Compras = () => {
     const [precioUnitario, setPrecioUnitario] = useState<number>(0);
     const [mensajeError, setMensajeError] = useState<string>('');
 
-
-    const opcionesMarcas = [
-        { value: 'primera', label: 'Primera Marca' },
-        { value: 'segunda', label: 'Segunda Marca' }
-    ];
-
     useEffect(() => {
         fetch('http://localhost:3001/api/marcas')
             .then(res => res.json())
@@ -63,7 +57,16 @@ const Compras = () => {
         setProductoSeleccionado(null);
     }, [tipo]);
 
+    // Mostrar el mensaje de error por 3 segundos
+    useEffect(() => {
+        if (mensajeError) {
+            const timer = setTimeout(() => setMensajeError(''), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [mensajeError]);
+
     const agregarAlCarrito = () => {
+        // Validaciones
         if (productoSeleccionado === null) {
             setMensajeError("Seleccione un producto.");
             return;
@@ -72,8 +75,13 @@ const Compras = () => {
             setMensajeError("Ingrese una cantidad válida (mayor a 0 y entera).");
             return;
         }
-        if (precioUnitario === null || precioUnitario < 0) {
-            setMensajeError("Ingrese un precio unitario válido.");
+        // Validación de precio: entero y mayor a 0
+        if (
+            precioUnitario === null ||
+            precioUnitario <= 0 ||
+            !Number.isInteger(precioUnitario)
+        ) {
+            setMensajeError("El precio unitario debe ser un número entero mayor a 0.");
             return;
         }
         if (carrito.some(item => item.id === productoSeleccionado)) {
@@ -108,7 +116,7 @@ const Compras = () => {
     const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
 
     const volverAlMenu = () => {
-        window.location.href = '/menu'; 
+        window.location.href = '/menu';
     };
 
     const confirmarCompra = () => {
@@ -125,13 +133,13 @@ const Compras = () => {
             return;
         }
         setMensajeError('');
-
+        // Aquí iría la lógica para confirmar la compra
     };
 
     return (
         <div className="compras-bg">
             <div className="compras-container">
-                {}
+                {/* Botón INICIO */}
                 <button
                     onClick={volverAlMenu}
                     style={{
@@ -155,7 +163,6 @@ const Compras = () => {
                 </button>
                 <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
                 <h2>Gestión de Compras</h2>
-                
                 {/* Mensaje de error arriba del formulario */}
                 {mensajeError && (
                     <div style={{
@@ -183,8 +190,6 @@ const Compras = () => {
                             {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </div>
-
-                    {}
                     {tipo === 'repuesto' && (
                         <div className="form-row">
                             <label>Proveedor</label>
@@ -233,36 +238,32 @@ const Compras = () => {
                             </select>
                         </div>
                     )}
-
-                    {}
                     <div className="form-row">
                         <label>Producto</label>
                         <select
-                          value={productoSeleccionado !== null ? productoSeleccionado : ''}
-                          onChange={e => setProductoSeleccionado(Number(e.target.value))}
+                            value={productoSeleccionado !== null ? productoSeleccionado : ''}
+                            onChange={e => setProductoSeleccionado(Number(e.target.value))}
                         >
-                          <option value="">Seleccione un producto</option>
-                          {productos
-                            .filter(p =>
-                              (tipo === 'repuesto' ? p.proveedor === proveedorSeleccionado : true) &&
-                              (tipo === 'moto'
-                                ? p.marca === marcaSeleccionada
-                                : (tipo === 'repuesto' || tipo === 'accesorio')
-                                  ? (marcaSeleccionada
-                                      ? p.marca.toLowerCase() === marcaSeleccionada.toLowerCase()
-                                      : true)
-                                  : true
-                              )
-                            )
-                            .map(p => (
-                              <option key={p.id} value={p.id}>
-                                {p.nombre} ({p.marca}{p.proveedor ? ` - ${p.proveedor}` : ''})
-                              </option>
-                            ))}
+                            <option value="">Seleccione un producto</option>
+                            {productos
+                                .filter(p =>
+                                    (tipo === 'repuesto' ? p.proveedor === proveedorSeleccionado : true) &&
+                                    (tipo === 'moto'
+                                        ? p.marca === marcaSeleccionada
+                                        : (tipo === 'repuesto' || tipo === 'accesorio')
+                                            ? (marcaSeleccionada
+                                                ? p.marca.toLowerCase() === marcaSeleccionada.toLowerCase()
+                                                : true)
+                                            : true
+                                    )
+                                )
+                                .map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.nombre} ({p.marca}{p.proveedor ? ` - ${p.proveedor}` : ''})
+                                    </option>
+                                ))}
                         </select>
                     </div>
-
-                    {}
                     <div className="form-row">
                         <label>Cantidad</label>
                         <input type="number" min={1} value={cantidad} onChange={e => setCantidad(Number(e.target.value))} />
@@ -277,17 +278,10 @@ const Compras = () => {
                         />
                     </div>
                     <button
-                      className="btn-agregar"
-                      onClick={agregarAlCarrito}
-                      disabled={
-                        productoSeleccionado === null ||
-                        !cantidad || cantidad < 1 ||
-                        precioUnitario === null || precioUnitario < 0 ||
-                        (tipo === "repuesto" && !proveedorSeleccionado) ||
-                        ((tipo === "moto" || tipo === "accesorio" || tipo === "repuesto") && !marcaSeleccionada)
-                      }
+                        className="btn-agregar"
+                        onClick={agregarAlCarrito}
                     >
-                      Agregar al carrito
+                        Agregar al carrito
                     </button>
                 </div>
                 <div className="carrito">
@@ -318,7 +312,7 @@ const Compras = () => {
                                         </td>
                                         <td>{item.marca}</td>
                                         <td>{item.cantidad}</td>
-                                        <td>${Number(item.precio).toFixed(2)}</td>
+                                        <td>${Number(item.precio)}</td>
                                         <td>${Number(item.precio) * item.cantidad}</td>
                                     </tr>
                                 ))}
@@ -331,11 +325,11 @@ const Compras = () => {
                     </div>
                 </div>
                 <button
-                  className="btn-confirmar"
-                  onClick={confirmarCompra}
-                  disabled={carrito.length === 0}
+                    className="btn-confirmar"
+                    onClick={confirmarCompra}
+                    disabled={carrito.length === 0}
                 >
-                  Confirmar compra
+                    Confirmar compra
                 </button>
             </div>
         </div>
