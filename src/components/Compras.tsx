@@ -73,7 +73,6 @@ const Compras = () => {
             setMensajeError("Ingrese una cantidad válida (mayor a 0 y entera).");
             return;
         }
-        // Validación de precio: entero y mayor a 0
         const precioNum = Number(precioUnitario);
         if (
             precioUnitario === '' ||
