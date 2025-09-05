@@ -1,10 +1,8 @@
-/* Evita el scroll en toda la página */
 body, html {
   overflow: hidden;
   height: 100%;
 }
 
-/* ...existing code... */
 .menu-principal {
   display: flex;
   flex-direction: column;
@@ -13,7 +11,6 @@ body, html {
   background: linear-gradient(135deg, #181818cc 60%, #232526cc 100%);
   color: white;
   overflow: hidden;
-  /* Elimina cualquier background-image aquí */
 }
 
 .menu-principal::before {
@@ -21,9 +18,9 @@ body, html {
   position: absolute;
   inset: 0;
   background: url("../assets/rider-logo.png") no-repeat center center;
-  background-size: cover;      /* Ocupa toda la pantalla */
+  background-size: cover;      
   opacity: 0.12;
-  filter: blur(6px);           /* Difuminado */
+  filter: blur(6px);           
   z-index: 0;
   pointer-events: none;
 }
@@ -33,7 +30,7 @@ body, html {
   display: flex;
   flex-direction: column;
 }
-/* HEADER Y TITULO CENTRADO */
+
 header {
   width: 100%;
   display: flex;
@@ -42,27 +39,26 @@ header {
   justify-content: center;
   position: relative;
   margin-top: 0;
-  min-height: 120px; /* Asegura espacio para el logo y el botón */
+  min-height: 120px;
 }
 
 header h1 {
   flex: 1;
   text-align: center;
-  margin: 0;              /* Quita el margin-top aquí */
+  margin: 0;              
   font-size: 2.4rem;
   font-weight: 700;
   letter-spacing: 1.5px;
   align-self: center;
 }
 
-/* El espaciado y el estilo solo en el rectángulo */
 .header-title-box {
   background: linear-gradient(135deg, #232526 60%, #181818 100%);
   border: 3.5px double #a32020;
   border-radius: 22px;
   box-shadow: 0 8px 36px 0 rgba(163,32,32,0.16), 0 2px 0 #a32020 inset;
   padding: 28px 48px;
-  margin: 80px auto 36px auto;   /* Solo aquí el margen superior */
+  margin: 80px auto 36px auto; 
   display: inline-block;
   max-width: 380px;
   width: 100%;

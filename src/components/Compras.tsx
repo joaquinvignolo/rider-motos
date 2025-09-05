@@ -40,7 +40,7 @@ const Compras = () => {
     const [proveedorSeleccionado, setProveedorSeleccionado] = useState<string>('');
     const [precioUnitario, setPrecioUnitario] = useState<string>('');
     const [mensajeError, setMensajeError] = useState<string>('');
-    const [observaciones, setObservaciones] = useState<string>(''); 
+    const [observaciones, setObservaciones] = useState<string>('');
 
     useEffect(() => {
         fetch('http://localhost:3001/api/marcas')
@@ -280,11 +280,23 @@ const Compras = () => {
                     </div>
                     <div className="form-row">
                         <label>Observaciones</label>
-                        <input
-                            type="text"
+                        <textarea
                             value={observaciones}
                             onChange={e => setObservaciones(e.target.value)}
-                            placeholder="Observaciones (opcional)"
+                            placeholder="Observaciones de la compra (opcional)"
+                            rows={3}
+                            style={{
+                                resize: 'vertical',
+                                width: '100%',
+                                background: '#232526',
+                                color: '#fff',
+                                border: '1px solid #353535',
+                                borderRadius: '8px',
+                                padding: '8px',
+                                fontFamily: 'inherit',
+                                fontSize: '1rem',
+                                marginTop: '4px'
+                            }}
                         />
                     </div>
                     <button

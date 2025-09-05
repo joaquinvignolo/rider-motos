@@ -681,12 +681,12 @@ const Productos: React.FC = () => {
                 </button>
                 {producto.activo !== 0 ? (
                   <>
-                    {/* Editar */}
+                    {}
                     <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)} title="Editar">
                       {}
                       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                     </button>
-                    {/* Eliminar/Inactivar */}
+                    {}
                     <button
                       className="eliminar-btn motos-bar-btn"
                       onClick={() => setProductoAEliminar(producto)}
@@ -768,7 +768,7 @@ const Productos: React.FC = () => {
                     });
                     setProductoAReactivar(null);
                     setMostrarInactivos(false);
-                    setTimeout(recargarProductos, 0); // recarga la lista de activos
+                    setTimeout(recargarProductos, 0); 
                   }}
                 >
                   Reactivar
@@ -784,7 +784,7 @@ const Productos: React.FC = () => {
             </div>
           </div>
         )}
-        {/* Paginación */}
+        {}
         {totalPaginas > 1 && (
           <div className="paginacion-productos">
             <button
