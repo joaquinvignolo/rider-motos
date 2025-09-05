@@ -38,10 +38,10 @@ const Compras = () => {
     const [carrito, setCarrito] = useState<(Producto & { cantidad: number })[]>([]);
     const [marcaSeleccionada, setMarcaSeleccionada] = useState<string>('');
     const [proveedorSeleccionado, setProveedorSeleccionado] = useState<string>('');
-    const [busqueda, setBusqueda] = useState<string>('');
     const [precioUnitario, setPrecioUnitario] = useState<number>(0);
+    const [mensajeError, setMensajeError] = useState<string>('');
 
-    // Opciones de marcas
+
     const opcionesMarcas = [
         { value: 'primera', label: 'Primera Marca' },
         { value: 'segunda', label: 'Segunda Marca' }
@@ -64,7 +64,31 @@ const Compras = () => {
     }, [tipo]);
 
     const agregarAlCarrito = () => {
-        if (productoSeleccionado === null) return;
+        if (productoSeleccionado === null) {
+            setMensajeError("Seleccione un producto.");
+            return;
+        }
+        if (!cantidad || cantidad < 1 || !Number.isInteger(cantidad)) {
+            setMensajeError("Ingrese una cantidad válida (mayor a 0 y entera).");
+            return;
+        }
+        if (precioUnitario === null || precioUnitario < 0) {
+            setMensajeError("Ingrese un precio unitario válido.");
+            return;
+        }
+        if (carrito.some(item => item.id === productoSeleccionado)) {
+            setMensajeError("Este producto ya está en el carrito.");
+            return;
+        }
+        if (tipo === "repuesto" && !proveedorSeleccionado) {
+            setMensajeError("Seleccione un proveedor.");
+            return;
+        }
+        if ((tipo === "moto" || tipo === "accesorio" || tipo === "repuesto") && !marcaSeleccionada) {
+            setMensajeError("Seleccione una marca o calidad.");
+            return;
+        }
+        setMensajeError('');
         const prod = productos.find(p => p.id === productoSeleccionado);
         if (!prod) return;
         setCarrito([...carrito, {
@@ -83,15 +107,31 @@ const Compras = () => {
 
     const total = carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
 
-    // --- Botón volver al menú principal ---
     const volverAlMenu = () => {
-        window.location.href = '/menu'; // Cambia '/menu' por la ruta de tu menú principal si es diferente
+        window.location.href = '/menu'; 
+    };
+
+    const confirmarCompra = () => {
+        if (carrito.length === 0) {
+            setMensajeError("El carrito está vacío.");
+            return;
+        }
+        if (tipo === "repuesto" && !proveedorSeleccionado) {
+            setMensajeError("Seleccione un proveedor.");
+            return;
+        }
+        if ((tipo === "moto" || tipo === "accesorio" || tipo === "repuesto") && !marcaSeleccionada) {
+            setMensajeError("Seleccione una marca o calidad.");
+            return;
+        }
+        setMensajeError('');
+
     };
 
     return (
         <div className="compras-bg">
             <div className="compras-container">
-                {/* Botón INICIO arriba a la izquierda */}
+                {}
                 <button
                     onClick={volverAlMenu}
                     style={{
@@ -115,6 +155,22 @@ const Compras = () => {
                 </button>
                 <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
                 <h2>Gestión de Compras</h2>
+                
+                {/* Mensaje de error arriba del formulario */}
+                {mensajeError && (
+                    <div style={{
+                        background: "#ffe0e0",
+                        color: "#a32020",
+                        padding: "10px 18px",
+                        borderRadius: "8px",
+                        marginBottom: "18px",
+                        fontWeight: "bold",
+                        textAlign: "center"
+                    }}>
+                        {mensajeError}
+                    </div>
+                )}
+
                 <div className="nueva-compra">
                     <div className="form-row">
                         <label>Tipo de Compra</label>
@@ -128,7 +184,7 @@ const Compras = () => {
                         </select>
                     </div>
 
-                    {/* Filtro por proveedor o marca según tipo */}
+                    {}
                     {tipo === 'repuesto' && (
                         <div className="form-row">
                             <label>Proveedor</label>
@@ -144,6 +200,22 @@ const Compras = () => {
                             </select>
                         </div>
                     )}
+                    {(tipo === 'repuesto' || tipo === 'accesorio') && (
+                        <div className="form-row">
+                            <label>Calidad</label>
+                            <select
+                                value={marcaSeleccionada}
+                                onChange={e => {
+                                    setMarcaSeleccionada(e.target.value);
+                                    setProductoSeleccionado(null);
+                                }}
+                            >
+                                <option value="">Todas</option>
+                                <option value="Primera Marca">Primera Marca</option>
+                                <option value="Segunda Marca">Segunda Marca</option>
+                            </select>
+                        </div>
+                    )}
                     {tipo === 'moto' && (
                         <div className="form-row">
                             <label>Marca</label>
@@ -155,45 +227,42 @@ const Compras = () => {
                                 }}
                             >
                                 <option value="">Seleccione una marca</option>
-                                {marcas.map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
+                                {marcas
+                                    .filter(m => m.nombre !== "Primera Marca" && m.nombre !== "Segunda Marca")
+                                    .map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
                             </select>
                         </div>
                     )}
 
-                    {/* Buscador de productos */}
-                    <div className="form-row">
-                        <label>Buscar producto</label>
-                        <input
-                            type="text"
-                            placeholder="Buscar por nombre..."
-                            value={busqueda}
-                            onChange={e => setBusqueda(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Selección de producto filtrado */}
+                    {}
                     <div className="form-row">
                         <label>Producto</label>
                         <select
-                            value={productoSeleccionado !== null ? productoSeleccionado : ''}
-                            onChange={e => setProductoSeleccionado(Number(e.target.value))}
+                          value={productoSeleccionado !== null ? productoSeleccionado : ''}
+                          onChange={e => setProductoSeleccionado(Number(e.target.value))}
                         >
-                            <option value="">Seleccione un producto</option>
-                            {productos
-                                .filter(p =>
-                                    (tipo === 'repuesto' ? p.proveedor === proveedorSeleccionado : true) &&
-                                    (tipo === 'moto' ? p.marca === marcaSeleccionada : true) &&
-                                    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
-                                )
-                                .map(p => (
-                                    <option key={p.id} value={p.id}>
-                                        {p.nombre} ({p.marca}{p.proveedor ? ` - ${p.proveedor}` : ''})
-                                    </option>
-                                ))}
+                          <option value="">Seleccione un producto</option>
+                          {productos
+                            .filter(p =>
+                              (tipo === 'repuesto' ? p.proveedor === proveedorSeleccionado : true) &&
+                              (tipo === 'moto'
+                                ? p.marca === marcaSeleccionada
+                                : (tipo === 'repuesto' || tipo === 'accesorio')
+                                  ? (marcaSeleccionada
+                                      ? p.marca.toLowerCase() === marcaSeleccionada.toLowerCase()
+                                      : true)
+                                  : true
+                              )
+                            )
+                            .map(p => (
+                              <option key={p.id} value={p.id}>
+                                {p.nombre} ({p.marca}{p.proveedor ? ` - ${p.proveedor}` : ''})
+                              </option>
+                            ))}
                         </select>
                     </div>
 
-                    {/* Cantidad y precio */}
+                    {}
                     <div className="form-row">
                         <label>Cantidad</label>
                         <input type="number" min={1} value={cantidad} onChange={e => setCantidad(Number(e.target.value))} />
@@ -207,7 +276,19 @@ const Compras = () => {
                             onChange={e => setPrecioUnitario(Number(e.target.value))}
                         />
                     </div>
-                    <button className="btn-agregar" onClick={agregarAlCarrito}>Agregar al carrito</button>
+                    <button
+                      className="btn-agregar"
+                      onClick={agregarAlCarrito}
+                      disabled={
+                        productoSeleccionado === null ||
+                        !cantidad || cantidad < 1 ||
+                        precioUnitario === null || precioUnitario < 0 ||
+                        (tipo === "repuesto" && !proveedorSeleccionado) ||
+                        ((tipo === "moto" || tipo === "accesorio" || tipo === "repuesto") && !marcaSeleccionada)
+                      }
+                    >
+                      Agregar al carrito
+                    </button>
                 </div>
                 <div className="carrito">
                     <h3 style={{ marginTop: '8px', marginBottom: '18px', color: '#fff' }}>Carrito de Compras</h3>
@@ -249,7 +330,13 @@ const Compras = () => {
                         <span className="total">${total}</span>
                     </div>
                 </div>
-                <button className="btn-confirmar">Confirmar compra</button>
+                <button
+                  className="btn-confirmar"
+                  onClick={confirmarCompra}
+                  disabled={carrito.length === 0}
+                >
+                  Confirmar compra
+                </button>
             </div>
         </div>
     );
