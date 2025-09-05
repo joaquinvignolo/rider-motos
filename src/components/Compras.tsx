@@ -119,7 +119,7 @@ const Compras = () => {
         window.location.href = '/menu';
     };
 
-    const confirmarCompra = () => {
+    const confirmarCompra = async () => {
         if (carrito.length === 0) {
             setMensajeError("El carrito está vacío.");
             return;
@@ -128,11 +128,43 @@ const Compras = () => {
             setMensajeError("Seleccione un proveedor.");
             return;
         }
-        if ((tipo === "moto" || tipo === "accesorio" || tipo === "repuesto") && !marcaSeleccionada) {
-            setMensajeError("Seleccione una marca o calidad.");
-            return;
-        }
         setMensajeError('');
+        let proveedor_id = null;
+        if (tipo === "repuesto") {
+            const proveedor = proveedores.find(p => p.nombre === proveedorSeleccionado);
+            if (!proveedor) {
+                setMensajeError("Proveedor no válido.");
+                return;
+            }
+            proveedor_id = proveedor.id;
+        }
+        try {
+            const res = await fetch('http://localhost:3001/api/compras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    proveedor_id,
+                    total,
+                    observaciones,
+                    productos: carrito.map(item => ({
+                        id: item.id,
+                        cantidad: item.cantidad,
+                        precio: Number(item.precio)
+                    }))
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCarrito([]);
+                setObservaciones('');
+                setMensajeError('');
+                alert('¡Compra registrada con éxito!');
+            } else {
+                setMensajeError(data.error || 'Error al registrar la compra');
+            }
+        } catch (err) {
+            setMensajeError('Error de conexión con el servidor');
+        }
     };
 
     return (
