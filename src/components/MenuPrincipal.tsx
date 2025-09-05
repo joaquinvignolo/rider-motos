@@ -23,16 +23,16 @@ function MenuPrincipal() {
             justifyContent: "center",
             alignItems: "center",
             gap: "64px",
-            marginTop: "140px" // <-- Bajá este valor según lo que necesites
+            marginTop: "140px"
           }}
         >
-          {/* Columna izquierda */}
+          {}
           <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
             <button onClick={() => navigate("/compras")}>COMPRAS</button>
             <button onClick={() => navigate("/productos")}>PRODUCTOS</button>
             <button onClick={() => navigate("/ventas")}>VENTAS</button>
           </div>
-          {/* Columna derecha */}
+          {}
           <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
             <button onClick={() => navigate("/clientes")}>CLIENTES</button>
             <button>PATENTAMIENTOS</button>

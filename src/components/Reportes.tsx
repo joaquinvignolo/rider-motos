@@ -559,15 +559,12 @@ function exportarDetalleAPDF(detalle: any) {
     .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0);
   const total = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
 
-  // Dibuja una línea divisoria
   y += 4;
   doc.setDrawColor(163, 32, 32);
   doc.line(15, y, 195, y);
 
   y += 10;
 
-  // Bloque de abajo: dos columnas
-  // Columna izquierda: Total vendido
   doc.setFontSize(15);
   doc.setTextColor(163, 32, 32);
   doc.text(
