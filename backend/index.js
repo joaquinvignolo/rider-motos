@@ -330,6 +330,55 @@ app.get('/api/ventas', async (req, res) => {
   }
 });
 
+// Registrar compra
+app.post('/api/compras', (req, res) => {
+  let { proveedor_id, total, observaciones, productos } = req.body;
+  if (!proveedor_id || proveedor_id === "" || proveedor_id === "null") {
+    proveedor_id = null;
+  }
+  db.query(
+    'INSERT INTO compras (proveedor_id, total, observaciones) VALUES (?, ?, ?)',
+    [proveedor_id, total, observaciones],
+    (err, result) => {
+      if (err) {
+        console.error("Error al registrar compra:", err);
+        return res.status(500).json({ error: 'Error al registrar compra' });
+      }
+      const compra_id = result.insertId;
+      const detalles = productos.map(p => [compra_id, p.id, p.cantidad, p.precio]);
+      db.query(
+        'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario) VALUES ?',
+        [detalles],
+        (err2) => {
+          if (err2) {
+            console.error("Error al registrar detalle de compra:", err2);
+            return res.status(500).json({ error: 'Error al registrar detalle de compra' });
+          }
+          // Sumar stock de cada producto comprado
+          const updates = productos.map(p =>
+            new Promise((resolve, reject) => {
+              db.query(
+                'UPDATE productos SET cantidad = cantidad + ? WHERE id = ?',
+                [p.cantidad, p.id],
+                (err3) => {
+                  if (err3) reject(err3);
+                  else resolve();
+                }
+              );
+            })
+          );
+          Promise.all(updates)
+            .then(() => res.json({ success: true, compra_id }))
+            .catch(err3 => {
+              console.error("Error al actualizar stock:", err3);
+              res.status(500).json({ error: 'Error al actualizar stock' });
+            });
+        }
+      );
+    }
+  );
+});
+
 app.listen(3001, () => {
   console.log('API corriendo en http://localhost:3001');
 });
