@@ -37,6 +37,9 @@ const Compras = () => {
     const [cantidad, setCantidad] = useState<number>(1);
     const [carrito, setCarrito] = useState<(Producto & { cantidad: number })[]>([]);
     const [marcaSeleccionada, setMarcaSeleccionada] = useState<string>('');
+    const [proveedorSeleccionado, setProveedorSeleccionado] = useState<string>('');
+    const [busqueda, setBusqueda] = useState<string>('');
+    const [precioUnitario, setPrecioUnitario] = useState<number>(0);
 
     // Opciones de marcas
     const opcionesMarcas = [
@@ -66,10 +69,12 @@ const Compras = () => {
         if (!prod) return;
         setCarrito([...carrito, {
             ...prod,
-            cantidad: cantidad
+            cantidad: cantidad,
+            precio: precioUnitario
         }]);
         setCantidad(1);
         setProductoSeleccionado(null);
+        setPrecioUnitario(0);
     };
 
     const eliminarDelCarrito = (idx: number) => {
@@ -113,50 +118,95 @@ const Compras = () => {
                 <div className="nueva-compra">
                     <div className="form-row">
                         <label>Tipo de Compra</label>
-                        <select value={tipo} onChange={e => setTipo(e.target.value)}>
+                        <select value={tipo} onChange={e => {
+                            setTipo(e.target.value);
+                            setMarcaSeleccionada('');
+                            setProveedorSeleccionado('');
+                            setProductoSeleccionado(null);
+                        }}>
                             {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </div>
-                    <div className="form-row">
-                        <label>Producto</label>
-                        <select value={productoSeleccionado !== null ? productoSeleccionado : ''} onChange={e => setProductoSeleccionado(Number(e.target.value))}>
-                            <option value="">Seleccione un producto</option>
-                            {productos.map(p => (
-                                <option key={p.id} value={p.id}>{p.nombre} ({p.marca})</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="form-row">
-                        <label>Cantidad</label>
-                        <input type="number" min={1} value={cantidad} onChange={e => setCantidad(Number(e.target.value))} />
-                    </div>
-                    {/* Marcas y proveedores según tipo */}
-                    {(tipo === 'accesorio' || tipo === 'repuesto') && (
+
+                    {/* Filtro por proveedor o marca según tipo */}
+                    {tipo === 'repuesto' && (
                         <div className="form-row">
-                            <label>Marcas</label>
-                            <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)}>
-                                <option value="">Seleccione una marca</option>
-                                {opcionesMarcas.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                            <label>Proveedor</label>
+                            <select
+                                value={proveedorSeleccionado}
+                                onChange={e => {
+                                    setProveedorSeleccionado(e.target.value);
+                                    setProductoSeleccionado(null);
+                                }}
+                            >
+                                <option value="">Seleccione un proveedor</option>
+                                {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
                             </select>
                         </div>
                     )}
                     {tipo === 'moto' && (
                         <div className="form-row">
-                            <label>Marcas</label>
-                            <select value={marcaSeleccionada} onChange={e => setMarcaSeleccionada(e.target.value)}>
+                            <label>Marca</label>
+                            <select
+                                value={marcaSeleccionada}
+                                onChange={e => {
+                                    setMarcaSeleccionada(e.target.value);
+                                    setProductoSeleccionado(null);
+                                }}
+                            >
                                 <option value="">Seleccione una marca</option>
                                 {marcas.map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
                             </select>
                         </div>
                     )}
-                    {tipo === 'repuesto' && (
-                        <div className="form-row">
-                            <label>Proveedor</label>
-                            <select>
-                                {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
-                            </select>
-                        </div>
-                    )}
+
+                    {/* Buscador de productos */}
+                    <div className="form-row">
+                        <label>Buscar producto</label>
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre..."
+                            value={busqueda}
+                            onChange={e => setBusqueda(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Selección de producto filtrado */}
+                    <div className="form-row">
+                        <label>Producto</label>
+                        <select
+                            value={productoSeleccionado !== null ? productoSeleccionado : ''}
+                            onChange={e => setProductoSeleccionado(Number(e.target.value))}
+                        >
+                            <option value="">Seleccione un producto</option>
+                            {productos
+                                .filter(p =>
+                                    (tipo === 'repuesto' ? p.proveedor === proveedorSeleccionado : true) &&
+                                    (tipo === 'moto' ? p.marca === marcaSeleccionada : true) &&
+                                    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+                                )
+                                .map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.nombre} ({p.marca}{p.proveedor ? ` - ${p.proveedor}` : ''})
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+
+                    {/* Cantidad y precio */}
+                    <div className="form-row">
+                        <label>Cantidad</label>
+                        <input type="number" min={1} value={cantidad} onChange={e => setCantidad(Number(e.target.value))} />
+                    </div>
+                    <div className="form-row">
+                        <label>Precio unitario</label>
+                        <input
+                            type="number"
+                            min={0}
+                            value={precioUnitario}
+                            onChange={e => setPrecioUnitario(Number(e.target.value))}
+                        />
+                    </div>
                     <button className="btn-agregar" onClick={agregarAlCarrito}>Agregar al carrito</button>
                 </div>
                 <div className="carrito">
