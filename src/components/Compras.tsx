@@ -38,8 +38,9 @@ const Compras = () => {
     const [carrito, setCarrito] = useState<(Producto & { cantidad: number })[]>([]);
     const [marcaSeleccionada, setMarcaSeleccionada] = useState<string>('');
     const [proveedorSeleccionado, setProveedorSeleccionado] = useState<string>('');
-    const [precioUnitario, setPrecioUnitario] = useState<string>(''); // Cambia a string
+    const [precioUnitario, setPrecioUnitario] = useState<string>(''); 
     const [mensajeError, setMensajeError] = useState<string>('');
+    const [observaciones, setObservaciones] = useState<string>(''); 
 
     useEffect(() => {
         fetch('http://localhost:3001/api/marcas')
@@ -57,7 +58,7 @@ const Compras = () => {
         setProductoSeleccionado(null);
     }, [tipo]);
 
-    // Mostrar el mensaje de error por 3 segundos
+
     useEffect(() => {
         if (mensajeError) {
             const timer = setTimeout(() => setMensajeError(''), 3000);
@@ -104,11 +105,13 @@ const Compras = () => {
         setCarrito([...carrito, {
             ...prod,
             cantidad: cantidad,
-            precio: precioNum
+            precio: precioNum,
+            observaciones 
         }]);
         setCantidad(1);
         setProductoSeleccionado(null);
         setPrecioUnitario('');
+        setObservaciones(''); 
     };
 
     const eliminarDelCarrito = (idx: number) => {
@@ -279,6 +282,15 @@ const Compras = () => {
                             onChange={e => setPrecioUnitario(e.target.value)}
                         />
                     </div>
+                    <div className="form-row">
+                        <label>Observaciones</label>
+                        <input
+                            type="text"
+                            value={observaciones}
+                            onChange={e => setObservaciones(e.target.value)}
+                            placeholder="Observaciones (opcional)"
+                        />
+                    </div>
                     <button
                         className="btn-agregar"
                         onClick={agregarAlCarrito}
@@ -297,6 +309,7 @@ const Compras = () => {
                                     <th>Cantidad</th>
                                     <th>Precio Unitario</th>
                                     <th>Subtotal</th>
+                                    <th>Obs.</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -316,6 +329,7 @@ const Compras = () => {
                                         <td>{item.cantidad}</td>
                                         <td>${Number(item.precio)}</td>
                                         <td>${Number(item.precio) * item.cantidad}</td>
+                                        <td>{item.observaciones || ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
