@@ -38,7 +38,7 @@ const Compras = () => {
     const [carrito, setCarrito] = useState<(Producto & { cantidad: number })[]>([]);
     const [marcaSeleccionada, setMarcaSeleccionada] = useState<string>('');
     const [proveedorSeleccionado, setProveedorSeleccionado] = useState<string>('');
-    const [precioUnitario, setPrecioUnitario] = useState<string>(''); // Cambia a string
+    const [precioUnitario, setPrecioUnitario] = useState<string>('');
     const [mensajeError, setMensajeError] = useState<string>('');
 
     useEffect(() => {
@@ -57,7 +57,6 @@ const Compras = () => {
         setProductoSeleccionado(null);
     }, [tipo]);
 
-    // Mostrar el mensaje de error por 3 segundos
     useEffect(() => {
         if (mensajeError) {
             const timer = setTimeout(() => setMensajeError(''), 3000);
@@ -66,7 +65,6 @@ const Compras = () => {
     }, [mensajeError]);
 
     const agregarAlCarrito = () => {
-        // Validaciones
         if (productoSeleccionado === null) {
             setMensajeError("Seleccione un producto.");
             return;
@@ -135,13 +133,12 @@ const Compras = () => {
             return;
         }
         setMensajeError('');
-        // Aquí iría la lógica para confirmar la compra
     };
 
     return (
         <div className="compras-bg">
             <div className="compras-container">
-                {/* Botón INICIO */}
+                {}
                 <button
                     onClick={volverAlMenu}
                     style={{
@@ -165,7 +162,7 @@ const Compras = () => {
                 </button>
                 <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
                 <h2>Gestión de Compras</h2>
-                {/* Mensaje de error arriba del formulario */}
+                {}
                 {mensajeError && (
                     <div style={{
                         background: "#ffe0e0",
