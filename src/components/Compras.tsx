@@ -38,7 +38,7 @@ const Compras = () => {
     const [carrito, setCarrito] = useState<(Producto & { cantidad: number })[]>([]);
     const [marcaSeleccionada, setMarcaSeleccionada] = useState<string>('');
     const [proveedorSeleccionado, setProveedorSeleccionado] = useState<string>('');
-    const [precioUnitario, setPrecioUnitario] = useState<number>(0);
+    const [precioUnitario, setPrecioUnitario] = useState<string>(''); // Cambia a string
     const [mensajeError, setMensajeError] = useState<string>('');
 
     useEffect(() => {
@@ -76,10 +76,12 @@ const Compras = () => {
             return;
         }
         // Validación de precio: entero y mayor a 0
+        const precioNum = Number(precioUnitario);
         if (
-            precioUnitario === null ||
-            precioUnitario <= 0 ||
-            !Number.isInteger(precioUnitario)
+            precioUnitario === '' ||
+            isNaN(precioNum) ||
+            precioNum <= 0 ||
+            !Number.isInteger(precioNum)
         ) {
             setMensajeError("El precio unitario debe ser un número entero mayor a 0.");
             return;
@@ -102,11 +104,11 @@ const Compras = () => {
         setCarrito([...carrito, {
             ...prod,
             cantidad: cantidad,
-            precio: precioUnitario
+            precio: precioNum
         }]);
         setCantidad(1);
         setProductoSeleccionado(null);
-        setPrecioUnitario(0);
+        setPrecioUnitario('');
     };
 
     const eliminarDelCarrito = (idx: number) => {
@@ -274,7 +276,7 @@ const Compras = () => {
                             type="number"
                             min={0}
                             value={precioUnitario}
-                            onChange={e => setPrecioUnitario(Number(e.target.value))}
+                            onChange={e => setPrecioUnitario(e.target.value)}
                         />
                     </div>
                     <button
