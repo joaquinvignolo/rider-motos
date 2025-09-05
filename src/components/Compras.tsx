@@ -103,11 +103,13 @@ const Compras = () => {
         setCarrito([...carrito, {
             ...prod,
             cantidad: cantidad,
-            precio: precioNum
+            precio: precioNum,
+            observaciones 
         }]);
         setCantidad(1);
         setProductoSeleccionado(null);
         setPrecioUnitario('');
+        setObservaciones(''); 
     };
 
     const eliminarDelCarrito = (idx: number) => {
@@ -374,6 +376,7 @@ const Compras = () => {
                                     <th>Cantidad</th>
                                     <th>Precio Unitario</th>
                                     <th>Subtotal</th>
+                                    <th>Obs.</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -393,6 +396,7 @@ const Compras = () => {
                                         <td>{item.cantidad}</td>
                                         <td>${Number(item.precio)}</td>
                                         <td>${Number(item.precio) * item.cantidad}</td>
+                                        <td>{item.observaciones || ''}</td>
                                     </tr>
                                 ))}
                             </tbody>
