@@ -41,6 +41,7 @@ const Compras = () => {
     const [precioUnitario, setPrecioUnitario] = useState<string>('');
     const [mensajeError, setMensajeError] = useState<string>('');
     const [observaciones, setObservaciones] = useState<string>('');
+    const [mensajeExito, setMensajeExito] = useState<string>('');
 
     useEffect(() => {
         fetch('http://localhost:3001/api/marcas')
@@ -92,9 +93,9 @@ const Compras = () => {
             setMensajeError("Seleccione un proveedor.");
             return;
         }
-        if ((tipo === "moto" || tipo === "accesorio" || tipo === "repuesto") && !marcaSeleccionada) {
-            setMensajeError("Seleccione una marca o calidad.");
-            return;
+        if (tipo === "moto" && !marcaSeleccionada) {
+            setMensajeError("Seleccione una marca.");
+             return;
         }
         setMensajeError('');
         const prod = productos.find(p => p.id === productoSeleccionado);
@@ -158,7 +159,14 @@ const Compras = () => {
                 setCarrito([]);
                 setObservaciones('');
                 setMensajeError('');
-                alert('¡Compra registrada con éxito!');
+                setMensajeExito('¡Compra registrada con éxito!');
+                setTipo('moto');
+                setMarcaSeleccionada('');
+                setProveedorSeleccionado('');
+                setProductoSeleccionado(null);
+                setCantidad(1);
+                setPrecioUnitario('');
+                setTimeout(() => setMensajeExito(''), 3500);
             } else {
                 setMensajeError(data.error || 'Error al registrar la compra');
             }
@@ -208,7 +216,19 @@ const Compras = () => {
                         {mensajeError}
                     </div>
                 )}
-
+                {mensajeExito && (
+                    <div style={{
+                        background: "#e0ffe0",
+                        color: "#207a20",
+                        padding: "10px 18px",
+                        borderRadius: "8px",
+                        marginBottom: "18px",
+                        fontWeight: "bold",
+                        textAlign: "center"
+                    }}>
+                        {mensajeExito}
+                    </div>
+                )}
                 <div className="nueva-compra">
                     <div className="form-row">
                         <label>Tipo de Compra</label>
@@ -332,6 +352,13 @@ const Compras = () => {
                     <button
                         className="btn-agregar"
                         onClick={agregarAlCarrito}
+                        disabled={
+                            productoSeleccionado === null ||
+                            !cantidad || cantidad < 1 ||
+                            precioUnitario === '' || Number(precioUnitario) <= 0 ||
+                            (tipo === "repuesto" && !proveedorSeleccionado) ||
+                            (tipo === "moto" && !marcaSeleccionada)
+                        }
                     >
                         Agregar al carrito
                     </button>
