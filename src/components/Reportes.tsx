@@ -23,6 +23,19 @@ type Venta = {
   }[];
 };
 
+type Compra = {
+  id: number;
+  fecha: string;
+  proveedor: string;
+  total: number;
+  detalles: {
+    nombre: string;
+    cantidad: number;
+    observaciones?: string;
+    precio?: number;
+  }[];
+};
+
 function agruparPorFecha(ventas: Venta[]) {
   const agrupadas: { [fecha: string]: Venta[] } = {};
   ventas.forEach(v => {
@@ -46,47 +59,73 @@ const flecha = (
 
 const Reportes: React.FC = () => {
   const [ventas, setVentas] = useState<Venta[]>([]);
-  const [detalleDia, setDetalleDia] = useState<{ fecha: string, productos: any[], cliente: string } | null>(null);
+  const [compras, setCompras] = useState<Compra[]>([]);
+  const [detalleDia, setDetalleDia] = useState<any>(null);
   const [desde, setDesde] = useState<string>("");
   const [hasta, setHasta] = useState<string>("");
   const [pagina, setPagina] = useState(1);
   const [tipo, setTipo] = useState<"ventas" | "compras">("ventas");
   const [busqueda, setBusqueda] = useState<string>("");
 
+  // Cargar ventas y compras solo una vez
   useEffect(() => {
     fetch("http://localhost:3001/api/ventas")
       .then(res => res.json())
       .then(data => setVentas(Array.isArray(data) ? data : []));
+    fetch("http://localhost:3001/api/compras")
+      .then(res => res.json())
+      .then(data => setCompras(Array.isArray(data) ? data : []));
   }, []);
 
-  const ventasFiltradas = ventas.filter(v => {
-    const fechaVenta = new Date(v.fecha);
-    let ok = true;
-    if (desde) ok = ok && fechaVenta >= new Date(desde + "T00:00:00");
-    if (hasta) ok = ok && fechaVenta <= new Date(hasta + "T23:59:59");
+  // Limpiar filtros y paginación al cambiar tipo
+  const handleTipo = () => {
+    setTipo(tipo === "ventas" ? "compras" : "ventas");
+    setBusqueda("");
+    setDesde("");
+    setHasta("");
+    setPagina(1);
+    setDetalleDia(null);
+  };
 
+  // Filtrado y agrupado según tipo
+  const registros = tipo === "ventas" ? ventas : compras;
+  const filtrados = registros.filter(r => {
+    const fecha = new Date(r.fecha);
+    let ok = true;
+    if (desde) ok = ok && fecha >= new Date(desde + "T00:00:00");
+    if (hasta) ok = ok && fecha <= new Date(hasta + "T23:59:59");
     if (busqueda.trim() !== "") {
       const texto = busqueda.toLowerCase();
-      if (v.cliente === "Consumidor final") {
-        const enDetalles = v.detalles?.some(d =>
-          d.nombre?.toLowerCase().includes(texto) ||
-          d.descripcion?.toLowerCase().includes(texto)
+      if (tipo === "ventas") {
+        // ...tu lógica de búsqueda de ventas...
+        return ok && (
+          r.cliente?.toLowerCase().includes(texto) ||
+          r.detalles?.some((d: any) =>
+            d.nombre?.toLowerCase().includes(texto) ||
+            d.descripcion?.toLowerCase().includes(texto)
+          )
         );
-        ok = ok && enDetalles;
       } else {
-        const enProductos = v.productos?.toLowerCase().includes(texto);
-        const enCliente = v.cliente?.toLowerCase().includes(texto);
-        const enDetalles = v.detalles?.some(d =>
-          d.nombre?.toLowerCase().includes(texto) ||
-          d.descripcion?.toLowerCase().includes(texto)
+        // Compras: buscar por nombre de producto o proveedor
+        return ok && (
+          r.proveedor?.toLowerCase().includes(texto) ||
+          r.detalles?.some((d: any) =>
+            d.nombre?.toLowerCase().includes(texto) ||
+            (d.observaciones?.toLowerCase().includes(texto))
+          )
         );
-        ok = ok && (enProductos || enCliente || enDetalles);
       }
     }
     return ok;
   });
 
-  const agrupadas = agruparPorFecha(ventasFiltradas);
+  // Agrupar por fecha
+  const agrupadas = filtrados.reduce((acc: any, r: any) => {
+    const fecha = new Date(r.fecha).toLocaleDateString();
+    if (!acc[fecha]) acc[fecha] = [];
+    acc[fecha].push(r);
+    return acc;
+  }, {});
   const fechas = Object.keys(agrupadas);
   const diasPorPagina = 5;
   const totalPaginas = Math.ceil(fechas.length / diasPorPagina);
@@ -136,7 +175,7 @@ const Reportes: React.FC = () => {
               alignItems: "center"
             }}
             title="Cambiar entre ventas y compras"
-            onClick={() => setTipo(tipo === "ventas" ? "compras" : "ventas")}
+            onClick={handleTipo}
           >
             {flecha}
           </button>
@@ -185,7 +224,9 @@ const Reportes: React.FC = () => {
         {fechasPagina.length === 0 ? (
           <div className="reportes-vacio">
             <span role="img" aria-label="historial" style={{ fontSize: 40, marginBottom: 12 }}>📄</span>
-            <div>No hay ventas registradas aún.</div>
+            <div>
+              No hay {tipo === "ventas" ? "ventas" : "compras"} registradas aún.
+            </div>
           </div>
         ) : (
           fechasPagina.map(fecha => {
