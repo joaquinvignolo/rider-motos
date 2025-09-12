@@ -302,9 +302,10 @@ app.get('/api/ventas', async (req, res) => {
 
     // 2. Traer detalles de todas las ventas
     const [detalles] = await db.promise().query(`
-      SELECT dc.compra_id, dc.cantidad, dc.precio_unitario as precio, pr.nombre, dc.observaciones
-      FROM detalle_compras dc
-      JOIN productos pr ON dc.producto_id = pr.id
+      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario as precio, pr.nombre, pr.descripcion, m.nombre as marca
+      FROM detalle_ventas dv
+      JOIN productos pr ON dv.producto_id = pr.id
+      LEFT JOIN marcas m ON pr.marca_id = m.id
     `);
 
     // 3. Asociar detalles a cada venta
@@ -317,7 +318,7 @@ app.get('/api/ventas', async (req, res) => {
           descripcion: d.descripcion,
           marca: d.marca,
           cantidad: d.cantidad,
-          precio: d.precio_unitario
+          precio: d.precio
         }))
     }));
 
