@@ -299,15 +299,9 @@ const Reportes: React.FC = () => {
         {fechasPagina.length === 0 ? (
           <div className="reportes-vacio">
             <span role="img" aria-label="historial" style={{ fontSize: 40, marginBottom: 12 }}>📄</span>
-<<<<<<< HEAD
-            {ventas.length === 0
-              ? "No hay ventas registradas aún."
-              : "No se encontraron ventas para la búsqueda ingresada."}
-=======
             <div>
               No hay {tipo === "ventas" ? "ventas" : "compras"} registradas aún.
             </div>
->>>>>>> 172af87c56dea2f3bfa8dfc2fcf91d5565a76e89
           </div>
         ) : (
           fechasPagina.map(fecha => {
