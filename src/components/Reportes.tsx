@@ -260,7 +260,11 @@ const Reportes: React.FC = () => {
           {/* Buscador */}
           <input
             type="text"
-            placeholder="Buscar producto, cliente, etc..."
+            placeholder={
+              tipo === "ventas"
+                ? "Buscar producto, cliente, etc..."
+                : "Buscar producto, proveedor, etc..."
+            }
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
             style={{
@@ -557,7 +561,8 @@ const Reportes: React.FC = () => {
           </div>
         )}
       </div>
-      {detalleDia && tipo === "compras" && (
+      {/* MODAL DE DETALLE (para compras y ventas) */}
+      {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
             {/* Título */}
@@ -574,7 +579,7 @@ const Reportes: React.FC = () => {
                 fontWeight: 700,
                 letterSpacing: 1
               }}>
-                Detalle
+                {tipo === "compras" ? "Detalle de Compra" : "Detalle Venta"}
               </h2>
             </div>
             {/* Fecha */}
@@ -589,30 +594,147 @@ const Reportes: React.FC = () => {
             }}>
               {new Date(detalleDia.fecha).toLocaleDateString()}
             </div>
-            {/* Detalle de productos */}
-            <div style={{ marginTop: 20 }}>
-              {Array.isArray(detalleDia?.detalles) && detalleDia.detalles.map((d: any, i: number) => (
-                <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
-                  <div><b>Nombre:</b> {d.nombre}</div>
-                  <div><b>Cantidad:</b> {d.cantidad}</div>
-                  {/* Marca para accesorios y repuestos */}
-                  {(detalleDia.proveedor === "Accesorios" || (detalleDia.proveedor !== "Motos" && detalleDia.proveedor !== "Motos")) && (
-                    <div>
-                      <b>Marca:</b>{" "}
-                      {d.observaciones?.toLowerCase().includes("primera")
-                        ? "Primera marca"
-                        : d.observaciones?.toLowerCase().includes("segunda")
-                        ? "Segunda marca"
-                        : "-"}
-                    </div>
-                  )}
-                  {/* Observación para todos si existe */}
-                  {d.observaciones && (
-                    <div><b>Observación:</b> {d.observaciones}</div>
-                  )}
+
+            {/* ----------- COMPRAS ----------- */}
+            {tipo === "compras" && Array.isArray(detalleDia?.detalles) && (
+              <>
+                {/* Proveedor real o tipo */}
+                {detalleDia.proveedor && detalleDia.proveedor !== "Motos" && detalleDia.proveedor !== "Accesorios" && (
+                  <div style={{
+                    marginBottom: 18,
+                    background: "#232526",
+                    borderRadius: 8,
+                    padding: "10px 18px",
+                    color: "#fff"
+                  }}>
+                    <b>Proveedor:</b> {detalleDia.proveedor}
+                  </div>
+                )}
+                {(detalleDia.proveedor === "Motos" || detalleDia.proveedor === "Accesorios") && (
+                  <div style={{
+                    marginBottom: 18,
+                    background: "#232526",
+                    borderRadius: 8,
+                    padding: "10px 18px",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 18
+                  }}>
+                    {detalleDia.proveedor}
+                  </div>
+                )}
+                {/* Detalles de productos */}
+                {detalleDia.detalles.map((d: any, i: number) => (
+                  <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
+                    <div><b>Nombre:</b> {d.nombre}</div>
+                    <div><b>Cantidad:</b> {d.cantidad}</div>
+                    {/* Si es accesorio, mostrar calidad */}
+                    {detalleDia.proveedor === "Accesorios" && (
+                      <div>
+                        <b>Calidad:</b>{" "}
+                        {d.observaciones?.toLowerCase().includes("primera")
+                          ? "Primera marca"
+                          : d.observaciones?.toLowerCase().includes("segunda")
+                          ? "Segunda marca"
+                          : "-"}
+                      </div>
+                    )}
+                    {/* Si es moto, mostrar marca */}
+                    {detalleDia.proveedor === "Motos" && d.marca && (
+                      <div>
+                        <b>Marca:</b> {d.marca}
+                      </div>
+                    )}
+                    {/* Si es repuesto, mostrar proveedor */}
+                    {detalleDia.proveedor !== "Motos" && detalleDia.proveedor !== "Accesorios" && (
+                      <div>
+                        <b>Proveedor:</b> {detalleDia.proveedor}
+                      </div>
+                    )}
+                    {/* Observación para todos si existe */}
+                    {d.observaciones && (
+                      <div><b>Observación:</b> {d.observaciones}</div>
+                    )}
+                    {d.precio && (
+                      <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
+                    )}
+                  </div>
+                ))}
+                {/* Total general de la compra */}
+                <div style={{
+                  marginTop: 18,
+                  fontWeight: 700,
+                  color: "#a32020",
+                  fontSize: 18,
+                  textAlign: "right"
+                }}>
+                  Total: $
+                  {detalleDia.detalles
+                    .reduce((acc: number, d: any) => acc + (Number(d.precio) || 0) * (Number(d.cantidad) || 0), 0)
+                    .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
+
+            {/* ----------- VENTAS ----------- */}
+            {tipo === "ventas" && Array.isArray(detalleDia?.productos) && (
+              <>
+                {/* Información del cliente (una sola vez) */}
+                {detalleDia.productos.length > 0 && (
+                  <div style={{
+                    marginBottom: 18,
+                    background: "#232526",
+                    borderRadius: 8,
+                    padding: "10px 18px",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end"
+                  }}>
+                    {detalleDia.productos[0].cliente !== "Consumidor final" && (
+                      <>
+                        <div>
+                          <b>Cliente:</b> {detalleDia.productos[0].cliente_nombre} {detalleDia.productos[0].cliente_apellido}
+                        </div>
+                        {detalleDia.productos[0].cliente_telefono && (
+                          <div><b>Teléfono:</b> {detalleDia.productos[0].cliente_telefono}</div>
+                        )}
+                        {detalleDia.productos[0].cliente_correo && (
+                          <div><b>Correo:</b> {detalleDia.productos[0].cliente_correo}</div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Detalle de productos */}
+                {detalleDia.productos.map((d: any, i: number) => (
+                  <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
+                    <div><b>Nombre:</b> {d.nombre}</div>
+                    {d.marca && <div><b>Marca:</b> {d.marca}</div>}
+                    <div><b>Descripción:</b> {d.descripcion}</div>
+                    <div><b>Cantidad:</b> {d.cantidad}</div>
+                    <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
+                    <div><b>Subtotal:</b> ${(Number(d.precio) * Number(d.cantidad)).toFixed(2)}</div>
+                  </div>
+                ))}
+
+                {/* Total general */}
+                <div style={{
+                  marginTop: 18,
+                  fontWeight: 700,
+                  color: "#a32020",
+                  fontSize: 18,
+                  textAlign: "right"
+                }}>
+                  Total: $
+                  {detalleDia.productos
+                    .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
+                    .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                </div>
+              </>
+            )}
+
             {/* Botones */}
             <div style={{
               display: "flex",
@@ -635,7 +757,10 @@ const Reportes: React.FC = () => {
                   cursor: "pointer",
                   minHeight: 48
                 }}
-                onClick={() => exportarDetalleCompraAPDF(detalleDia)}
+                onClick={() => tipo === "compras"
+                  ? exportarDetalleCompraAPDF(detalleDia)
+                  : exportarDetalleAPDF(detalleDia)
+                }
               >
                 Exportar a PDF
               </button>
@@ -671,7 +796,7 @@ function exportarDetalleAPDF(detalle: any) {
   // Título
   doc.setFontSize(20);
   doc.setTextColor(163, 32, 32);
-  doc.text("Detalle", 105, y, { align: "center" });
+  doc.text("Detalle de Venta", 105, y, { align: "center" });
 
   // Fecha
   y += 10;
@@ -747,7 +872,7 @@ function exportarDetalleAPDF(detalle: any) {
     doc.text(datos.trim(), 120, y);
   }
 
-  doc.save("detalle.pdf");
+  doc.save("detalle-venta.pdf");
 }
 
 function exportarDetalleCompraAPDF(detalle: any) {
