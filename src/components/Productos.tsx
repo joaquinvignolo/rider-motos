@@ -13,7 +13,7 @@ type Producto = {
   descripcion: string;
   proveedor?: string;
   tipo: "moto" | "accesorio" | "repuesto";
-  activo: number; // <-- AGREGA ESTA LÍNEA
+  activo: number;
 };
 
 type Marca = {
@@ -197,7 +197,14 @@ const Productos: React.FC = () => {
         <h2>{editId !== null ? "Modificar" : "Agregar"} {seccion === "motos" ? "Moto" : seccion === "accesorios" ? "Accesorio" : "Repuesto"}</h2>
         <label>
           Nombre {seccion === "motos" ? "de la moto" : seccion === "accesorios" ? "del accesorio" : "del repuesto"}:
-          <input value={nombre} onChange={e => setNombre(e.target.value)} />
+          <input
+            value={nombre}
+            onChange={e => setNombre(e.target.value)}
+            maxLength={32}
+          />
+          <div style={{ fontSize: 12, color: '#888' }}>
+            {nombre.length}/32 caracteres
+          </div>
         </label>
         <label>
           Precio:
@@ -229,8 +236,11 @@ const Productos: React.FC = () => {
             type="text"
             value={descripcion}
             onChange={e => setDescripcion(e.target.value)}
-            maxLength={120}
+            maxLength={50}
           />
+          <div style={{ fontSize: 12, color: '#888' }}>
+            {descripcion.length}/50 caracteres
+          </div>
         </label>
         {seccion === "repuestos" && (
           <label>

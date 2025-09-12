@@ -173,7 +173,7 @@ const Clientes: React.FC = () => {
             }}
             onClick={() => navigate("/ventas")}
           >
-            VOLVER A VENTAS
+            VENTAS
           </button>
         </div>
         <h1>Clientes</h1>
@@ -253,7 +253,7 @@ const Clientes: React.FC = () => {
                 </button>
                 <button
                   className="clientes-btn"
-                  style={{ background: cliente.activo ? "#a32020" : "#353535" }}
+                  style={{ background: cliente.activo ? "#a32020" : "#80c481ff" }}
                   onClick={() => cambiarEstado(cliente)}
                   title={cliente.activo ? "Inactivar" : "Activar"}
                 >
@@ -307,19 +307,52 @@ const Clientes: React.FC = () => {
               )}
               <label>
                 Nombre:
-                <input value={nombre} onChange={e => setNombre(e.target.value)} required />
+                <input
+                  value={nombre}
+                  onChange={e => setNombre(e.target.value)}
+                  required
+                  maxLength={32}
+                />
+                <div style={{ fontSize: 12, color: "#888" }}>
+                  {nombre.length}/32 caracteres
+                </div>
               </label>
               <label>
                 Apellido:
-                <input value={apellido} onChange={e => setApellido(e.target.value)} required />
+                <input
+                  value={apellido}
+                  onChange={e => setApellido(e.target.value)}
+                  required
+                  maxLength={32}
+                />
+                <div style={{ fontSize: 12, color: "#888" }}>
+                  {apellido.length}/32 caracteres
+                </div>
               </label>
               <label>
                 Teléfono:
-                <input value={telefono} onChange={e => setTelefono(e.target.value)} required />
+                <input
+                  value={telefono}
+                  onChange={e => setTelefono(e.target.value)}
+                  required
+                  maxLength={20}
+                />
+                <div style={{ fontSize: 12, color: "#888" }}>
+                  {telefono.length}/20 caracteres
+                </div>
               </label>
               <label>
                 Correo:
-                <input value={correo} onChange={e => setCorreo(e.target.value)} required type="email" />
+                <input
+                  value={correo}
+                  onChange={e => setCorreo(e.target.value)}
+                  required
+                  type="email"
+                  maxLength={50}
+                />
+                <div style={{ fontSize: 12, color: "#888" }}>
+                  {correo.length}/50 caracteres
+                </div>
               </label>
               <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
                 <button className="clientes-btn agregar" type="submit">
@@ -377,7 +410,7 @@ const Clientes: React.FC = () => {
         {confirmarReactivar && (
           <div className="clientes-modal-backdrop">
             <div className="clientes-modal" style={{ maxWidth: 340, textAlign: "center" }}>
-              <h2 style={{ color: "#80c481" }}>Reactivar cliente</h2>
+              <h2 style={{ color: "#80c481ff" }}>Reactivar cliente</h2>
               <p>
                 ¿Seguro que deseas reactivar a<br />
                 <b>{confirmarReactivar.nombre} {confirmarReactivar.apellido}</b>?
