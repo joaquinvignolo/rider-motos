@@ -265,23 +265,23 @@ const Clientes: React.FC = () => {
         </ul>
         {/* Paginación */}
         {totalPaginas > 1 && (
-          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 18 }}>
+          <div className="paginacion-unificada">
             <button
-              className="clientes-btn"
+              className="paginacion-btn"
               disabled={pagina === 1}
-              onClick={() => setPagina(p => p - 1)}
+              onClick={() => setPagina(pagina - 1)}
             >
-              {"<"}
+              Anterior
             </button>
-            <span style={{ color: "#fff", alignSelf: "center" }}>
+            <span className="paginacion-info">
               Página {pagina} de {totalPaginas}
             </span>
             <button
-              className="clientes-btn"
+              className="paginacion-btn"
               disabled={pagina === totalPaginas}
-              onClick={() => setPagina(p => p + 1)}
+              onClick={() => setPagina(pagina + 1)}
             >
-              {">"}
+              Siguiente
             </button>
           </div>
         )}

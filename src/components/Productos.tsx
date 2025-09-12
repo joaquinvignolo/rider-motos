@@ -796,19 +796,19 @@ const Productos: React.FC = () => {
         )}
         {}
         {totalPaginas > 1 && (
-          <div className="paginacion-productos">
+          <div className="paginacion-unificada">
             <button
-              className="motos-bar-btn"
+              className="paginacion-btn"
               disabled={paginaActual === 1}
               onClick={() => setPaginaActual(paginaActual - 1)}
             >
               Anterior
             </button>
-            <span style={{margin: "0 12px", fontWeight: 700}}>
+            <span className="paginacion-info">
               Página {paginaActual} de {totalPaginas}
             </span>
             <button
-              className="motos-bar-btn"
+              className="paginacion-btn"
               disabled={paginaActual === totalPaginas}
               onClick={() => setPaginaActual(paginaActual + 1)}
             >
