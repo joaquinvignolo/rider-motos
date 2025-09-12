@@ -377,7 +377,7 @@ const Reportes: React.FC = () => {
           </div>
         )}
       </div>
-      {detalleDia && (
+      {detalleDia && tipo === "compras" && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
             {/* Título y fecha */}
@@ -417,65 +417,14 @@ const Reportes: React.FC = () => {
                 {detalleDia.fecha}
               </div>
             </div>
-            {}
-            {detalleDia.cliente !== "Consumidor final" && (
-              <div
-                style={{
-                  position: "fixed",
-                  top: "50%",
-                  left: "calc(50% + 260px)", 
-                  transform: "translateY(-210px)", 
-                  background: "#232526",
-                  border: "1.5px solid #a32020",
-                  borderRadius: 10,
-                  padding: "18px 28px",
-                  color: "#fff",
-                  minWidth: 220,
-                  zIndex: 9999,
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.18)"
-                }}
-              >
-                <div style={{ color: "#bdbdbd", fontWeight: 700, marginBottom: 6 }}>
-                  Nombre y apellido
-                </div>
-                <div style={{ marginBottom: 10 }}>
-                  {(detalleDia.productos[0]?.cliente_nombre || "") + " " + (detalleDia.productos[0]?.cliente_apellido || "")}
-                </div>
-                <div style={{ color: "#bdbdbd", fontWeight: 700, marginBottom: 6 }}>
-                  Teléfono
-                </div>
-                <div style={{ marginBottom: 10 }}>
-                  {detalleDia.productos[0]?.cliente_telefono || "-"}
-                </div>
-                <div style={{ color: "#bdbdbd", fontWeight: 700, marginBottom: 6 }}>
-                  Email
-                </div>
-                <div>
-                  {detalleDia.productos[0]?.cliente_correo || "-"}
-                </div>
-              </div>
-            )}
             {/* Detalle de productos */}
-            <div style={{ marginTop: detalleDia.cliente !== "Consumidor final" ? 60 : 0 }}>
-              {detalleDia.productos
-                .filter(d => {
-                  if (busqueda.trim() && detalleDia.cliente === "Consumidor final") {
-                    const texto = busqueda.toLowerCase();
-                    return (
-                      d.nombre?.toLowerCase().includes(texto) ||
-                      d.descripcion?.toLowerCase().includes(texto)
-                    );
-                  }
-                  return true;
-                })
-                .map((d, i) => (
-                  <div key={i} style={{ marginBottom: 12, color: (d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia") ? "#a020f0" : "#fff" }}>
-                    <div><b>Nombre:</b> {d.nombre}</div>
-                    <div><b>Descripción:</b> {d.descripcion}</div>
-                    <div><b>Cantidad:</b> {d.cantidad}</div>
-                    <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
-                    <div><b>Subtotal:</b> ${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</div>
-                  </div>
+            <div style={{ marginTop: 20 }}>
+              {Array.isArray(detalleDia?.detalles) && detalleDia.detalles.map((d: any, i: number) => (
+                <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
+                  <div><b>Nombre:</b> {d.nombre}</div>
+                  <div><b>Cantidad:</b> {d.cantidad}</div>
+                  {d.observaciones && <div><b>Observación:</b> {d.observaciones}</div>}
+                </div>
               ))}
             </div>
             {/* Total debajo de los productos */}
@@ -486,20 +435,9 @@ const Reportes: React.FC = () => {
               fontWeight: 600,
               fontSize: 16
             }}>
-              {(() => {
-                // Total en efectivo
-                const totalEfectivo = detalleDia.productos
-                  .filter(d => d.metodo_pago !== "tarjeta de crédito" && d.metodo_pago !== "transferencia")
-                  .reduce((acc, d) => acc + Number(d.precio) * Number(d.cantidad), 0);
-                // Total en tarjeta/transferencia
-                const totalTarjTransf = detalleDia.productos
-                  .filter(d => d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia")
-                  .reduce((acc, d) => acc + Number(d.precio) * Number(d.cantidad), 0);
-                const totalMostrar = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
-                return (
-                  <>Total: ${totalMostrar.toLocaleString("es-AR", { minimumFractionDigits: 2 })}</>
-                );
-              })()}
+              Total: ${Array.isArray(detalleDia?.detalles)
+                ? detalleDia.detalles.reduce((acc: number, d: any) => acc + (d.cantidad * (d.precio ?? 0)), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })
+                : "0,00"}
             </div>
             {/* Botones */}
             <div style={{
@@ -523,7 +461,7 @@ const Reportes: React.FC = () => {
                   cursor: "pointer",
                   minHeight: 48
                 }}
-                onClick={() => exportarDetalleAPDF(detalleDia)}
+                onClick={() => exportarDetalleCompraAPDF(detalleDia)}
               >
                 Exportar a PDF
               </button>
@@ -636,6 +574,55 @@ function exportarDetalleAPDF(detalle: any) {
   }
 
   doc.save("detalle.pdf");
+}
+
+function exportarDetalleCompraAPDF(detalle: any) {
+  const doc = new jsPDF();
+  let y = 18;
+
+  doc.setFontSize(20);
+  doc.setTextColor(163, 32, 32);
+  doc.text("Detalle de Compra", 105, y, { align: "center" });
+
+  y += 10;
+  doc.setFontSize(13);
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Fecha: ${detalle.fecha}`, 105, y, { align: "center" });
+
+  y += 12;
+  doc.setFontSize(13);
+  doc.setTextColor(0, 0, 0);
+
+  detalle.detalles.forEach((d: any, i: number) => {
+    doc.text(`Nombre: ${d.nombre}`, 20, y);
+    y += 7;
+    doc.text(`Cantidad: ${d.cantidad}`, 20, y);
+    y += 7;
+    if (d.observaciones) {
+      doc.text(`Observación: ${d.observaciones}`, 20, y);
+      y += 7;
+    }
+    y += 3;
+    if (y > 230) {
+      doc.addPage();
+      y = 18;
+    }
+  });
+
+  y += 4;
+  doc.setDrawColor(163, 32, 32);
+  doc.line(15, y, 195, y);
+
+  y += 10;
+  doc.setFontSize(15);
+  doc.setTextColor(163, 32, 32);
+  doc.text(
+    `Total: $${detalle.detalles.reduce((acc: number, d: any) => acc + (d.cantidad * (d.precio ?? 0)), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
+    20,
+    y
+  );
+
+  doc.save("detalle-compra.pdf");
 }
 
 export default Reportes;

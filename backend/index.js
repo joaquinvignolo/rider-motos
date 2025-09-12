@@ -302,11 +302,9 @@ app.get('/api/ventas', async (req, res) => {
 
     // 2. Traer detalles de todas las ventas
     const [detalles] = await db.promise().query(`
-      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario,
-             p.nombre, p.descripcion, m.nombre AS marca
-      FROM detalle_ventas dv
-      JOIN productos p ON dv.producto_id = p.id
-      LEFT JOIN marcas m ON p.marca_id = m.id
+      SELECT dc.compra_id, dc.cantidad, dc.precio_unitario as precio, pr.nombre, dc.observaciones
+      FROM detalle_compras dc
+      JOIN productos pr ON dc.producto_id = pr.id
     `);
 
     // 3. Asociar detalles a cada venta
@@ -345,9 +343,15 @@ app.post('/api/compras', (req, res) => {
         return res.status(500).json({ error: 'Error al registrar compra' });
       }
       const compra_id = result.insertId;
-      const detalles = productos.map(p => [compra_id, p.id, p.cantidad, p.precio]);
+      const detalles = productos.map(p => [
+        compra_id,
+        p.id,
+        p.cantidad,
+        p.precio,
+        p.observaciones || null // <-- agrega la observación de cada producto
+      ]);
       db.query(
-        'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario) VALUES ?',
+        'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, observaciones) VALUES ?',
         [detalles],
         (err2) => {
           if (err2) {
@@ -377,6 +381,44 @@ app.post('/api/compras', (req, res) => {
       );
     }
   );
+});
+
+// Obtener todas las compras
+app.get('/api/compras', async (req, res) => {
+  try {
+    // 1. Traer todas las compras con datos completos del proveedor
+    const [compras] = await db.promise().query(`
+      SELECT c.id, c.fecha, c.total, IFNULL(p.nombre, 'Sin proveedor') as proveedor
+      FROM compras c
+      LEFT JOIN proveedores p ON c.proveedor_id = p.id
+      ORDER BY c.fecha DESC
+    `);
+
+    // 2. Traer detalles de todas las compras
+    const [detalles] = await db.promise().query(`
+      SELECT dc.compra_id, dc.cantidad, dc.precio_unitario as precio, pr.nombre, dc.observaciones
+      FROM detalle_compras dc
+      JOIN productos pr ON dc.producto_id = pr.id
+    `);
+
+    // 3. Asociar detalles a cada compra
+    const comprasConDetalles = compras.map(compra => ({
+      ...compra,
+      detalles: detalles
+        .filter(d => d.compra_id === compra.id)
+        .map(d => ({
+          nombre: d.nombre,
+          cantidad: d.cantidad,
+          precio: d.precio,
+          observaciones: d.observaciones
+        }))
+    }));
+
+    res.json(comprasConDetalles);
+  } catch (err) {
+    console.error("Error en /api/compras:", err);
+    res.status(500).json({ error: 'Error al obtener compras' });
+  }
 });
 
 app.listen(3001, () => {
