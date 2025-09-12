@@ -179,29 +179,20 @@ const Compras = () => {
 
     return (
         <div className="compras-bg">
+            <button
+                onClick={volverAlMenu}
+                className="inicio-btn"
+                style={{
+                    position: 'fixed',
+                    top: 32,
+                    left: 32,
+                    zIndex: 100
+                }}
+            >
+                INICIO
+            </button>
             <div className="compras-container">
                 {}
-                <button
-                    onClick={volverAlMenu}
-                    style={{
-                        position: 'absolute',
-                        top: 28,
-                        left: 32,
-                        background: '#a82020',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '10px',
-                        padding: '10px 32px',
-                        fontWeight: 700,
-                        fontSize: '1.25rem',
-                        letterSpacing: '2px',
-                        cursor: 'pointer',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.10)'
-                    }}
-                >
-                    INICIO
-                </button>
                 <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
                 <h2>Gestión de Compras</h2>
                 {}

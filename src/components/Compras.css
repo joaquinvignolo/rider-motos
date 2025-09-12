@@ -176,3 +176,22 @@
 	border-radius: 6px;
 	padding: 6px 18px;
 }
+
+/* Botón de inicio */
+.inicio-btn {
+  background: linear-gradient(90deg, #a32020 60%, #d32f2f 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 32px;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(163,32,32,0.18);
+  transition: background 0.18s, box-shadow 0.18s;
+}
+.inicio-btn:hover {
+  background: linear-gradient(90deg, #d32f2f 60%, #a32020 100%);
+}

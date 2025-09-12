@@ -463,7 +463,6 @@ body {
   min-width: 70px;
 }
 
-/* Paginación unificada para Clientes y Productos */
 .paginacion-unificada {
   display: flex;
   align-items: center;
