@@ -46,6 +46,20 @@ function agruparPorFecha(ventas: Venta[]) {
   return agrupadas;
 }
 
+// Agrupa productos por nombre+observación y suma cantidades
+function agruparYSumarProductos(productos: any[]) {
+  const agrupados: { [key: string]: any } = {};
+  productos.forEach(p => {
+    const key = `${p.nombre}__${p.observaciones || ""}`;
+    if (!agrupados[key]) {
+      agrupados[key] = { ...p };
+    } else {
+      agrupados[key].cantidad += p.cantidad;
+    }
+  });
+  return Object.values(agrupados);
+}
+
 const iconoOjo = (
   <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
 );
@@ -74,7 +88,7 @@ const Reportes: React.FC = () => {
       .then(data => setVentas(Array.isArray(data) ? data : []));
     fetch("http://localhost:3001/api/compras")
       .then(res => res.json())
-      .then(data => setCompras(Array.isArray(data) ? data : []));
+      .then((data) => setCompras(Array.isArray(data) ? data : []));
   }, []);
 
   // Limpiar filtros y paginación al cambiar tipo
@@ -130,6 +144,67 @@ const Reportes: React.FC = () => {
   const diasPorPagina = 5;
   const totalPaginas = Math.ceil(fechas.length / diasPorPagina);
   const fechasPagina = fechas.slice((pagina - 1) * diasPorPagina, pagina * diasPorPagina);
+
+  // Agrupar compras por fecha y tipo (motos, accesorios, repuestos)
+  const agrupadasCompras: {
+    [fecha: string]: {
+      motos: any[];
+      accesorios: any[];
+      [proveedor: string]: any[];
+    };
+  } = {};
+
+  if (tipo === "compras") {
+    filtrados.forEach((compra: Compra) => {
+      const fecha = new Date(compra.fecha).toLocaleDateString();
+      if (!agrupadasCompras[fecha]) agrupadasCompras[fecha] = { motos: [], accesorios: [] };
+
+      // Separar detalles por tipo
+      const motos: typeof compra.detalles = [];
+      const accesorios: typeof compra.detalles = [];
+      const repuestos: typeof compra.detalles = [];
+
+      compra.detalles.forEach(d => {
+        const nombre = d.nombre?.toLowerCase() || "";
+        if (
+          nombre.includes("moto") ||
+          nombre.includes("xtz") ||
+          nombre.includes("ninja") ||
+          nombre.includes("cb") ||
+          nombre.includes("cg") ||
+          nombre.includes("xr") ||
+          nombre.includes("wave") ||
+          nombre.includes("z400") ||
+          nombre.includes("tornado") ||
+          nombre.includes("crypton") ||
+          nombre.includes("fazer") ||
+          nombre.includes("fz") ||
+          nombre.includes("titan")
+        ) {
+          motos.push(d);
+        } else if (d.observaciones && (d.observaciones.toLowerCase().includes("accesorio") || nombre.includes("accesorio"))) {
+          accesorios.push(d);
+        } else {
+          repuestos.push(d);
+        }
+      });
+
+      // Motos: agrupar todos los detalles de motos en una sola tarjeta por día
+      if (motos.length > 0) {
+        agrupadasCompras[fecha].motos.push(...motos);
+      }
+      // Accesorios: agrupar todos los detalles de accesorios en una sola tarjeta por día
+      if (accesorios.length > 0) {
+        agrupadasCompras[fecha].accesorios.push(...accesorios);
+      }
+      // Repuestos: siguen agrupados por proveedor
+      if (repuestos.length > 0) {
+        const prov = compra.proveedor?.trim() || "Sin proveedor";
+        if (!agrupadasCompras[fecha][prov]) agrupadasCompras[fecha][prov] = [];
+        agrupadasCompras[fecha][prov].push(...repuestos);
+      }
+    });
+  }
 
   const handleVolverInicio = () => {
     window.location.href = "/menu";
@@ -236,128 +311,233 @@ const Reportes: React.FC = () => {
           </div>
         ) : (
           fechasPagina.map(fecha => {
-            const ventasDelDia = agrupadas[fecha];
+            if (tipo === "ventas") {
+              const ventasDelDia = agrupadas[fecha];
 
-            // Agrupar: accesorios/repuestos (consumidor final) y motos (otros clientes)
-            const accesorios = ventasDelDia.filter(v => v.cliente === "Consumidor final");
-            const clientesMotos = ventasDelDia.filter(v => v.cliente !== "Consumidor final");
-            // Agrupar motos por cliente
-            const motosPorCliente: { [cliente: string]: Venta[] } = {};
-            clientesMotos.forEach(v => {
-              if (!motosPorCliente[v.cliente]) motosPorCliente[v.cliente] = [];
-              motosPorCliente[v.cliente].push(v);
-            });
+              // Agrupar: accesorios/repuestos (consumidor final) y motos (otros clientes)
+              const accesorios = ventasDelDia.filter(v => v.cliente === "Consumidor final");
+              const clientesMotos = ventasDelDia.filter(v => v.cliente !== "Consumidor final");
+              // Agrupar motos por cliente
+              const motosPorCliente: { [cliente: string]: Venta[] } = {};
+              clientesMotos.forEach(v => {
+                if (!motosPorCliente[v.cliente]) motosPorCliente[v.cliente] = [];
+                motosPorCliente[v.cliente].push(v);
+              });
 
-            // Calcular total del día para cada grupo
-            const totalAccesoriosEfectivo = accesorios
-              .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
-              .reduce((acc, v) => acc + Number(v.total), 0);
-            const totalAccesoriosTarjTransf = accesorios
-              .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia")
-              .reduce((acc, v) => acc + Number(v.total), 0);
-
-            const totalAccesorios = totalAccesoriosEfectivo > 0
-              ? totalAccesoriosEfectivo
-              : totalAccesoriosTarjTransf;
-
-            const totalPorCliente: { [cliente: string]: number } = {};
-            Object.entries(motosPorCliente).forEach(([cliente, ventasCliente]) => {
-              const efectivo = ventasCliente
+              // Calcular total del día para cada grupo
+              const totalAccesoriosEfectivo = accesorios
                 .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
                 .reduce((acc, v) => acc + Number(v.total), 0);
-              const tarjTransf = ventasCliente
+              const totalAccesoriosTarjTransf = accesorios
                 .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia")
                 .reduce((acc, v) => acc + Number(v.total), 0);
-              totalPorCliente[cliente] = efectivo > 0 ? efectivo : tarjTransf;
-            });
 
-            return (
-              <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
-                <div className="mini-titulo-fecha">{fecha}</div>
-                <div className="reportes-grid-cuadrada">
-                  {/* Accesorios/Repuestos - Consumidor final */}
-                  {accesorios.length > 0 && (
-                    <div className="reporte-cuadro">
-                      <div className="reporte-cuadro-fecha">{fecha}</div>
-                      <div className="reporte-cuadro-total">
-                        ${Number(totalAccesorios).toFixed(2)}
-                      </div>
-                      <div className="reporte-cuadro-cliente">Consumidor final</div>
-                      <div className="reporte-cuadro-botones">
-                        <button
-                          className="ver-btn"
-                          onClick={() => {
-                            const productos = accesorios.flatMap(v => v.detalles.map(d => ({
-                              ...d,
-                              metodo_pago: v.metodo_pago,
-                              cliente: v.cliente,
-                              total: v.total
-                            })));
-                            setDetalleDia({ fecha, productos, cliente: "Consumidor final" });
-                          }}
-                          title="Ver detalle"
-                        >
-                          {iconoOjo}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  {/* Motos - por cliente */}
-                  {Object.entries(motosPorCliente).map(([cliente, ventasCliente]) => (
-                    <div className="reporte-cuadro" key={cliente}>
-                      <div className="reporte-cuadro-fecha">{fecha}</div>
-                      <div className="reporte-cuadro-total">
-                        ${Number(totalPorCliente[cliente]).toFixed(2)}
-                      </div>
-                      {/* Datos del cliente */}
-                      <div className="reporte-cuadro-cliente" style={{ marginBottom: 20 }}>
-                        <b style={{ display: "block", marginBottom: 4 }}>
-                          {(ventasCliente[0].cliente_nombre || "") + " " + (ventasCliente[0].cliente_apellido || "")}
-                        </b>
-                        {ventasCliente[0].cliente_telefono && (
-                          <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_telefono}</div>
-                        )}
-                        {ventasCliente[0].cliente_correo && (
-                          <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_correo}</div>
-                        )}
-                      </div>
-                      <div className="reporte-cuadro-botones">
-                        <button
-                          className="ver-btn"
-                          onClick={() => {
-                            // Calcula el método de pago principal
-                            const efectivo = ventasCliente
-                              .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia");
-                            const tarjTransf = ventasCliente
-                              .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia");
-                            const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
+              const totalAccesorios = totalAccesoriosEfectivo > 0
+                ? totalAccesoriosEfectivo
+                : totalAccesoriosTarjTransf;
 
-                            // Solo incluí los productos de las ventas filtradas
-                            const productos = ventasFiltradas.flatMap(v =>
-                              v.detalles.map(d => ({
+              const totalPorCliente: { [cliente: string]: number } = {};
+              Object.entries(motosPorCliente).forEach(([cliente, ventasCliente]) => {
+                const efectivo = ventasCliente
+                  .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
+                  .reduce((acc, v) => acc + Number(v.total), 0);
+                const tarjTransf = ventasCliente
+                  .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia")
+                  .reduce((acc, v) => acc + Number(v.total), 0);
+                totalPorCliente[cliente] = efectivo > 0 ? efectivo : tarjTransf;
+              });
+
+              return (
+                <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
+                  <div className="mini-titulo-fecha">{fecha}</div>
+                  <div className="reportes-grid-cuadrada">
+                    {/* Accesorios/Repuestos - Consumidor final */}
+                    {accesorios.length > 0 && (
+                      <div className="reporte-cuadro">
+                        <div className="reporte-cuadro-fecha">{fecha}</div>
+                        <div className="reporte-cuadro-total">
+                          ${Number(totalAccesorios).toFixed(2)}
+                        </div>
+                        <div className="reporte-cuadro-cliente">Consumidor final</div>
+                        <div className="reporte-cuadro-botones">
+                          <button
+                            className="ver-btn"
+                            onClick={() => {
+                              const productos = accesorios.flatMap(v => v.detalles.map(d => ({
                                 ...d,
                                 metodo_pago: v.metodo_pago,
                                 cliente: v.cliente,
-                                total: v.total,
-                                cliente_nombre: v.cliente_nombre,
-                                cliente_apellido: v.cliente_apellido,
-                                cliente_telefono: v.cliente_telefono,
-                                cliente_correo: v.cliente_correo
-                              }))
-                            );
-
-                            setDetalleDia({ fecha, productos, cliente });
-                          }}
-                          title="Ver detalle"
-                        >
-                          {iconoOjo}
-                        </button>
+                                total: v.total
+                              })));
+                              setDetalleDia({ fecha, productos, cliente: "Consumidor final" });
+                            }}
+                            title="Ver detalle"
+                          >
+                            {iconoOjo}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )}
+                    {/* Motos - por cliente */}
+                    {Object.entries(motosPorCliente).map(([cliente, ventasCliente]) => (
+                      <div className="reporte-cuadro" key={cliente}>
+                        <div className="reporte-cuadro-fecha">{fecha}</div>
+                        <div className="reporte-cuadro-total">
+                          ${Number(totalPorCliente[cliente]).toFixed(2)}
+                        </div>
+                        {/* Datos del cliente */}
+                        <div className="reporte-cuadro-cliente" style={{ marginBottom: 20 }}>
+                          <b style={{ display: "block", marginBottom: 4 }}>
+                            {(ventasCliente[0].cliente_nombre || "") + " " + (ventasCliente[0].cliente_apellido || "")}
+                          </b>
+                          {ventasCliente[0].cliente_telefono && (
+                            <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_telefono}</div>
+                          )}
+                          {ventasCliente[0].cliente_correo && (
+                            <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_correo}</div>
+                          )}
+                        </div>
+                        <div className="reporte-cuadro-botones">
+                          <button
+                            className="ver-btn"
+                            onClick={() => {
+                              // Calcula el método de pago principal
+                              const efectivo = ventasCliente
+                                .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia");
+                              const tarjTransf = ventasCliente
+                                .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia");
+                              const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
+
+                              // Solo incluí los productos de las ventas filtradas
+                              const productos = ventasFiltradas.flatMap(v =>
+                                v.detalles.map(d => ({
+                                  ...d,
+                                  metodo_pago: v.metodo_pago,
+                                  cliente: v.cliente,
+                                  total: v.total,
+                                  cliente_nombre: v.cliente_nombre,
+                                  cliente_apellido: v.cliente_apellido,
+                                  cliente_telefono: v.cliente_telefono,
+                                  cliente_correo: v.cliente_correo
+                                }))
+                              );
+
+                              setDetalleDia({ fecha, productos, cliente });
+                            }}
+                            title="Ver detalle"
+                          >
+                            {iconoOjo}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
+              );
+            }
+            if (tipo === "compras") {
+              const comprasPorTipo = agrupadasCompras[fecha] || {};
+              return (
+                <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
+                  <div className="mini-titulo-fecha">{fecha}</div>
+                  <div className="reportes-grid-cuadrada">
+                    {/* Motos */}
+                    {comprasPorTipo.motos && comprasPorTipo.motos.length > 0 && (
+                      <div className="reporte-cuadro" key="motos">
+                        <div className="reporte-cuadro-fecha">{fecha}</div>
+                        <div
+                          className="reporte-cuadro-cliente"
+                          style={{
+                            color: "#a32020",
+                            fontWeight: 700
+                          }}
+                        >
+                          Motos
+                        </div>
+                        <div className="reporte-cuadro-botones">
+                          <button
+                            className="ver-btn"
+                            onClick={() =>
+                              setDetalleDia({
+                                fecha,
+                                proveedor: "Motos",
+                                detalles: agruparYSumarProductos(comprasPorTipo.motos)
+                              })
+                            }
+                            title="Ver detalle"
+                          >
+                            {iconoOjo}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {/* Accesorios */}
+                    {comprasPorTipo.accesorios && comprasPorTipo.accesorios.length > 0 && (
+                      <div className="reporte-cuadro" key="accesorios">
+                        <div className="reporte-cuadro-fecha">{fecha}</div>
+                        <div
+                          className="reporte-cuadro-cliente"
+                          style={{
+                            color: "#a32020",
+                            fontWeight: 700
+                          }}
+                        >
+                          Accesorios
+                        </div>
+                        <div className="reporte-cuadro-botones">
+                          <button
+                            className="ver-btn"
+                            onClick={() =>
+                              setDetalleDia({
+                                fecha,
+                                proveedor: "Accesorios",
+                                detalles: agruparYSumarProductos(comprasPorTipo.accesorios)
+                              })
+                            }
+                            title="Ver detalle"
+                          >
+                            {iconoOjo}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {/* Repuestos por proveedor */}
+                    {Object.entries(comprasPorTipo)
+                      .filter(([prov]) => prov !== "motos" && prov !== "accesorios")
+                      .map(([prov, detallesProveedor]) => (
+                        <div className="reporte-cuadro" key={prov}>
+                          <div className="reporte-cuadro-fecha">{fecha}</div>
+                          <div
+                            className="reporte-cuadro-cliente"
+                            style={{
+                              color: "#a32020",
+                              fontWeight: 700
+                            }}
+                          >
+                            {prov}
+                          </div>
+                          <div className="reporte-cuadro-botones">
+                            <button
+                              className="ver-btn"
+                              onClick={() =>
+                                setDetalleDia({
+                                  fecha,
+                                  proveedor: prov,
+                                  detalles: agruparYSumarProductos(detallesProveedor)
+                                })
+                              }
+                              title="Ver detalle"
+                            >
+                              {iconoOjo}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              );
+            }
+            return null;
           })
         )}
         {/* Paginación */}
@@ -386,42 +566,34 @@ const Reportes: React.FC = () => {
       {detalleDia && tipo === "compras" && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
-            {/* Título y fecha */}
+            {/* Título */}
             <div style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              position: "relative",
-              marginTop: 28, 
-              marginBottom: 18,
-              width: "100%"
+              marginTop: 28,
+              marginBottom: 0,
+              width: "100%",
+              textAlign: "center"
             }}>
               <h2 style={{
                 color: "#a32020",
                 margin: 0,
-                flex: "none",
-                position: "absolute",
-                left: "50%",
-                transform: "translateX(-50%)",
                 fontSize: 28,
                 fontWeight: 700,
                 letterSpacing: 1
               }}>
                 Detalle
               </h2>
-              <div style={{
-                color: "#bdbdbd",
-                fontWeight: 600,
-                fontSize: 16,
-                position: "absolute",
-                right: 32,
-                top: "50%",
-                transform: "translateY(-50%)",
-                minWidth: 110,
-                textAlign: "right"
-              }}>
-                {detalleDia.fecha}
-              </div>
+            </div>
+            {/* Fecha */}
+            <div style={{
+              color: "#bdbdbd",
+              fontWeight: 600,
+              fontSize: 16,
+              width: "100%",
+              textAlign: "right",
+              marginBottom: 18,
+              marginTop: 2
+            }}>
+              {new Date(detalleDia.fecha).toLocaleDateString()}
             </div>
             {/* Detalle de productos */}
             <div style={{ marginTop: 20 }}>
@@ -429,21 +601,23 @@ const Reportes: React.FC = () => {
                 <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
                   <div><b>Nombre:</b> {d.nombre}</div>
                   <div><b>Cantidad:</b> {d.cantidad}</div>
-                  {d.observaciones && <div><b>Observación:</b> {d.observaciones}</div>}
+                  {/* Marca para accesorios y repuestos */}
+                  {(detalleDia.proveedor === "Accesorios" || (detalleDia.proveedor !== "Motos" && detalleDia.proveedor !== "Motos")) && (
+                    <div>
+                      <b>Marca:</b>{" "}
+                      {d.observaciones?.toLowerCase().includes("primera")
+                        ? "Primera marca"
+                        : d.observaciones?.toLowerCase().includes("segunda")
+                        ? "Segunda marca"
+                        : "-"}
+                    </div>
+                  )}
+                  {/* Observación para todos si existe */}
+                  {d.observaciones && (
+                    <div><b>Observación:</b> {d.observaciones}</div>
+                  )}
                 </div>
               ))}
-            </div>
-            {/* Total debajo de los productos */}
-            <div style={{
-              marginTop: 18,
-              marginBottom: 8,
-              color: "#bdbdbd",
-              fontWeight: 600,
-              fontSize: 16
-            }}>
-              Total: ${Array.isArray(detalleDia?.detalles)
-                ? detalleDia.detalles.reduce((acc: number, d: any) => acc + (d.cantidad * (d.precio ?? 0)), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })
-                : "0,00"}
             </div>
             {/* Botones */}
             <div style={{
@@ -608,6 +782,17 @@ function exportarDetalleCompraAPDF(detalle: any) {
       doc.text(`Observación: ${d.observaciones}`, 20, y);
       y += 7;
     }
+    // Marca para accesorios y repuestos
+    if (
+      detalle.proveedor === "Accesorios" ||
+      (detalle.proveedor !== "Motos" && detalle.proveedor !== "Motos")
+    ) {
+      let marca = "-";
+      if (d.observaciones?.toLowerCase().includes("primera")) marca = "Primera marca";
+      else if (d.observaciones?.toLowerCase().includes("segunda")) marca = "Segunda marca";
+      doc.text(`Marca: ${marca}`, 20, y);
+      y += 7;
+    }
     y += 3;
     if (y > 230) {
       doc.addPage();
@@ -618,15 +803,6 @@ function exportarDetalleCompraAPDF(detalle: any) {
   y += 4;
   doc.setDrawColor(163, 32, 32);
   doc.line(15, y, 195, y);
-
-  y += 10;
-  doc.setFontSize(15);
-  doc.setTextColor(163, 32, 32);
-  doc.text(
-    `Total: $${detalle.detalles.reduce((acc: number, d: any) => acc + (d.cantidad * (d.precio ?? 0)), 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
-    20,
-    y
-  );
 
   doc.save("detalle-compra.pdf");
 }
