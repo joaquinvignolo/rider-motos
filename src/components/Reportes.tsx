@@ -80,6 +80,8 @@ const Reportes: React.FC = () => {
   const [pagina, setPagina] = useState(1);
   const [tipo, setTipo] = useState<"ventas" | "compras">("ventas");
   const [busqueda, setBusqueda] = useState<string>("");
+  const [mostrarCliente, setMostrarCliente] = useState(false);
+  const [mostrarClienteDatos, setMostrarClienteDatos] = useState(false);
 
   // Cargar ventas y compras solo una vez
   useEffect(() => {
@@ -367,7 +369,7 @@ const Reportes: React.FC = () => {
                                 cliente: v.cliente,
                                 total: v.total
                               })));
-                              setDetalleDia({ fecha, productos, cliente: "Consumidor final" });
+                              setDetalleDia({ fecha: accesorios[0]?.fecha || fecha, productos, cliente: "Consumidor final" });
                             }}
                             title="Ver detalle"
                           >
@@ -420,7 +422,7 @@ const Reportes: React.FC = () => {
                                 }))
                               );
 
-                              setDetalleDia({ fecha, productos, cliente });
+                              setDetalleDia({ fecha: ventasFiltradas[0]?.fecha || fecha, productos, cliente });
                             }}
                             title="Ver detalle"
                           >
@@ -565,36 +567,76 @@ const Reportes: React.FC = () => {
       {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content">
-            {/* Título */}
             <div style={{
-              marginTop: 28,
-              marginBottom: 0,
-              width: "100%",
-              textAlign: "center"
+              position: "relative",
+              marginTop: 24,
+              marginBottom: 32,
+              minHeight: 48
             }}>
+              {/* Flecha arriba, más a la derecha y más arriba */}
+              {tipo === "ventas" && detalleDia.productos[0]?.cliente !== "Consumidor final" && (
+                <button
+                  style={{
+                    position: "absolute",
+                    right: -32, // Más a la derecha fuera del modal
+                    top: -32,   // Más arriba fuera del header
+                    background: "#232526",
+                    color: "#a32020",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "50%",
+                    width: 44,
+                    height: 44,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 20,
+                    padding: 0,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.18)"
+                  }}
+                  onClick={() => setMostrarCliente(v => !v)}
+                  title="Ver datos del cliente"
+                >
+                  <span style={{
+                    display: "inline-block",
+                    transform: mostrarCliente ? "rotate(90deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s",
+                    fontSize: 26,
+                    color: "#a32020"
+                  }}>▶</span>
+                </button>
+              )}
+              {/* Título centrado */}
               <h2 style={{
                 color: "#a32020",
                 margin: 0,
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: 700,
-                letterSpacing: 1
+                letterSpacing: 1,
+                width: "100%",
+                textAlign: "center",
               }}>
                 {tipo === "compras" ? "Detalle de Compra" : "Detalle Venta"}
               </h2>
+              {/* Fecha en diagonal abajo a la derecha del título */}
+              <div style={{
+                position: "absolute",
+                right: 0,
+                top: 44,
+                color: "#bdbdbd",
+                fontWeight: 600,
+                fontSize: 16,
+                minWidth: 120,
+                textAlign: "right"
+              }}>
+                {detalleDia.fecha && !isNaN(new Date(detalleDia.fecha).getTime())
+                  ? new Date(detalleDia.fecha).toLocaleDateString("es-AR")
+                  : detalleDia.productos?.[0]?.fecha && !isNaN(new Date(detalleDia.productos[0].fecha).getTime())
+                    ? new Date(detalleDia.productos[0].fecha).toLocaleDateString("es-AR")
+                    : ""}
+              </div>
             </div>
-            {/* Fecha */}
-            <div style={{
-              color: "#bdbdbd",
-              fontWeight: 600,
-              fontSize: 16,
-              width: "100%",
-              textAlign: "right",
-              marginBottom: 18,
-              marginTop: 2
-            }}>
-              {new Date(detalleDia.fecha).toLocaleDateString()}
-            </div>
-
             {/* ----------- COMPRAS ----------- */}
             {tipo === "compras" && Array.isArray(detalleDia?.detalles) && (
               <>
@@ -678,61 +720,52 @@ const Reportes: React.FC = () => {
 
             {/* ----------- VENTAS ----------- */}
             {tipo === "ventas" && Array.isArray(detalleDia?.productos) && (
-              <>
-                {/* Información del cliente (una sola vez) */}
-                {detalleDia.productos.length > 0 && (
-                  <div style={{
-                    marginBottom: 18,
-                    background: "#232526",
-                    borderRadius: 8,
-                    padding: "10px 18px",
-                    color: "#fff",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end"
-                  }}>
-                    {detalleDia.productos[0].cliente !== "Consumidor final" && (
-                      <>
-                        <div>
-                          <b>Cliente:</b> {detalleDia.productos[0].cliente_nombre} {detalleDia.productos[0].cliente_apellido}
-                        </div>
-                        {detalleDia.productos[0].cliente_telefono && (
-                          <div><b>Teléfono:</b> {detalleDia.productos[0].cliente_telefono}</div>
-                        )}
-                        {detalleDia.productos[0].cliente_correo && (
-                          <div><b>Correo:</b> {detalleDia.productos[0].cliente_correo}</div>
-                        )}
-                      </>
-                    )}
+              <div style={{ display: "flex", flexDirection: "row", gap: 24 }}>
+                {/* Detalle productos */}
+                <div style={{ flex: 2 }}>
+                  {detalleDia.productos.map((d: any, i: number) => (
+                    <div
+                      key={i}
+                      style={{
+                        marginBottom: 22,
+                        color: "#fff",
+                        paddingBottom: 12,
+                        borderBottom: "1px solid #333",
+                      }}
+                    >
+                      <div>
+                        <b>Nombre:</b> {d.nombre}
+                      </div>
+                      <div>
+                        <b>Cantidad:</b> {d.cantidad}
+                      </div>
+                      <div>
+                        <b>Subtotal:</b> $
+                        {Number(d.precio).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                      </div>
+                      <div>
+                        <b>Total producto:</b> $
+                        {(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  ))}
+                  {/* Total general */}
+                  <div
+                    style={{
+                      marginTop: 18,
+                      fontWeight: 700,
+                      color: "#a32020",
+                      fontSize: 18,
+                      textAlign: "right",
+                    }}
+                  >
+                    Total: $
+                    {detalleDia.productos
+                      .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
+                      .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                   </div>
-                )}
-
-                {/* Detalle de productos */}
-                {detalleDia.productos.map((d: any, i: number) => (
-                  <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
-                    <div><b>Nombre:</b> {d.nombre}</div>
-                    {d.marca && <div><b>Marca:</b> {d.marca}</div>}
-                    <div><b>Descripción:</b> {d.descripcion}</div>
-                    <div><b>Cantidad:</b> {d.cantidad}</div>
-                    <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
-                    <div><b>Subtotal:</b> ${(Number(d.precio) * Number(d.cantidad)).toFixed(2)}</div>
-                  </div>
-                ))}
-
-                {/* Total general */}
-                <div style={{
-                  marginTop: 18,
-                  fontWeight: 700,
-                  color: "#a32020",
-                  fontSize: 18,
-                  textAlign: "right"
-                }}>
-                  Total: $
-                  {detalleDia.productos
-                    .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
-                    .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                 </div>
-              </>
+              </div>
             )}
 
             {/* Botones */}
@@ -783,6 +816,76 @@ const Reportes: React.FC = () => {
               </button>
             </div>
           </div>
+          {/* MODAL APARTE DE DATOS DEL CLIENTE */}
+          {mostrarCliente && detalleDia.productos[0]?.cliente !== "Consumidor final" && (
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "calc(50% + 340px)", // Ajusta según el ancho de tu modal principal
+                transform: "translateY(-50%)",
+                background: "#232526",
+                borderRadius: 12,
+                boxShadow: "0 2px 18px rgba(0,0,0,0.22)",
+                padding: "28px 32px",
+                minWidth: 320,
+                zIndex: 9999,
+                color: "#fff",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: 10,
+                  fontWeight: 700,
+                  fontSize: 19,
+                  color: "#a32020",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Datos del Cliente
+              </div>
+              <div>
+                <b>Nombre y Apellido:</b>
+                <br />
+                {(detalleDia.productos[0].cliente_nombre || "") +
+                  " " +
+                  (detalleDia.productos[0].cliente_apellido || "")}
+              </div>
+              {detalleDia.productos[0].cliente_correo && (
+                <div>
+                  <b>Correo:</b>
+                  <br />
+                  {detalleDia.productos[0].cliente_correo}
+                </div>
+              )}
+              {detalleDia.productos[0].cliente_telefono && (
+                <div>
+                  <b>Teléfono:</b>
+                  <br />
+                  {detalleDia.productos[0].cliente_telefono}
+                </div>
+              )}
+              <button
+                style={{
+                  marginTop: 18,
+                  background: "#a32020",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "8px 22px",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: "pointer"
+                }}
+                onClick={() => setMostrarCliente(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -798,11 +901,20 @@ function exportarDetalleAPDF(detalle: any) {
   doc.setTextColor(163, 32, 32);
   doc.text("Detalle de Venta", 105, y, { align: "center" });
 
-  // Fecha
+  // Fecha (centrada, sin datos de cliente al lado)
   y += 10;
   doc.setFontSize(13);
   doc.setTextColor(80, 80, 80);
-  doc.text(`Fecha: ${detalle.fecha}`, 105, y, { align: "center" });
+  doc.text(
+    `Fecha: ${
+      detalle.fecha
+        ? new Date(detalle.fecha).toLocaleDateString("es-AR")
+        : ""
+    }`,
+    105,
+    y,
+    { align: "center" }
+  );
 
   y += 12;
 
@@ -812,30 +924,31 @@ function exportarDetalleAPDF(detalle: any) {
   detalle.productos.forEach((d: any, i: number) => {
     doc.text(`Nombre: ${d.nombre}`, 20, y);
     y += 7;
-    doc.text(`Descripción: ${d.descripcion}`, 20, y);
-    y += 7;
+    if (d.descripcion) {
+      doc.text(`Descripción: ${d.descripcion}`, 20, y);
+      y += 7;
+    }
     doc.text(`Precio: $${Number(d.precio).toFixed(2)}`, 20, y);
     y += 7;
     doc.text(`Cantidad: ${d.cantidad}`, 20, y);
     y += 7;
     doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
     y += 7;
-    doc.text(`Subtotal: $${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`, 20, y);
+    doc.text(
+      `Subtotal: $${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
+      20,
+      y
+    );
     y += 10;
-    if (y > 230) { 
+    if (y > 230) {
       doc.addPage();
       y = 18;
     }
   });
 
-  // Calcula el total con la misma lógica que el modal
-  const totalEfectivo = detalle.productos
-    .filter((d: any) => d.metodo_pago !== "tarjeta de crédito" && d.metodo_pago !== "transferencia")
+  // Total general
+  const total = detalle.productos
     .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0);
-  const totalTarjTransf = detalle.productos
-    .filter((d: any) => d.metodo_pago === "tarjeta de crédito" || d.metodo_pago === "transferencia")
-    .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0);
-  const total = totalEfectivo > 0 ? totalEfectivo : totalTarjTransf;
 
   y += 4;
   doc.setDrawColor(163, 32, 32);
@@ -851,7 +964,7 @@ function exportarDetalleAPDF(detalle: any) {
     y
   );
 
-  // Columna derecha: Datos del cliente (si no es consumidor final)
+  // Datos del cliente (solo abajo a la derecha si existe)
   const cliente = detalle.productos[0];
   if (
     cliente?.cliente_nombre ||
@@ -869,7 +982,7 @@ function exportarDetalleAPDF(detalle: any) {
 
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(datos.trim(), 120, y);
+    doc.text(datos.trim(), 150, y);
   }
 
   doc.save("detalle-venta.pdf");
