@@ -194,7 +194,7 @@ const Compras = () => {
             <div className="compras-container">
                 {}
                 <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
-                <h2>Gestión de Compras</h2>
+                <h2>Crear un pedido</h2>
                 {}
                 {mensajeError && (
                     <div style={{
@@ -310,7 +310,15 @@ const Compras = () => {
                     </div>
                     <div className="form-row">
                         <label>Cantidad</label>
-                        <input type="number" min={1} value={cantidad} onChange={e => setCantidad(Number(e.target.value))} />
+                        <input
+                            type="number"
+                            min={1}
+                            value={cantidad === 0 ? "" : cantidad}
+                            onChange={e => {
+                                const val = e.target.value;
+                                setCantidad(val === "" ? 0 : Number(val));
+                            }}
+                        />
                     </div>
                     <div className="form-row">
                         <label>Precio unitario</label>
@@ -328,8 +336,9 @@ const Compras = () => {
                             onChange={e => setObservaciones(e.target.value)}
                             placeholder="Observaciones de la compra (opcional)"
                             rows={3}
+                            maxLength={120}
                             style={{
-                                resize: 'vertical',
+                                resize: 'none', // <--- evita que se estire el modal para abajo
                                 width: '100%',
                                 background: '#232526',
                                 color: '#fff',

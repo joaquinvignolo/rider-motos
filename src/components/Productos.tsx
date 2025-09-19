@@ -108,19 +108,19 @@ const Productos: React.FC = () => {
   const handleGuardar = async () => {
     setMensajeValidacion(null);
     if (!nombre.trim()) {
-      setMensajeValidacion("⚠️ El nombre es obligatorio.");
+      setMensajeValidacion("El nombre es obligatorio.");
       return;
     }
     if (!precio.trim() || isNaN(Number(precio)) || Number(precio) <= 0) {
-      setMensajeValidacion("⚠️ El precio debe ser un número positivo.");
+      setMensajeValidacion("El precio debe ser un número positivo.");
       return;
     }
     if (!marca.trim()) {
-      setMensajeValidacion("⚠️ La marca es obligatoria.");
+      setMensajeValidacion("La marca es obligatoria.");
       return;
     }
     if (seccion === "repuestos" && !proveedor.trim()) {
-      setMensajeValidacion("⚠️ El proveedor es obligatorio.");
+      setMensajeValidacion("El proveedor es obligatorio.");
       return;
     }
 

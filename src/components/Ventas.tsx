@@ -350,8 +350,11 @@ const Ventas: React.FC = () => {
                 type="number"
                 min={0}
                 max={30}
-                value={porcentajeTarjeta}
-                onChange={e => setPorcentajeTarjeta(Number(e.target.value))}
+                value={porcentajeTarjeta === 0 ? "" : porcentajeTarjeta}
+                onChange={e => {
+                  const val = e.target.value;
+                  setPorcentajeTarjeta(val === "" ? 0 : Number(val));
+                }}
                 style={{ width: 60, marginLeft: 8 }}
               />
             </label>

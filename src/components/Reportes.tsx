@@ -83,7 +83,7 @@ const Reportes: React.FC = () => {
   const [mostrarCliente, setMostrarCliente] = useState(false);
   const [mostrarClienteDatos, setMostrarClienteDatos] = useState(false);
 
-  // Cargar ventas y compras solo una vez
+  // Cargar ventas y compras
   useEffect(() => {
     fetch("http://localhost:3001/api/ventas")
       .then(res => res.json())
@@ -113,7 +113,6 @@ const Reportes: React.FC = () => {
     if (busqueda.trim() !== "") {
       const texto = busqueda.toLowerCase();
       if (tipo === "ventas") {
-        // ...tu lógica de búsqueda de ventas...
         return ok && (
           r.cliente?.toLowerCase().includes(texto) ||
           r.detalles?.some((d: any) =>
@@ -573,13 +572,13 @@ const Reportes: React.FC = () => {
               marginBottom: 32,
               minHeight: 48
             }}>
-              {/* Flecha arriba, más a la derecha y más arriba */}
+              {}
               {tipo === "ventas" && detalleDia.productos[0]?.cliente !== "Consumidor final" && (
                 <button
                   style={{
                     position: "absolute",
-                    right: -32, // Más a la derecha fuera del modal
-                    top: -32,   // Más arriba fuera del header
+                    right: -32, 
+                    top: -32,  
                     background: "#232526",
                     color: "#a32020",
                     border: "1.5px solid #a32020",
