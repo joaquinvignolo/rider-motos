@@ -181,8 +181,9 @@ const Ventas: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setMensajeError("");
-        setMensajeExito("¡Venta registrada correctamente!");
+        setMensajeExito(data.mailEnviado
+          ? "¡Venta registrada y comprobante enviado al cliente!"
+          : "¡Venta registrada! No se pudo enviar el comprobante por email.");
         setProductosEnVenta([]);
         setClienteSeleccionado(null);
         setMetodoPago("efectivo");

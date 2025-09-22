@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -29,8 +30,8 @@ db.connect((err) => {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'joacovignolo@gmail.com',
-    pass: 'dlzywoyakydfgejq'
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
   }
 });
 
@@ -303,23 +304,37 @@ app.post('/api/ventas', (req, res) => {
                           );
                           // Enviar email
                           transporter.sendMail({
-                            from: 'joacovignolo@gmail.com',
+                            from: '"Rider Motos" <ridermotos@gmail.com>',
                             to: clientes[0].correo,
                             subject: 'Comprobante de su compra - Rider Motos',
                             text: 'Adjuntamos el comprobante de su compra. ¡Gracias por confiar en nosotros!',
                             attachments: [
                               { filename: 'detalle-venta.pdf', content: pdfBuffer }
                             ]
-                          }, (errMail) => {
-                            if (errMail) console.error('Error enviando mail:', errMail);
+                          }, (errMail, info) => {
+                            if (errMail) {
+                              console.error('Error enviando mail:', errMail);
+                              return res.json({ success: true, venta_id, mailEnviado: false });
+                            } else {
+                              console.log('Mail enviado:', info);
+                              return res.json({ success: true, venta_id, mailEnviado: true });
+                            }
                           });
+                          return; 
                         }
+                        // Si no hay detalles de venta, igual respondé
+                        return res.json({ success: true, venta_id, mailEnviado: false });
                       }
                     );
+                    return; 
                   }
+                  // Si no hay cliente o correo, igual respondé
+                  return res.json({ success: true, venta_id, mailEnviado: false });
                 });
+                return; 
               }
-              res.json({ success: true, venta_id });
+              // Si no hay clienteIdFinal, respondé normalmente
+              return res.json({ success: true, venta_id, mailEnviado: false });
             })
             .catch(err3 => {
               console.error("Error al actualizar stock:", err3);
