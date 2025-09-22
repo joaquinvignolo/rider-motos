@@ -230,3 +230,20 @@ html, body {
 .sugerencia-cliente:hover {
   background: #353535;
 }
+
+.alert {
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  margin-bottom: 18px;
+  text-align: center;
+}
+.alert-error {
+  background: #a32020;
+  color: #fff;
+}
+.alert-success {
+  background: #1e7e34;
+  color: #fff;
+}

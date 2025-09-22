@@ -225,6 +225,13 @@ const Ventas: React.FC = () => {
     }
   }, [mensajeExito]);
 
+  useEffect(() => {
+    if (mensajeError) {
+      const timer = setTimeout(() => setMensajeError(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [mensajeError]);
+
   return (
     <div className="ventas-container">
       <button
@@ -522,30 +529,10 @@ const Ventas: React.FC = () => {
           </div>
         )}
         {mensajeError && (
-          <div style={{
-            background: "#a32020",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: 8,
-            marginBottom: 18,
-            fontWeight: 700,
-            boxShadow: "0 2px 8px rgba(163,32,32,0.18)"
-          }}>
-            {mensajeError}
-          </div>
+          <div className="alert alert-error">{mensajeError}</div>
         )}
         {mensajeExito && (
-          <div style={{
-            background: "#1e7e34",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: 8,
-            marginBottom: 18,
-            fontWeight: 700,
-            boxShadow: "0 2px 8px rgba(30,126,52,0.18)"
-          }}>
-            {mensajeExito}
-          </div>
+          <div className="alert alert-success">{mensajeExito}</div>
         )}
 
         <button className="confirmar-venta-btn" type="submit" disabled={!!mensajeExito}>
