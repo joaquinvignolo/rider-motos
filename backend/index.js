@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const mysql = require('mysql2');
+const nodemailer = require('nodemailer');
+const { generarPDFVenta } = require('./pdfVenta');
 
 const app = express();
 app.use(cors());
@@ -20,6 +22,15 @@ db.connect((err) => {
     process.exit(1);
   } else {
     console.log('Conexión a MySQL exitosa');
+  }
+});
+
+// Configurar transporte de correo
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'joacovignolo@gmail.com',
+    pass: 'dlzywoyakydfgejq'
   }
 });
 
@@ -273,7 +284,43 @@ app.post('/api/ventas', (req, res) => {
             })
           );
           Promise.all(updates)
-            .then(() => res.json({ success: true, venta_id }))
+            .then(async () => {
+              // Buscar datos del cliente
+              if (clienteIdFinal) {
+                db.query('SELECT * FROM clientes WHERE id = ?', [clienteIdFinal], async (err, clientes) => {
+                  if (!err && clientes.length && clientes[0].correo) {
+                    // Traer detalles de la venta
+                    db.query(
+                      'SELECT dv.cantidad, dv.precio_unitario as precio, pr.nombre, pr.descripcion, m.nombre as marca FROM detalle_ventas dv JOIN productos pr ON dv.producto_id = pr.id LEFT JOIN marcas m ON pr.marca_id = m.id WHERE dv.venta_id = ?',
+                      [venta_id],
+                      async (err4, detallesVenta) => {
+                        if (!err4 && detallesVenta.length) {
+                          // Generar PDF
+                          const pdfBuffer = await generarPDFVenta(
+                            { fecha: new Date(), total, ...req.body },
+                            detallesVenta,
+                            clientes[0]
+                          );
+                          // Enviar email
+                          transporter.sendMail({
+                            from: 'joacovignolo@gmail.com',
+                            to: clientes[0].correo,
+                            subject: 'Comprobante de su compra - Rider Motos',
+                            text: 'Adjuntamos el comprobante de su compra. ¡Gracias por confiar en nosotros!',
+                            attachments: [
+                              { filename: 'detalle-venta.pdf', content: pdfBuffer }
+                            ]
+                          }, (errMail) => {
+                            if (errMail) console.error('Error enviando mail:', errMail);
+                          });
+                        }
+                      }
+                    );
+                  }
+                });
+              }
+              res.json({ success: true, venta_id });
+            })
             .catch(err3 => {
               console.error("Error al actualizar stock:", err3);
               res.status(500).json({ error: 'Error al actualizar stock' });
