@@ -42,6 +42,8 @@ const Compras = () => {
     const [mensajeError, setMensajeError] = useState<string>('');
     const [observaciones, setObservaciones] = useState<string>('');
     const [mensajeExito, setMensajeExito] = useState<string>('');
+    const [confirmando, setConfirmando] = useState<boolean>(false);
+    const [cooldownBtn, setCooldownBtn] = useState<boolean>(false);
 
     useEffect(() => {
         fetch('http://localhost:3001/api/marcas')
@@ -123,58 +125,65 @@ const Compras = () => {
     };
 
     const confirmarCompra = async () => {
-        if (carrito.length === 0) {
-            setMensajeError("El carrito está vacío.");
-            return;
-        }
-        if (tipo === "repuesto" && !proveedorSeleccionado) {
-            setMensajeError("Seleccione un proveedor.");
-            return;
-        }
-        setMensajeError('');
-        let proveedor_id = null;
-        if (tipo === "repuesto") {
-            const proveedor = proveedores.find(p => p.nombre === proveedorSeleccionado);
-            if (!proveedor) {
-                setMensajeError("Proveedor no válido.");
-                return;
-            }
-            proveedor_id = proveedor.id;
-        }
-        try {
-            const res = await fetch('http://localhost:3001/api/compras', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    proveedor_id,
-                    total,
-                    observaciones,
-                    productos: carrito.map(item => ({
-                        id: item.id,
-                        cantidad: item.cantidad,
-                        precio: Number(item.precio)
-                    }))
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setCarrito([]);
-                setObservaciones('');
-                setMensajeError('');
-                setMensajeExito('¡Compra registrada correctamente!');
-                setTipo('moto');
-                setMarcaSeleccionada('');
-                setProveedorSeleccionado('');
-                setProductoSeleccionado(null);
-                setCantidad(1);
-                setPrecioUnitario('');
-                setTimeout(() => setMensajeExito(''), 3500);
-            } else {
-                setMensajeError(data.error || 'Error al registrar la compra');
-            }
-        } catch (err) {
-            setMensajeError('Error de conexión con el servidor');
-        }
+        if (confirmando || cooldownBtn) return;
+         if (carrito.length === 0) {
+             setMensajeError("El carrito está vacío.");
+             return;
+         }
+         if (tipo === "repuesto" && !proveedorSeleccionado) {
+             setMensajeError("Seleccione un proveedor.");
+             return;
+         }
+         setMensajeError('');
+         let proveedor_id = null;
+         if (tipo === "repuesto") {
+             const proveedor = proveedores.find(p => p.nombre === proveedorSeleccionado);
+             if (!proveedor) {
+                 setMensajeError("Proveedor no válido.");
+                 return;
+             }
+             proveedor_id = proveedor.id;
+         }
+         try {
+             setConfirmando(true);
+             const res = await fetch('http://localhost:3001/api/compras', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({
+                     proveedor_id,
+                     total,
+                     observaciones,
+                     productos: carrito.map(item => ({
+                         id: item.id,
+                         cantidad: item.cantidad,
+                         precio: Number(item.precio)
+                     }))
+                 })
+             });
+             const data = await res.json();
+             if (data.success) {
+                 setCarrito([]);
+                 setObservaciones('');
+                 setMensajeError('');
+                 setMensajeExito('¡Compra registrada correctamente!');
+                 setTipo('moto');
+                 setMarcaSeleccionada('');
+                 setProveedorSeleccionado('');
+                 setProductoSeleccionado(null);
+                 setCantidad(1);
+                 setPrecioUnitario('');
+                 setTimeout(() => setMensajeExito(''), 3500);
+                // Bloqueo breve del botón tras el éxito (igual que ventas)
+                setCooldownBtn(true);
+                setTimeout(() => setCooldownBtn(false), 2000);
+             } else {
+                 setMensajeError(data.error || 'Error al registrar la compra');
+             }
+         } catch (err) {
+             setMensajeError('Error de conexión con el servidor');
+         } finally {
+             setConfirmando(false);
+         }
     };
 
     return (
@@ -412,9 +421,10 @@ const Compras = () => {
                 <button
                     className="btn-confirmar"
                     onClick={confirmarCompra}
-                    disabled={carrito.length === 0}
+                    disabled={confirmando || cooldownBtn}
+                    title={confirmando ? "Confirmando..." : undefined}
                 >
-                    Confirmar compra
+                    {confirmando ? "CONFIRMANDO..." : "CONFIRMAR COMPRA"}
                 </button>
             </div>
         </div>

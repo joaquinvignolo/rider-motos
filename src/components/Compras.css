@@ -13,23 +13,30 @@
 }
 
 
-/* Botón confirmar compra */
+/* Botón confirmar compra (igual a confirmar venta) */
 .btn-confirmar {
-	background: #21c112;
-	color: #fff;
-	border: none;
-	border-radius: 6px;
-	padding: 12px 32px;
-	font-size: 1.1rem;
-	font-weight: 600;
-	cursor: pointer;
-	margin-top: 32px;
-	margin-bottom: 8px;
-	box-shadow: 0 2px 8px rgba(33,193,18,0.12);
-	transition: background 0.2s;
+  background: linear-gradient(90deg, #1976d2 60%, #1565c0 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 32px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  margin-top: 24px;
+  box-shadow: 0 4px 16px 0 rgba(25,118,210,0.18);
+  transition: background 0.2s;
 }
 .btn-confirmar:hover {
-	background: #179c0e;
+  background: linear-gradient(90deg, #1565c0 60%, #1976d2 100%);
+}
+.btn-confirmar:disabled {
+  background: #bdbdbd !important;
+  color: #fff !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+  border: none;
 }
 
 /* Contenedor principal */
