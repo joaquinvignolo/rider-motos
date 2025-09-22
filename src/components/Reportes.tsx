@@ -720,46 +720,69 @@ const Reportes: React.FC = () => {
             {/* ----------- VENTAS ----------- */}
             {tipo === "ventas" && Array.isArray(detalleDia?.productos) && (
               <div style={{ display: "flex", flexDirection: "row", gap: 24 }}>
-                {/* Detalle productos */}
                 <div style={{ flex: 2 }}>
-                  {detalleDia.productos.map((d: any, i: number) => (
-                    <div
-                      key={i}
-                      style={{
-                        marginBottom: 22,
-                        color: "#fff",
-                        paddingBottom: 12,
-                        borderBottom: "1px solid #333",
-                      }}
-                    >
-                      <div>
-                        <b>Nombre:</b> {d.nombre}
+                  {detalleDia.productos.map((d: any, i: number) => {
+                    // Detecta tarjeta de crédito y transferencia
+                    const esTarjeta = d.metodo_pago?.toLowerCase().includes("tarjeta");
+                    const esTransferencia = d.metodo_pago?.toLowerCase().includes("transferencia");
+                    const esMorado = esTarjeta || esTransferencia;
+
+                    // Si el recargo ya viene aplicado desde ventas, no lo sumes de nuevo
+                    // Si NO viene aplicado, descomenta la línea siguiente y ajusta el porcentaje
+                    // const recargo = esTarjeta ? 0.2 : 0;
+                    // const totalProducto = (Number(d.precio) * Number(d.cantidad)) * (1 + recargo);
+
+                    const totalProducto = Number(d.precio) * Number(d.cantidad);
+
+                    return (
+                      <div
+                        key={i}
+                        style={{
+                          marginBottom: 22,
+                          color: esMorado ? "#b36aff" : "#fff",
+                          background: esMorado ? "#232526" : "inherit",
+                          paddingBottom: 12,
+                          borderBottom: "1px solid #333",
+                        }}
+                      >
+                        <div>
+                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Nombre:</b> {d.nombre}
+                        </div>
+                        <div>
+                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Cantidad:</b> {d.cantidad}
+                        </div>
+                        <div>
+                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Método de pago:</b>{" "}
+                          <span style={{ color: esMorado ? "#b36aff" : "#fff" }}>{d.metodo_pago}</span>
+                        </div>
+                        <div>
+                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Total producto:</b>{" "}
+                          ${totalProducto.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                          {esTarjeta && (
+                            <span style={{ color: "#b36aff", fontWeight: 400, fontSize: 13 }}>
+                              {" "} (incluye recargo)
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <b>Cantidad:</b> {d.cantidad}
-                      </div>
-                      <div>
-                        <b>Subtotal:</b> $
-                        {Number(d.precio).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-                      </div>
-                      <div>
-                        <b>Total producto:</b> $
-                        {(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-                      </div>
-                    </div>
-                  ))}
-                  {/* Total general */}
-                  <div
-                    style={{
-                      marginTop: 18,
-                      fontWeight: 700,
-                      color: "#a32020",
-                      fontSize: 18,
-                      textAlign: "right",
-                    }}
-                  >
-                    Total: $
+                    );
+                  })}
+                  {/* Total efectivo: solo suma productos con método de pago efectivo */}
+                  <div style={{ marginTop: 18, fontWeight: 700, color: "#a32020", fontSize: 18, textAlign: "right" }}>
+                    Total efectivo: $
                     {detalleDia.productos
+                      .filter((d: any) => d.metodo_pago?.toLowerCase() === "efectivo")
+                      .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
+                      .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                  </div>
+                  {/* Total en TJ/TF: suma tarjeta y transferencia, solo tarjeta lleva recargo */}
+                  <div style={{ fontWeight: 700, color: "#b36aff", fontSize: 18, textAlign: "right" }}>
+                    Total en TJ/TF: $
+                    {detalleDia.productos
+                      .filter((d: any) =>
+                        d.metodo_pago?.toLowerCase().includes("tarjeta") ||
+                        d.metodo_pago?.toLowerCase().includes("transferencia")
+                      )
                       .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
                       .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                   </div>
