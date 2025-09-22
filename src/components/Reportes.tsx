@@ -331,9 +331,12 @@ const Reportes: React.FC = () => {
                 .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia")
                 .reduce((acc, v) => acc + Number(v.total), 0);
 
-              const totalAccesorios = totalAccesoriosEfectivo > 0
-                ? totalAccesoriosEfectivo
-                : totalAccesoriosTarjTransf;
+              const tieneEfectivo = accesorios.some(v => v.metodo_pago === "efectivo");
+              const totalAccesorios = tieneEfectivo
+                ? accesorios
+                    .filter(v => v.metodo_pago === "efectivo")
+                    .reduce((acc, v) => acc + Number(v.total), 0)
+                : accesorios.reduce((acc, v) => acc + Number(v.total), 0);
 
               const totalPorCliente: { [cliente: string]: number } = {};
               Object.entries(motosPorCliente).forEach(([cliente, ventasCliente]) => {
