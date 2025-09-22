@@ -161,7 +161,7 @@ const Compras = () => {
                 setCarrito([]);
                 setObservaciones('');
                 setMensajeError('');
-                setMensajeExito('¡Compra registrada con éxito!');
+                setMensajeExito('¡Compra registrada correctamente!');
                 setTipo('moto');
                 setMarcaSeleccionada('');
                 setProveedorSeleccionado('');
@@ -207,19 +207,6 @@ const Compras = () => {
                         textAlign: "center"
                     }}>
                         {mensajeError}
-                    </div>
-                )}
-                {mensajeExito && (
-                    <div style={{
-                        background: "#e0ffe0",
-                        color: "#207a20",
-                        padding: "10px 18px",
-                        borderRadius: "8px",
-                        marginBottom: "18px",
-                        fontWeight: "bold",
-                        textAlign: "center"
-                    }}>
-                        {mensajeExito}
                     </div>
                 )}
                 <div className="nueva-compra">
@@ -407,6 +394,21 @@ const Compras = () => {
                         <span className="total">${total}</span>
                     </div>
                 </div>
+                {}
+                {mensajeExito && (
+                    <div style={{
+                        background: "#1e7e34",
+                        color: "#fff",
+                        padding: "12px 20px",
+                        borderRadius: 8,
+                        marginTop: 18,      // separación del carrito
+                        marginBottom: 18,
+                        fontWeight: 700,
+                        boxShadow: "0 2px 8px rgba(30,126,52,0.18)"
+                    }}>
+                        {mensajeExito}
+                    </div>
+                )}
                 <button
                     className="btn-confirmar"
                     onClick={confirmarCompra}
