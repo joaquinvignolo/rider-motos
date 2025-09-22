@@ -11,11 +11,10 @@ function generarPDFVenta(venta, detalles, cliente) {
       resolve(pdfData);
     });
 
+    // Logo
     try {
       doc.image(path.join(__dirname, 'Rider.png'), 40, 30, { width: 80 });
-    } catch (e) {
-      // Si no encuentra el logo, simplemente no lo muestra
-    }
+    } catch (e) {}
 
     doc.fontSize(22).fillColor('#a32020').text('Comprobante de Venta', { align: 'center', underline: true });
     doc.moveDown();
@@ -32,29 +31,50 @@ function generarPDFVenta(venta, detalles, cliente) {
     doc.fontSize(13).fillColor('#a32020').text('Detalle de productos:', { underline: true });
     doc.moveDown(0.5);
 
-    // Encabezado tabla
-    doc.font('Helvetica-Bold').fontSize(12).fillColor('#000')
-      .text('Producto', 40, doc.y, { continued: true, width: 120 })
-      .text('Marca', 170, doc.y, { continued: true, width: 80 })
-      .text('Cantidad', 250, doc.y, { continued: true, width: 60 })
-      .text('Precio', 320, doc.y, { continued: true, width: 60 })
-      .text('Subtotal', 390, doc.y, { width: 70 });
-    doc.moveDown(0.2);
-    doc.font('Helvetica').fontSize(12);
+    // Tabla: encabezado
+    const tableTop = doc.y;
+    const colX = [40, 170, 250, 320, 390, 470];
+    const colW = [130, 80, 70, 70, 80];
 
-    detalles.forEach((d) => {
-      doc.text(d.nombre, 40, doc.y, { continued: true, width: 120 })
-        .text(d.marca || '-', 170, doc.y, { continued: true, width: 80 })
-        .text(d.cantidad, 250, doc.y, { continued: true, width: 60 })
-        .text(`$${Number(d.precio).toFixed(2)}`, 320, doc.y, { continued: true, width: 60 })
-        .text(`$${(Number(d.precio) * d.cantidad).toFixed(2)}`, 390, doc.y, { width: 70 });
-    });
+    doc
+      .font('Helvetica-Bold').fontSize(12).fillColor('#fff')
+      .rect(colX[0], tableTop, 430, 22).fill('#a32020')
+      .fillColor('#fff')
+      .text('Producto', colX[0] + 4, tableTop + 5, { width: colW[0] })
+      .text('Marca', colX[1] + 4, tableTop + 5, { width: colW[1] })
+      .text('Cantidad', colX[2] + 4, tableTop + 5, { width: colW[2], align: 'right' })
+      .text('Precio', colX[3] + 4, tableTop + 5, { width: colW[3], align: 'right' })
+      .text('Subtotal', colX[4] + 4, tableTop + 5, { width: colW[4], align: 'right' });
 
     doc.moveDown();
-    doc.font('Helvetica-Bold').fontSize(14).fillColor('#a32020')
-      .text(`TOTAL: $${Number(venta.total).toFixed(2)}`, { align: 'right' });
+    let y = tableTop + 22;
 
-    doc.moveDown(2);
+    // Tabla: filas
+    doc.font('Helvetica').fontSize(12).fillColor('#222');
+    detalles.forEach((d, i) => {
+      // Alternar color de fondo para filas
+      if (i % 2 === 0) {
+        doc.rect(colX[0], y, 430, 20).fill('#f6f6f6').fillColor('#222');
+      }
+      doc
+        .text(d.nombre, colX[0] + 4, y + 4, { width: colW[0] })
+        .text(d.marca || '-', colX[1] + 4, y + 4, { width: colW[1] })
+        .text(d.cantidad, colX[2] + 4, y + 4, { width: colW[2], align: 'right' })
+        .text(`$${Number(d.precio).toFixed(2)}`, colX[3] + 4, y + 4, { width: colW[3], align: 'right' })
+        .text(`$${(Number(d.precio) * d.cantidad).toFixed(2)}`, colX[4] + 4, y + 4, { width: colW[4], align: 'right' });
+      y += 20;
+      doc.fillColor('#222');
+    });
+
+    // Línea divisoria antes del total
+    doc.moveTo(colX[0], y + 2).lineTo(colX[0] + 430, y + 2).strokeColor('#a32020').lineWidth(1).stroke();
+
+    // Total
+    doc.font('Helvetica-Bold').fontSize(13).fillColor('#a32020')
+      .text('TOTAL:', colX[3] + 4, y + 8, { width: colW[3], align: 'right' })
+      .text(`$${Number(venta.total).toFixed(2)}`, colX[4] + 4, y + 8, { width: colW[4], align: 'right' });
+
+    doc.moveDown(3);
     doc.fontSize(11).fillColor('#333')
       .text('Gracias por su compra.', { align: 'center' })
       .moveDown(0.5)

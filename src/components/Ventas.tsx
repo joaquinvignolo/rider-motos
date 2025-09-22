@@ -329,8 +329,11 @@ const Ventas: React.FC = () => {
                   <input
                     type="number"
                     min={1}
-                    value={item.cantidad}
-                    onChange={e => cambiarCantidad(item.id, Number(e.target.value))}
+                    value={item.cantidad === 0 ? "" : item.cantidad}
+                    onChange={e => {
+                      const val = e.target.value;
+                      cambiarCantidad(item.id, val === "" ? 0 : Number(val));
+                    }}
                     style={{ width: 60, marginLeft: 8 }}
                   />
                 )}
