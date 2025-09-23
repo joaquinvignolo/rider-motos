@@ -35,7 +35,7 @@ function MenuPrincipal() {
           {}
           <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
             <button onClick={() => navigate("/clientes")}>CLIENTES</button>
-            <button>PATENTAMIENTOS</button>
+            <button onClick={() => navigate("/patentamientos")}>PATENTAMIENTOS</button>
             <button onClick={() => navigate("/reportes")}>REPORTES</button>
           </div>
         </main>

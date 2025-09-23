@@ -1,0 +1,218 @@
+.patentamiento-container {
+  background: #181818;
+  color: #fff;
+  min-height: 100vh;
+  padding: 32px;
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+.patentamiento-titulo {
+  font-size: 2rem;
+  color: #a32020;
+  margin-bottom: 24px;
+}
+.patentamiento-card {
+  background: #232526;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px #0004;
+}
+.patentamiento-subtitulo {
+  color: #a32020;
+  font-size: 1.2rem;
+  margin-bottom: 18px;
+}
+.patentamiento-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.patentamiento-form-row {
+  display: flex;
+  gap: 24px;
+}
+.patentamiento-form label {
+  font-weight: 600;
+  color: #fff;
+}
+.patentamiento-form input,
+.patentamiento-form select {
+  background: #181818;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 4px;
+  width: 180px;
+}
+.btn-agencia {
+  background: #a32020;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-agencia:hover {
+  background: #d32f2f;
+}
+.btn-reporte {
+  float: right;
+  margin-left: 16px;
+}
+.patentamiento-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.patentamiento-list-filtros {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+.patentamiento-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #232526;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.patentamiento-table th,
+.patentamiento-table td {
+  border-bottom: 1px solid #444;
+  padding: 8px 6px;
+  text-align: left;
+}
+.estado-badge {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: 700;
+}
+.estado-pendiente {
+  background: #ffd700;
+  color: #232526;
+}
+.estado-completado {
+  background: #4caf50;
+  color: #fff;
+}
+.estado-cancelado {
+  background: #a32020;
+  color: #fff;
+}
+.btn-accion {
+  background: #232526;
+  color: #a32020;
+  border: 1px solid #a32020;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+.btn-accion:hover {
+  background: #a32020;
+  color: #fff;
+}
+.patentamiento-paginacion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.btn-pag {
+  background: #232526;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.pag-num {
+  background: #a32020;
+  color: #fff;
+  border-radius: 50%;
+  padding: 4px 12px;
+  font-weight: 700;
+}
+.nuevo-tramite-card {
+  background: #232526 !important;
+  border: 2px solid #a32020;
+  box-shadow: 0 2px 12px #0004;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  padding-top: 12px;
+}
+
+.tramite-row {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.tramite-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tramite-field label {
+  font-weight: 700;
+  color: #ffd700;
+  letter-spacing: 0.5px;
+  font-size: 1.08em;
+}
+
+.tramite-field input,
+.tramite-field select {
+  background: #181818;
+  color: #fff;
+  border: 1.5px solid #a32020;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1em;
+  margin-top: 2px;
+  transition: border 0.2s;
+}
+
+.tramite-field input:focus,
+.tramite-field select:focus {
+  border-color: #ffd700;
+  outline: none;
+}
+
+.tramite-btn-row {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.btn-tramite {
+  background: #a32020;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 28px;
+  font-size: 1.1em;
+  font-weight: 700;
+  box-shadow: 0 2px 8px #0003;
+  border: none;
+  transition: background 0.2s;
+}
+
+.btn-tramite:hover {
+  background: #ffd700;
+  color: #232526;
+}
+.patentamiento-main-card {
+  background: #232526;
+  border: 2px solid #a32020;
+  border-radius: 18px;
+  box-shadow: 0 2px 18px #0006;
+  padding: 32px 36px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}

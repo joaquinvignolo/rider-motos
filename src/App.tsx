@@ -8,6 +8,7 @@ import Clientes from './components/Clientes';
 import Reportes from './components/Reportes';
 import RutaPrivada from './components/RutaPrivada'; 
 import Compras from './components/Compras';
+import Patentamiento from './components/Patentamiento';
 
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
             <Compras />
           </RutaPrivada>
         } />
+        <Route path="/patentamientos" element={<Patentamiento />} />
       </Routes>
     </Router>
   );
