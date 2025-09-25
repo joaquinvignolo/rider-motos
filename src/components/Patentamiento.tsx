@@ -26,24 +26,26 @@ const Patentamiento: React.FC = () => {
     <div className="patentamiento-container">
       {/* Botón Inicio */}
       <button
-        className="btn-agencia"
+        className="inicio-btn"
         style={{
-          position: "absolute",
-          left: 48,
-          top: 36,
+          position: "fixed",
+          top: 32,
+          left: 32,
+          zIndex: 100,
+          fontSize: "1.18rem",
+          padding: "10px 28px",
+          borderRadius: 8,
+          fontWeight: 700,
           background: "#a32020",
           color: "#fff",
-          borderRadius: "8px",
-          padding: "8px 22px",
-          fontWeight: 700,
-          fontSize: "1.1em",
           border: "none",
-          boxShadow: "0 2px 8px #0003",
-          zIndex: 10
+          boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
+          cursor: "pointer",
+          transition: "background 0.18s, box-shadow 0.18s"
         }}
-        onClick={() => navigate("/menu")} 
+        onClick={() => navigate("/menu")}
       >
-         Inicio
+        INICIO
       </button>
       {/* Título */}
       <h1 style={{
