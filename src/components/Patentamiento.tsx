@@ -21,6 +21,9 @@ const Patentamiento: React.FC = () => {
   const [estadoFiltro, setEstadoFiltro] = useState(estados[0]);
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [tramites, setTramites] = useState(tramitesEjemplo);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<string | null>(null);
+  const [motoSeleccionada, setMotoSeleccionada] = useState<string | null>(null);
+  const [observaciones, setObservaciones] = useState<string>("");
 
   return (
     <div className="patentamiento-container">
@@ -128,26 +131,55 @@ const Patentamiento: React.FC = () => {
             <div style={{ display: "flex", gap: "18px" }}>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ color: "#fff", fontWeight: 600 }}>Cliente</label>
-                <input type="text" placeholder="Nombre del cliente..." style={{
-                  background: "#181818",
-                  color: "#fff",
-                  border: "1.5px solid #a32020",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                  fontSize: "1em"
-                }} />
+                <input
+                  type="text"
+                  value={clienteSeleccionado || ""}
+                  readOnly
+                  style={{
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    fontSize: "1em"
+                  }}
+                />
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ color: "#fff", fontWeight: 600 }}>Moto</label>
-                <input type="text" placeholder="Modelo de moto..." style={{
+                <input
+                  type="text"
+                  value={motoSeleccionada || ""}
+                  readOnly
+                  style={{
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    fontSize: "1em"
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ color: "#fff", fontWeight: 600 }}>Observaciones</label>
+              <textarea
+                value={observaciones}
+                onChange={e => setObservaciones(e.target.value)}
+                placeholder="Observaciones del trámite..."
+                style={{
                   background: "#181818",
                   color: "#fff",
                   border: "1.5px solid #a32020",
                   borderRadius: "8px",
                   padding: "8px 12px",
-                  fontSize: "1em"
-                }} />
-              </div>
+                  fontSize: "1em",
+                  resize: "none",
+                  minHeight: 60
+                }}
+                maxLength={200}
+              />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
               <button
@@ -183,7 +215,7 @@ const Patentamiento: React.FC = () => {
           <div className="patentamiento-list-header" style={{ marginBottom: 10 }}>
             <h3 className="patentamiento-subtitulo" style={{ color: "#a32020", fontWeight: 700, fontSize: "1.3rem" }}>Trámites de Patentamiento</h3>
             <button className="btn-agencia btn-reporte" style={{ float: "right" }}>
-              <span role="img" aria-label="reporte" style={{ marginRight: 6 }}>🖨️</span>
+              <span role="img" aria-label="reporte" style={{ marginRight: 6 }}></span>
               Imprimir Reporte
             </button>
           </div>
@@ -225,13 +257,12 @@ const Patentamiento: React.FC = () => {
           <table className="patentamiento-table" style={{ background: "#232526", color: "#fff" }}>
             <thead>
               <tr>
-                <th>#ID</th>
-                <th>Venta ID</th>
                 <th>Cliente</th>
                 <th>Moto</th>
                 <th>Fecha Solicitud</th>
+                <th>Fecha Finalización</th>
                 <th>Estado</th>
-                <th>Última Actualización</th>
+                <th>Observaciones</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -243,15 +274,18 @@ const Patentamiento: React.FC = () => {
                 )
                 .map((t, i) => (
                   <tr key={t.id}>
-                    <td>{t.id}</td>
-                    <td>{t.ventaId}</td>
                     <td>{t.cliente}</td>
                     <td>{t.moto}</td>
                     <td>{t.fechaSolicitud}</td>
                     <td>
+                      {(t.estado === "Completado" || t.estado === "Finalizado")
+                        ? (t.fechaFinalizacion || t.ultimaActualizacion)
+                        : "-"}
+                    </td>
+                    <td>
                       <span className={`estado-badge estado-${t.estado.toLowerCase()}`}>{t.estado}</span>
                     </td>
-                    <td>{t.ultimaActualizacion}</td>
+                    <td>{t.observaciones || "-"}</td>
                     <td>
                       <button className="btn-agencia btn-accion">Actualizar</button>
                     </td>
