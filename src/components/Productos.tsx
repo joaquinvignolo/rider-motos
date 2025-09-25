@@ -236,10 +236,10 @@ const Productos: React.FC = () => {
             type="text"
             value={descripcion}
             onChange={e => setDescripcion(e.target.value)}
-            maxLength={50}
+            maxLength={32}
           />
           <div style={{ fontSize: 12, color: '#888' }}>
-            {descripcion.length}/50 caracteres
+            {descripcion.length}/32 caracteres
           </div>
         </label>
         {seccion === "repuestos" && (
