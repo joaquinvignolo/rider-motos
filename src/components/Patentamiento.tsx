@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
+import PaginacionUnificada from "./PaginacionUnificada";
 
 const estados = ["Todos los estados", "Pendiente", "Completado"];
 
@@ -402,23 +403,12 @@ const Patentamiento: React.FC = () => {
             </tbody>
           </table>
           <div className="patentamiento-paginacion" style={{ marginTop: 18, display: "flex", gap: 8, alignItems: "center" }}>
-            <button
-              className="btn-agencia btn-pag"
-              disabled={paginaActual === 1}
-              onClick={() => setPaginaActual(paginaActual - 1)}
-            >
-              Anterior
-            </button>
-            <span className="pag-num" style={{ color: "#fff", fontWeight: 600 }}>
-              {paginaActual} / {totalPaginas}
-            </span>
-            <button
-              className="btn-agencia btn-pag"
-              disabled={paginaActual === totalPaginas || totalPaginas === 0}
-              onClick={() => setPaginaActual(paginaActual + 1)}
-            >
-              Siguiente
-            </button>
+            <PaginacionUnificada
+              pagina={paginaActual}
+              totalPaginas={totalPaginas}
+              onAnterior={() => setPaginaActual(paginaActual - 1)}
+              onSiguiente={() => setPaginaActual(paginaActual + 1)}
+            />
           </div>
         </div>
       </div>
