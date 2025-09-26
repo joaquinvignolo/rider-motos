@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
 
-const estados = ["Todos los estados", "Pendiente", "Completado", "Cancelado"];
+const estados = ["Todos los estados", "Pendiente", "Completado"];
 
 const tramitesEjemplo = [
   {
