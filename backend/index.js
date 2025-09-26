@@ -552,6 +552,22 @@ app.get('/api/patentamientos', (req, res) => {
   });
 });
 
+// Actualizar estado de trámite de patentamiento
+app.patch('/api/patentamientos/:id', (req, res) => {
+  const { estado } = req.body;
+  let query = 'UPDATE patentamientos SET estado=?, ultima_actualizacion=NOW()';
+  let params = [estado];
+  if (estado === 'Completado') {
+    query += ', fecha_finalizacion=CURDATE()';
+  }
+  query += ' WHERE id=?';
+  params.push(req.params.id);
+  db.query(query, params, (err) => {
+    if (err) return res.status(500).json({ error: 'Error al actualizar trámite' });
+    res.json({ success: true });
+  });
+});
+
 app.listen(3001, () => {
   console.log('API corriendo en http://localhost:3001');
 });
