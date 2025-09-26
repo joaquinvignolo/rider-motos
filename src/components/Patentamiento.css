@@ -92,16 +92,17 @@
   font-weight: 700;
 }
 .estado-pendiente {
-  background: #ffd700;
+  background: #dbcb86;
   color: #232526;
 }
 .estado-completado {
-  background: #4caf50;
-  color: #fff;
+  background: #7ed481;
+  color: #000000;
 }
-.estado-cancelado {
-  background: #a32020;
-  color: #fff;
+
+.estado-en-proceso {
+  background: #a5d8e9;
+  color: #000000;
 }
 .btn-accion {
   background: #232526;

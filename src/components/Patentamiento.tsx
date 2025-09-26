@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
 import PaginacionUnificada from "./PaginacionUnificada";
 
-const estados = ["Todos los estados", "Pendiente", "Completado"];
+const estados = ["Todos los estados", "Pendiente", "En Proceso", "Completado"];
 
 const Patentamiento: React.FC = () => {
   const navigate = useNavigate();
@@ -288,7 +288,7 @@ const Patentamiento: React.FC = () => {
                   resize: "none",
                   minHeight: 60
                 }}
-                maxLength={50}
+                maxLength={32}
               />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
@@ -384,7 +384,7 @@ const Patentamiento: React.FC = () => {
                   <td>{t.fechaSolicitud?.slice(0, 10)}</td>
                   <td>{t.estado === "Completado" && t.fechaFinalizacion ? t.fechaFinalizacion.slice(0, 10) : "-"}</td>
                   <td>
-                    <span className={`estado-badge estado-${t.estado.toLowerCase()}`}>{t.estado}</span>
+                    <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
                   </td>
                   <td>{t.observaciones || "-"}</td>
                   <td>
