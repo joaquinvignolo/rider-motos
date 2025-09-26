@@ -47,7 +47,11 @@ function App() {
             <Compras />
           </RutaPrivada>
         } />
-        <Route path="/patentamientos" element={<Patentamiento />} />
+        <Route path="/patentamientos" element={
+          <RutaPrivada>
+            <Patentamiento />
+          </RutaPrivada>
+        } />
       </Routes>
     </Router>
   );
