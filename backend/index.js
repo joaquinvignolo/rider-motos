@@ -508,7 +508,7 @@ app.get('/api/ventas-disponibles-patentamiento', (req, res) => {
       console.error("Error SQL ventas disponibles:", err);
       return res.status(500).json({ error: 'Error al obtener ventas disponibles' });
     }
-    console.log("Ventas disponibles para patentamiento:", results);
+    //console.log("Ventas disponibles para patentamiento:", results);
     res.json(results);
   });
 });

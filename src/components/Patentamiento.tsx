@@ -92,6 +92,13 @@ const Patentamiento: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (mensaje) {
+      const timer = setTimeout(() => setMensaje(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [mensaje]);
+
   return (
     <div className="patentamiento-container">
       {/* Botón Inicio */}
