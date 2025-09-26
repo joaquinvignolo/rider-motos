@@ -484,6 +484,74 @@ app.get('/api/compras', async (req, res) => {
   }
 });
 
+// Ventas de motos sin trámite de patentamiento
+app.get('/api/ventas-disponibles-patentamiento', (req, res) => {
+  db.query(`
+    SELECT 
+      v.id, 
+      v.fecha, 
+      c.nombre as cliente_nombre, 
+      c.apellido as cliente_apellido,
+      pr.nombre as moto_nombre, 
+      m.nombre as marca
+    FROM ventas v
+    JOIN detalle_ventas dv ON dv.venta_id = v.id
+    JOIN productos pr ON dv.producto_id = pr.id
+    LEFT JOIN marcas m ON pr.marca_id = m.id
+    LEFT JOIN clientes c ON v.cliente_id = c.id
+    WHERE pr.tipo = 'moto'
+      AND v.id NOT IN (SELECT venta_id FROM patentamientos)
+      AND v.cliente_id IS NOT NULL
+    ORDER BY v.fecha DESC
+  `, (err, results) => {
+    if (err) {
+      console.error("Error SQL ventas disponibles:", err);
+      return res.status(500).json({ error: 'Error al obtener ventas disponibles' });
+    }
+    console.log("Ventas disponibles para patentamiento:", results);
+    res.json(results);
+  });
+});
+
+// Crear trámite de patentamiento
+app.post('/api/patentamientos', (req, res) => {
+  const { venta_id, observaciones } = req.body;
+  if (!venta_id) return res.status(400).json({ error: "Debe seleccionar una venta." });
+  db.query('SELECT id FROM patentamientos WHERE venta_id = ?', [venta_id], (err, rows) => {
+    if (err) return res.status(500).json({ error: "Error al validar trámite existente." });
+    if (rows.length > 0) return res.status(400).json({ error: "Ya existe un trámite para esta venta." });
+    db.query(
+      'INSERT INTO patentamientos (venta_id, fecha_solicitud, observaciones) VALUES (?, CURDATE(), ?)',
+      [venta_id, observaciones || null],
+      (err2, result) => {
+        if (err2) return res.status(500).json({ error: "Error al iniciar trámite." });
+        res.json({ success: true, id: result.insertId });
+      }
+    );
+  });
+});
+
+// Listar trámites de patentamiento con datos de cliente y moto
+app.get('/api/patentamientos', (req, res) => {
+  db.query(`
+    SELECT p.id, p.fecha_solicitud as fechaSolicitud, p.fecha_finalizacion as fechaFinalizacion, p.ultima_actualizacion as ultimaActualizacion,
+           p.estado, p.observaciones,
+           CONCAT(c.nombre, ' ', c.apellido) as cliente,
+           CONCAT(marcas.nombre, ' ', productos.nombre) as moto
+    FROM patentamientos p
+    JOIN ventas v ON p.venta_id = v.id
+    JOIN clientes c ON v.cliente_id = c.id
+    JOIN detalle_ventas dv ON dv.venta_id = v.id
+    JOIN productos ON dv.producto_id = productos.id
+    LEFT JOIN marcas ON productos.marca_id = marcas.id
+    WHERE productos.tipo = 'moto'
+    ORDER BY p.fecha_solicitud DESC
+  `, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error al obtener trámites' });
+    res.json(results);
+  });
+});
+
 app.listen(3001, () => {
   console.log('API corriendo en http://localhost:3001');
 });

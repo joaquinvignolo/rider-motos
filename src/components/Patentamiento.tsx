@@ -1,29 +1,96 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
 
 const estados = ["Todos los estados", "Pendiente", "Completado"];
 
-const tramitesEjemplo = [
-  {
-    id: "1758128280022",
-    ventaId: "1758128272322",
-    cliente: "Juan Perez",
-    moto: "Yamaha FZ 25",
-    fechaSolicitud: "17/9/2025",
-    estado: "Pendiente",
-    ultimaActualizacion: "17/9/2025"
-  }
-];
-
 const Patentamiento: React.FC = () => {
   const navigate = useNavigate();
   const [estadoFiltro, setEstadoFiltro] = useState(estados[0]);
   const [busquedaCliente, setBusquedaCliente] = useState("");
-  const [tramites, setTramites] = useState(tramitesEjemplo);
-  const [clienteSeleccionado, setClienteSeleccionado] = useState<string | null>(null);
-  const [motoSeleccionada, setMotoSeleccionada] = useState<string | null>(null);
+  const [ventasDisponibles, setVentasDisponibles] = useState<any[]>([]);
+  const [ventaSeleccionada, setVentaSeleccionada] = useState<string | null>(null);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<string>("");
+  const [motoSeleccionada, setMotoSeleccionada] = useState<string>("");
   const [observaciones, setObservaciones] = useState<string>("");
+  const [mensaje, setMensaje] = useState<string>("");
+  const [tipoMensaje, setTipoMensaje] = useState<"error" | "success">("success");
+  const [tramites, setTramites] = useState<any[]>([]);
+
+  // Traer ventas disponibles para patentamiento
+  useEffect(() => {
+    fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
+      .then(res => res.json())
+      .then(data => setVentasDisponibles(data));
+  }, []);
+
+  // Traer trámites existentes
+  useEffect(() => {
+    fetch("http://localhost:3001/api/patentamientos")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setTramites(data);
+        else setTramites([]);
+      });
+  }, []);
+
+  // Al seleccionar una venta, autocompletar cliente y moto
+  const handleVentaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const ventaId = e.target.value;
+    setVentaSeleccionada(ventaId);
+    const venta = ventasDisponibles.find(v => String(v.id) === ventaId);
+    if (venta) {
+      setClienteSeleccionado(`${venta.cliente_nombre} ${venta.cliente_apellido}`);
+      setMotoSeleccionada(`${venta.marca} ${venta.moto_nombre}`);
+    } else {
+      setClienteSeleccionado("");
+      setMotoSeleccionada("");
+    }
+  };
+
+  // Enviar trámite
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMensaje("");
+    if (!ventaSeleccionada) {
+      setMensaje("Debe seleccionar una venta para iniciar el trámite.");
+      setTipoMensaje("error");
+      return;
+    }
+    try {
+      const res = await fetch("http://localhost:3001/api/patentamientos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          venta_id: ventaSeleccionada,
+          observaciones
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMensaje("Trámite iniciado correctamente.");
+        setTipoMensaje("success");
+        setVentaSeleccionada(null);
+        setClienteSeleccionado("");
+        setMotoSeleccionada("");
+        setObservaciones("");
+        // Actualizar lista de trámites
+        fetch("http://localhost:3001/api/patentamientos")
+          .then(res => res.json())
+          .then(data => setTramites(data));
+        // Actualizar ventas disponibles
+        fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
+          .then(res => res.json())
+          .then(data => setVentasDisponibles(data));
+      } else {
+        setMensaje(data.error || "No se pudo iniciar el trámite.");
+        setTipoMensaje("error");
+      }
+    } catch {
+      setMensaje("Error de conexión con el servidor.");
+      setTipoMensaje("error");
+    }
+  };
 
   return (
     <div className="patentamiento-container">
@@ -101,19 +168,32 @@ const Patentamiento: React.FC = () => {
           }}>
             Nuevo Trámite
           </h2>
-          <form className="patentamiento-form" autoComplete="off" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          {mensaje && (
+            <div className={`alert ${tipoMensaje === "error" ? "alert-error" : "alert-success"}`}>
+              {mensaje}
+            </div>
+          )}
+          <form className="patentamiento-form" autoComplete="off" style={{ display: "flex", flexDirection: "column", gap: "18px" }} onSubmit={handleSubmit}>
             <div style={{ display: "flex", gap: "18px" }}>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ color: "#fff", fontWeight: 600 }}>Venta de Moto</label>
-                <select style={{
-                  background: "#181818",
-                  color: "#fff",
-                  border: "1.5px solid #a32020",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                  fontSize: "1em"
-                }}>
-                  <option>Seleccione una venta...</option>
+                <select
+                  value={ventaSeleccionada || ""}
+                  onChange={handleVentaChange}
+                  style={{
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    fontSize: "1em"
+                  }}>
+                  <option value="">Seleccione una venta...</option>
+                  {ventasDisponibles.map(v => (
+                    <option key={v.id} value={v.id}>
+                      {`${v.fecha.slice(0,10)} - ${v.cliente_nombre} ${v.cliente_apellido} - ${v.marca} ${v.moto_nombre}`}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
