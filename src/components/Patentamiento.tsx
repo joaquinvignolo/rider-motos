@@ -118,14 +118,19 @@ const Patentamiento: React.FC = () => {
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ color: "#fff", fontWeight: 600 }}>Fecha de Solicitud</label>
-                <input type="date" style={{
-                  background: "#181818",
-                  color: "#fff",
-                  border: "1.5px solid #a32020",
-                  borderRadius: "8px",
-                  padding: "8px 12px",
-                  fontSize: "1em"
-                }} />
+                <input
+                  type="text"
+                  value={new Date().toLocaleDateString()}
+                  readOnly
+                  style={{
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    fontSize: "1em"
+                  }}
+                />
               </div>
             </div>
             <div style={{ display: "flex", gap: "18px" }}>
@@ -178,7 +183,7 @@ const Patentamiento: React.FC = () => {
                   resize: "none",
                   minHeight: 60
                 }}
-                maxLength={200}
+                maxLength={50}
               />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
