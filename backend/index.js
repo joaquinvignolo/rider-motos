@@ -552,6 +552,18 @@ app.get('/api/patentamientos', (req, res) => {
   });
 });
 
+app.put('/api/patentamientos/:id/estado', (req, res) => {
+  const { estado } = req.body;
+  db.query(
+    'UPDATE patentamientos SET estado = ?, fecha_finalizacion = IF(? = "Finalizado", CURDATE(), fecha_finalizacion) WHERE id = ?',
+    [estado, estado, req.params.id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: 'Error al actualizar estado' });
+      res.json({ success: true });
+    }
+  );
+});
+
 app.listen(3001, () => {
   console.log('API corriendo en http://localhost:3001');
 });

@@ -92,6 +92,26 @@ const Patentamiento: React.FC = () => {
     }
   };
 
+  const actualizarEstado = async (id: number) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/patentamientos/${id}/estado`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: "Completado" }) // <-- CAMBIÁ ESTO
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTramites(tramites.map(t => t.id === id ? { ...t, estado: "Completado" } : t));
+      } else {
+        setMensaje("No se pudo actualizar el estado.");
+        setTipoMensaje("error");
+      }
+    } catch {
+      setMensaje("Error de conexión al actualizar.");
+      setTipoMensaje("error");
+    }
+  };
+
   useEffect(() => {
     if (mensaje) {
       const timer = setTimeout(() => setMensaje(""), 3000);
@@ -368,18 +388,36 @@ const Patentamiento: React.FC = () => {
                   <tr key={t.id}>
                     <td>{t.cliente}</td>
                     <td>{t.moto}</td>
-                    <td>{t.fechaSolicitud}</td>
+                    <td>{t.fechaSolicitud ? new Date(t.fechaSolicitud).toLocaleDateString() : "-"}</td>
                     <td>
                       {(t.estado === "Completado" || t.estado === "Finalizado")
-                        ? (t.fechaFinalizacion || t.ultimaActualizacion)
+                        ? (t.fechaFinalizacion
+                            ? new Date(t.fechaFinalizacion).toLocaleDateString()
+                            : (t.ultimaActualizacion
+                                ? new Date(t.ultimaActualizacion).toLocaleDateString()
+                                : "-"))
                         : "-"}
                     </td>
                     <td>
-                      <span className={`estado-badge estado-${t.estado.toLowerCase()}`}>{t.estado}</span>
+                      <span
+                        className={`estado-badge estado-${t.estado.toLowerCase()}`}
+                        style={t.estado === "Completado" ? { background: "#a32020", color: "#fff" } : {}}
+                      >
+                        {t.estado}
+                      </span>
                     </td>
                     <td>{t.observaciones || "-"}</td>
                     <td>
-                      <button className="btn-agencia btn-accion">Actualizar</button>
+                      {t.estado === "Pendiente" ? (
+                        <button
+                          className="btn-agencia btn-accion"
+                          onClick={() => actualizarEstado(t.id)}
+                        >
+                          Actualizar
+                        </button>
+                      ) : (
+                        <span style={{ color: "#a32020", fontWeight: 700 }}>Finalizado</span>
+                      )}
                     </td>
                   </tr>
                 ))}
