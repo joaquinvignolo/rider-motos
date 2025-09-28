@@ -397,13 +397,13 @@ const Patentamiento: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
               {tramites
                 .filter(t =>
                   (estadoFiltro === "Todos los estados" || t.estado === estadoFiltro) &&
                   (busquedaCliente === "" || t.cliente.toLowerCase().includes(busquedaCliente.toLowerCase()))
                 )
-                .map((t, i) => (
+                .slice((paginaActual - 1) * tramitesPorPagina, paginaActual * tramitesPorPagina)
+                .map((t) => (
                   <tr key={t.id}>
                     <td>{t.cliente}</td>
                     <td>{t.moto}</td>
@@ -412,9 +412,7 @@ const Patentamiento: React.FC = () => {
                       {(t.estado === "Completado" || t.estado === "Finalizado")
                         ? (t.fechaFinalizacion
                             ? new Date(t.fechaFinalizacion).toLocaleDateString()
-                            : (t.ultimaActualizacion
-                                ? new Date(t.ultimaActualizacion).toLocaleDateString()
-                                : "-"))
+                            : "-")
                         : "-"}
                     </td>
                     <td>
@@ -440,31 +438,6 @@ const Patentamiento: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-=======
-              {tramitesPagina.map((t, i) => (
-                <tr key={t.id}>
-                  <td>{t.cliente}</td>
-                  <td>{t.moto}</td>
-                  <td>{t.fechaSolicitud?.slice(0, 10)}</td>
-                  <td>{t.estado === "Completado" && t.fechaFinalizacion ? t.fechaFinalizacion.slice(0, 10) : "-"}</td>
-                  <td>
-                    <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
-                  </td>
-                  <td>{t.observaciones || "-"}</td>
-                  <td>
-                    <button
-                      className="btn-agencia btn-accion"
-                      onClick={() => {
-                        setTramiteEdit(t);
-                        setNuevoEstado(t.estado);
-                      }}
-                    >
-                      Actualizar
-                    </button>
-                  </td>
-                </tr>
-              ))}
->>>>>>> 7bb1f1993f39456a3e7b524ed4fcb6205920ffe3
             </tbody>
           </table>
           <div className="patentamiento-paginacion" style={{ marginTop: 18, display: "flex", gap: 8, alignItems: "center" }}>

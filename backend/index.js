@@ -411,7 +411,7 @@ app.post('/api/compras', (req, res) => {
         p.id,
         p.cantidad,
         p.precio,
-        p.observaciones || null // <-- agrega la observación de cada producto
+        p.observaciones || null // <-- esto está bien
       ]);
       db.query(
         'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, observaciones) VALUES ?',
@@ -552,7 +552,6 @@ app.get('/api/patentamientos', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
 app.put('/api/patentamientos/:id/estado', (req, res) => {
   const { estado } = req.body;
   db.query(
@@ -563,22 +562,6 @@ app.put('/api/patentamientos/:id/estado', (req, res) => {
       res.json({ success: true });
     }
   );
-=======
-// Actualizar estado de trámite de patentamiento
-app.patch('/api/patentamientos/:id', (req, res) => {
-  const { estado } = req.body;
-  let query = 'UPDATE patentamientos SET estado=?, ultima_actualizacion=NOW()';
-  let params = [estado];
-  if (estado === 'Completado') {
-    query += ', fecha_finalizacion=CURDATE()';
-  }
-  query += ' WHERE id=?';
-  params.push(req.params.id);
-  db.query(query, params, (err) => {
-    if (err) return res.status(500).json({ error: 'Error al actualizar trámite' });
-    res.json({ success: true });
-  });
->>>>>>> 7bb1f1993f39456a3e7b524ed4fcb6205920ffe3
 });
 
 app.listen(3001, () => {

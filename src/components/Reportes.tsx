@@ -517,7 +517,7 @@ const Reportes: React.FC = () => {
                               fontWeight: 700
                             }}
                           >
-                            {prov}
+                            {prov === "Sin proveedor" ? "Accesorio" : prov}
                           </div>
                           <div className="reporte-cuadro-botones">
                             <button
@@ -630,81 +630,23 @@ const Reportes: React.FC = () => {
             {/* ----------- COMPRAS ----------- */}
             {tipo === "compras" && Array.isArray(detalleDia?.detalles) && (
               <>
-                {/* Proveedor real o tipo */}
-                {detalleDia.proveedor && detalleDia.proveedor !== "Motos" && detalleDia.proveedor !== "Accesorios" && (
-                  <div style={{
-                    marginBottom: 18,
-                    background: "#232526",
-                    borderRadius: 8,
-                    padding: "10px 18px",
-                    color: "#fff"
-                  }}>
-                    <b>Proveedor:</b> {detalleDia.proveedor}
-                  </div>
-                )}
-                {(detalleDia.proveedor === "Motos" || detalleDia.proveedor === "Accesorios") && (
-                  <div style={{
-                    marginBottom: 18,
-                    background: "#232526",
-                    borderRadius: 8,
-                    padding: "10px 18px",
-                    color: "#fff",
-                    fontWeight: 700,
-                    fontSize: 18
-                  }}>
-                    {detalleDia.proveedor}
-                  </div>
-                )}
-                {/* Detalles de productos */}
-                {detalleDia.detalles.map((d: any, i: number) => (
-                  <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
-                    <div><b>Nombre:</b> {d.nombre}</div>
-                    <div><b>Cantidad:</b> {d.cantidad}</div>
-                    {/* Si es accesorio, mostrar calidad */}
-                    {detalleDia.proveedor === "Accesorios" && (
-                      <div>
-                        <b>Calidad:</b>{" "}
-                        {d.observaciones?.toLowerCase().includes("primera")
-                          ? "Primera marca"
-                          : d.observaciones?.toLowerCase().includes("segunda")
-                          ? "Segunda marca"
-                          : "-"}
+                {detalleDia.detalles.map((d: any, i: number) => {
+                  let marca = "-";
+                  if (d.observaciones?.toLowerCase().includes("primera")) marca = "Primera marca";
+                  else if (d.observaciones?.toLowerCase().includes("segunda")) marca = "Segunda marca";
+                  return (
+                    <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
+                      <div><b>Nombre:</b> {d.nombre}</div>
+                      <div><b>Cantidad:</b> {d.cantidad}</div>
+                      <div style={{ marginTop: 2 }}>
+                        <b>Observación:</b> {d.observaciones && d.observaciones.trim() !== "" ? d.observaciones : "---"}
                       </div>
-                    )}
-                    {/* Si es moto, mostrar marca */}
-                    {detalleDia.proveedor === "Motos" && d.marca && (
-                      <div>
-                        <b>Marca:</b> {d.marca}
+                      <div style={{ marginTop: 2 }}>
+                        <b>Marca:</b> {marca}
                       </div>
-                    )}
-                    {/* Si es repuesto, mostrar proveedor */}
-                    {detalleDia.proveedor !== "Motos" && detalleDia.proveedor !== "Accesorios" && (
-                      <div>
-                        <b>Proveedor:</b> {detalleDia.proveedor}
-                      </div>
-                    )}
-                    {/* Observación para todos si existe */}
-                    {d.observaciones && (
-                      <div><b>Observación:</b> {d.observaciones}</div>
-                    )}
-                    {d.precio && (
-                      <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
-                    )}
-                  </div>
-                ))}
-                {/* Total general de la compra */}
-                <div style={{
-                  marginTop: 18,
-                  fontWeight: 700,
-                  color: "#a32020",
-                  fontSize: 18,
-                  textAlign: "right"
-                }}>
-                  Total: $
-                  {detalleDia.detalles
-                    .reduce((acc: number, d: any) => acc + (Number(d.precio) || 0) * (Number(d.cantidad) || 0), 0)
-                    .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-                </div>
+                    </div>
+                  );
+                })}
               </>
             )}
 
@@ -1023,22 +965,17 @@ function exportarDetalleCompraAPDF(detalle: any) {
     y += 7;
     doc.text(`Cantidad: ${d.cantidad}`, 20, y);
     y += 7;
-    if (d.observaciones) {
-      doc.text(`Observación: ${d.observaciones}`, 20, y);
-      y += 7;
-    }
-    // Marca para accesorios y repuestos
-    if (
-      detalle.proveedor === "Accesorios" ||
-      (detalle.proveedor !== "Motos" && detalle.proveedor !== "Motos")
-    ) {
-      let marca = "-";
-      if (d.observaciones?.toLowerCase().includes("primera")) marca = "Primera marca";
-      else if (d.observaciones?.toLowerCase().includes("segunda")) marca = "Segunda marca";
-      doc.text(`Marca: ${marca}`, 20, y);
-      y += 7;
-    }
-    y += 3;
+    doc.text(
+      `Observación: ${d.observaciones && d.observaciones.trim() !== "" ? d.observaciones : "---"}`,
+      20,
+      y
+    );
+    y += 7;
+    let marca = "-";
+    if (d.observaciones?.toLowerCase().includes("primera")) marca = "Primera marca";
+    else if (d.observaciones?.toLowerCase().includes("segunda")) marca = "Segunda marca";
+    doc.text(`Marca: ${marca}`, 20, y);
+    y += 10;
     if (y > 230) {
       doc.addPage();
       y = 18;
