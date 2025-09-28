@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import riderLogo from "../assets/rider-logo.png";
 import "./Productos.css";
+import PaginacionUnificada from "./PaginacionUnificada";
 
 // Tipo de producto
 type Producto = {
@@ -341,7 +342,7 @@ const Productos: React.FC = () => {
   });
 
   const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
-  const productosPaginados = productosFiltrados.slice(
+  const productosPagina = productosFiltrados.slice(
     (paginaActual - 1) * productosPorPagina,
     paginaActual * productosPorPagina
   );
@@ -654,7 +655,7 @@ const Productos: React.FC = () => {
           </div>
         )}
         <ul className="productos-lista">
-          {productosPaginados.map(producto => (
+          {productosPagina.map(producto => (
             <li
               key={producto.id}
               className={
@@ -796,25 +797,12 @@ const Productos: React.FC = () => {
         )}
         {}
         {totalPaginas > 1 && (
-          <div className="paginacion-unificada">
-            <button
-              className="paginacion-btn"
-              disabled={paginaActual === 1}
-              onClick={() => setPaginaActual(paginaActual - 1)}
-            >
-              Anterior
-            </button>
-            <span className="paginacion-info">
-              Página {paginaActual} de {totalPaginas}
-            </span>
-            <button
-              className="paginacion-btn"
-              disabled={paginaActual === totalPaginas}
-              onClick={() => setPaginaActual(paginaActual + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
+          <PaginacionUnificada
+            pagina={paginaActual}
+            totalPaginas={totalPaginas}
+            onAnterior={() => setPaginaActual(paginaActual - 1)}
+            onSiguiente={() => setPaginaActual(paginaActual + 1)}
+          />
         )}
       </main>
     </div>

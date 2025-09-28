@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Reportes.css";
 import jsPDF from "jspdf";
+import PaginacionUnificada from "./PaginacionUnificada";
 
 type Venta = {
   id: number;
@@ -544,25 +545,12 @@ const Reportes: React.FC = () => {
         )}
         {/* Paginación */}
         {totalPaginas > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 18, gap: 10 }}>
-            <button
-              onClick={() => setPagina(p => Math.max(1, p - 1))}
-              disabled={pagina === 1}
-              style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#a32020", color: "#fff", fontWeight: 600, cursor: "pointer" }}
-            >
-              Anterior
-            </button>
-            <span style={{ color: "#fff" }}>
-              Página {pagina} de {totalPaginas}
-            </span>
-            <button
-              onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
-              disabled={pagina === totalPaginas}
-              style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#a32020", color: "#fff", fontWeight: 600, cursor: "pointer" }}
-            >
-              Siguiente
-            </button>
-          </div>
+          <PaginacionUnificada
+            pagina={pagina}
+            totalPaginas={totalPaginas}
+            onAnterior={() => setPagina(p => Math.max(1, p - 1))}
+            onSiguiente={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+          />
         )}
       </div>
       {/* MODAL DE DETALLE (para compras y ventas) */}

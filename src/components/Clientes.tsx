@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Clientes.css";
+import PaginacionUnificada from "./PaginacionUnificada";
 
 type Cliente = {
   id: number;
@@ -265,25 +266,12 @@ const Clientes: React.FC = () => {
         </ul>
         {/* Paginación */}
         {totalPaginas > 1 && (
-          <div className="paginacion-unificada">
-            <button
-              className="paginacion-btn"
-              disabled={pagina === 1}
-              onClick={() => setPagina(pagina - 1)}
-            >
-              Anterior
-            </button>
-            <span className="paginacion-info">
-              Página {pagina} de {totalPaginas}
-            </span>
-            <button
-              className="paginacion-btn"
-              disabled={pagina === totalPaginas}
-              onClick={() => setPagina(pagina + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
+          <PaginacionUnificada
+            pagina={pagina}
+            totalPaginas={totalPaginas}
+            onAnterior={() => setPagina(pagina - 1)}
+            onSiguiente={() => setPagina(pagina + 1)}
+          />
         )}
 
         {showForm && (

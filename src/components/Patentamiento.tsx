@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
+import PaginacionUnificada from "./PaginacionUnificada";
 
-const estados = ["Todos los estados", "Pendiente", "Completado"];
+const estados = ["Todos los estados", "Pendiente", "En Proceso", "Completado"];
 
 const Patentamiento: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +17,10 @@ const Patentamiento: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>("");
   const [tipoMensaje, setTipoMensaje] = useState<"error" | "success">("success");
   const [tramites, setTramites] = useState<any[]>([]);
+  const [tramiteEdit, setTramiteEdit] = useState<any | null>(null);
+  const [nuevoEstado, setNuevoEstado] = useState<string>("Pendiente");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const tramitesPorPagina = 10;
 
   // Traer ventas disponibles para patentamiento
   useEffect(() => {
@@ -118,6 +123,19 @@ const Patentamiento: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [mensaje]);
+
+  // Filtrado y paginación
+  const tramitesFiltrados = tramites
+    .filter(t =>
+      (estadoFiltro === "Todos los estados" || t.estado === estadoFiltro) &&
+      (busquedaCliente === "" || t.cliente.toLowerCase().includes(busquedaCliente.toLowerCase()))
+    );
+
+  const totalPaginas = Math.ceil(tramitesFiltrados.length / tramitesPorPagina);
+  const tramitesPagina = tramitesFiltrados.slice(
+    (paginaActual - 1) * tramitesPorPagina,
+    paginaActual * tramitesPorPagina
+  );
 
   return (
     <div className="patentamiento-container">
@@ -290,7 +308,7 @@ const Patentamiento: React.FC = () => {
                   resize: "none",
                   minHeight: 60
                 }}
-                maxLength={50}
+                maxLength={32}
               />
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
@@ -379,6 +397,7 @@ const Patentamiento: React.FC = () => {
               </tr>
             </thead>
             <tbody>
+<<<<<<< HEAD
               {tramites
                 .filter(t =>
                   (estadoFiltro === "Todos los estados" || t.estado === estadoFiltro) &&
@@ -421,15 +440,154 @@ const Patentamiento: React.FC = () => {
                     </td>
                   </tr>
                 ))}
+=======
+              {tramitesPagina.map((t, i) => (
+                <tr key={t.id}>
+                  <td>{t.cliente}</td>
+                  <td>{t.moto}</td>
+                  <td>{t.fechaSolicitud?.slice(0, 10)}</td>
+                  <td>{t.estado === "Completado" && t.fechaFinalizacion ? t.fechaFinalizacion.slice(0, 10) : "-"}</td>
+                  <td>
+                    <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
+                  </td>
+                  <td>{t.observaciones || "-"}</td>
+                  <td>
+                    <button
+                      className="btn-agencia btn-accion"
+                      onClick={() => {
+                        setTramiteEdit(t);
+                        setNuevoEstado(t.estado);
+                      }}
+                    >
+                      Actualizar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+>>>>>>> 7bb1f1993f39456a3e7b524ed4fcb6205920ffe3
             </tbody>
           </table>
-          <div className="patentamiento-paginacion">
-            <button className="btn-agencia btn-pag">Anterior</button>
-            <span className="pag-num">1</span>
-            <button className="btn-agencia btn-pag">Siguiente</button>
+          <div className="patentamiento-paginacion" style={{ marginTop: 18, display: "flex", gap: 8, alignItems: "center" }}>
+            <PaginacionUnificada
+              pagina={paginaActual}
+              totalPaginas={totalPaginas}
+              onAnterior={() => setPaginaActual(paginaActual - 1)}
+              onSiguiente={() => setPaginaActual(paginaActual + 1)}
+            />
           </div>
         </div>
       </div>
+
+      {/* Modal de actualización de estado */}
+      {tramiteEdit && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999
+          }}
+          onClick={() => setTramiteEdit(null)}
+        >
+          <div
+            style={{
+              background: "#232526",
+              border: "2px solid #a32020",
+              borderRadius: "16px",
+              padding: "32px 36px",
+              minWidth: "340px",
+              boxShadow: "0 4px 24px #0008",
+              position: "relative"
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 style={{ color: "#a32020", fontWeight: 700, marginBottom: 18 }}>
+              Actualizar estado de trámite
+            </h3>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ color: "#fff", fontWeight: 600, marginRight: 12 }}>
+                Estado:
+              </label>
+              <select
+                value={nuevoEstado}
+                onChange={e => setNuevoEstado(e.target.value)}
+                style={{
+                  background: "#181818",
+                  color: "#fff",
+                  border: "1.5px solid #a32020",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                  fontSize: "1em"
+                }}
+              >
+                {estados.filter(e => e !== "Todos los estados").map(e => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                className="btn-agencia"
+                style={{
+                  background: "#a32020",
+                  color: "#fff",
+                  borderRadius: "8px",
+                  padding: "8px 24px",
+                  fontWeight: 700,
+                  border: "none"
+                }}
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`http://localhost:3001/api/patentamientos/${tramiteEdit.id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ estado: nuevoEstado })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      setMensaje("Estado actualizado correctamente.");
+                      setTipoMensaje("success");
+                      setTramiteEdit(null);
+                      // Refrescar trámites
+                      fetch("http://localhost:3001/api/patentamientos")
+                        .then(res => res.json())
+                        .then(data => setTramites(data));
+                    } else {
+                      setMensaje(data.error || "No se pudo actualizar el estado.");
+                      setTipoMensaje("error");
+                    }
+                  } catch {
+                    setMensaje("Error de conexión con el servidor.");
+                    setTipoMensaje("error");
+                  }
+                }}
+              >
+                Guardar
+              </button>
+              <button
+                className="btn-agencia"
+                style={{
+                  background: "#555",
+                  color: "#fff",
+                  borderRadius: "8px",
+                  padding: "8px 24px",
+                  fontWeight: 700,
+                  border: "none"
+                }}
+                onClick={() => setTramiteEdit(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
