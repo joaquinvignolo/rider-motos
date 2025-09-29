@@ -11,75 +11,95 @@ function generarPDFVenta(venta, detalles, cliente) {
       resolve(pdfData);
     });
 
-    // Logo
+    // Logo bien arriba a la izquierda
+    let logoY = 20;
     try {
-      doc.image(path.join(__dirname, 'Rider.png'), 40, 30, { width: 80 });
+      doc.image(path.join(__dirname, 'Rider.png'), 30, logoY, { width: 80 });
     } catch (e) {}
 
-    doc.fontSize(22).fillColor('#a32020').text('Comprobante de Venta', { align: 'center', underline: true });
-    doc.moveDown();
-    doc.fontSize(12).fillColor('#000').text(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`);
-    doc.text(`Método de pago: ${venta.metodo_pago || '-'}`);
-    doc.moveDown(0.5);
+    // Título bien arriba y centrado
+    const tituloY = 35;
+    doc.fontSize(24).fillColor('#a32020').text('Comprobante de Venta', 0, tituloY, { align: 'center', underline: true });
 
-    doc.fontSize(13).fillColor('#333').text(`Cliente: ${cliente.nombre} ${cliente.apellido}`);
-    doc.text(`Correo: ${cliente.correo}`);
-    doc.text(`Teléfono: ${cliente.telefono}`);
-    doc.moveDown();
+    // Datos de la venta y cliente (más abajo)
+    let datosY = 110;
+    doc.fontSize(12).fillColor('#000').text(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, 40, datosY);
+    datosY += 20;
+    doc.text(`Método de pago: ${venta.metodo_pago || '-'}`, 40, datosY);
+    datosY += 25;
+    doc.fontSize(13).fillColor('#333').text(`Cliente: ${cliente.nombre} ${cliente.apellido}`, 40, datosY);
+    datosY += 18;
+    doc.text(`Correo: ${cliente.correo}`, 40, datosY);
+    datosY += 18;
+    doc.text(`Teléfono: ${cliente.telefono}`, 40, datosY);
 
-    // Tabla de productos
-    doc.fontSize(13).fillColor('#a32020').text('Detalle de productos:', { underline: true });
-    doc.moveDown(0.5);
+    // Detalle de productos (más espacio antes)
+    datosY += 35;
+    doc.fontSize(13).fillColor('#a32020').text('Detalle de productos:', 40, datosY, { underline: true });
+    datosY += 25;
 
-    // Tabla: encabezado
-    const tableTop = doc.y;
-    const colX = [40, 170, 250, 320, 390, 470];
-    const colW = [130, 80, 70, 70, 80];
+    // Tabla: encabezado (más ancha)
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const tableLeft = 40;
+    const tableWidth = pageWidth - 2 * (tableLeft - doc.page.margins.left); // para que quede a lo largo
+    const colX = [
+      tableLeft,
+      tableLeft + 0.22 * tableWidth,
+      tableLeft + 0.44 * tableWidth,
+      tableLeft + 0.60 * tableWidth,
+      tableLeft + 0.75 * tableWidth
+    ];
+    const colW = [
+      0.22 * tableWidth,
+      0.22 * tableWidth,
+      0.16 * tableWidth,
+      0.15 * tableWidth,
+      0.15 * tableWidth
+    ];
 
+    // Encabezado de tabla
     doc
       .font('Helvetica-Bold').fontSize(12).fillColor('#fff')
-      .rect(colX[0], tableTop, 430, 22).fill('#a32020')
+      .rect(tableLeft, datosY, tableWidth, 22).fill('#a32020')
       .fillColor('#fff')
-      .text('Producto', colX[0] + 4, tableTop + 5, { width: colW[0] })
-      .text('Marca', colX[1] + 4, tableTop + 5, { width: colW[1] })
-      .text('Cantidad', colX[2] + 4, tableTop + 5, { width: colW[2], align: 'right' })
-      .text('Precio', colX[3] + 4, tableTop + 5, { width: colW[3], align: 'right' })
-      .text('Subtotal', colX[4] + 4, tableTop + 5, { width: colW[4], align: 'right' });
+      .text('Producto', colX[0] + 4, datosY + 5, { width: colW[0] - 8 })
+      .text('Marca', colX[1] + 4, datosY + 5, { width: colW[1] - 8 })
+      .text('Cantidad', colX[2] + 4, datosY + 5, { width: colW[2] - 8, align: 'right' })
+      .text('Precio', colX[3] + 4, datosY + 5, { width: colW[3] - 8, align: 'right' })
+      .text('Subtotal', colX[4] + 4, datosY + 5, { width: colW[4] - 8, align: 'right' });
 
-    doc.moveDown();
-    let y = tableTop + 22;
+    let y = datosY + 22;
 
-    // Tabla: filas
+    // Tabla: filas (más espacio entre filas)
     doc.font('Helvetica').fontSize(12).fillColor('#222');
     detalles.forEach((d, i) => {
-      // Alternar color de fondo para filas
       if (i % 2 === 0) {
-        doc.rect(colX[0], y, 430, 20).fill('#f6f6f6').fillColor('#222');
+        doc.rect(tableLeft, y, tableWidth, 24).fill('#f6f6f6').fillColor('#222');
       }
       doc
-        .text(d.nombre, colX[0] + 4, y + 4, { width: colW[0] })
-        .text(d.marca || '-', colX[1] + 4, y + 4, { width: colW[1] })
-        .text(d.cantidad, colX[2] + 4, y + 4, { width: colW[2], align: 'right' })
-        .text(`$${Number(d.precio).toFixed(2)}`, colX[3] + 4, y + 4, { width: colW[3], align: 'right' })
-        .text(`$${(Number(d.precio) * d.cantidad).toFixed(2)}`, colX[4] + 4, y + 4, { width: colW[4], align: 'right' });
-      y += 20;
+        .text(d.nombre, colX[0] + 4, y + 6, { width: colW[0] - 8 })
+        .text(d.marca || '-', colX[1] + 4, y + 6, { width: colW[1] - 8 })
+        .text(d.cantidad, colX[2] + 4, y + 6, { width: colW[2] - 8, align: 'right' })
+        .text(`$${Number(d.precio).toFixed(2)}`, colX[3] + 4, y + 6, { width: colW[3] - 8, align: 'right' })
+        .text(`$${(Number(d.precio) * d.cantidad).toFixed(2)}`, colX[4] + 4, y + 6, { width: colW[4] - 8, align: 'right' });
+      y += 24;
       doc.fillColor('#222');
     });
 
     // Línea divisoria antes del total
-    doc.moveTo(colX[0], y + 2).lineTo(colX[0] + 430, y + 2).strokeColor('#a32020').lineWidth(1).stroke();
+    doc.moveTo(tableLeft, y + 2).lineTo(tableLeft + tableWidth, y + 2).strokeColor('#a32020').lineWidth(1).stroke();
 
-    // Total
-    doc.font('Helvetica-Bold').fontSize(13).fillColor('#a32020')
-      .text('TOTAL:', colX[3] + 4, y + 8, { width: colW[3], align: 'right' })
-      .text(`$${Number(venta.total).toFixed(2)}`, colX[4] + 4, y + 8, { width: colW[4], align: 'right' });
+    // Total (alineado a la derecha, una sola línea)
+    doc.font('Helvetica-Bold').fontSize(14).fillColor('#a32020')
+      .text('TOTAL:', colX[3] + 4, y + 10, { width: colW[3] - 8, align: 'right' })
+      .text(`$${Number(venta.total).toFixed(2)}`, colX[4] + 4, y + 10, { width: colW[4] - 8, align: 'right' });
 
-    doc.moveDown(3);
-    doc.fontSize(11).fillColor('#333')
-      .text('Gracias por su compra.', { align: 'center' })
-      .moveDown(0.5)
-      .text('Rider Motos - Av.Uruguay 61 - Tel: 3541 43-7332', { align: 'center' })
-      .text('www.ridermotos.com.ar', { align: 'center', link: 'http://www.ridermotos.com.ar', underline: true });
+    // Pie de página: más abajo, pero siempre en la misma hoja
+    const pieY = Math.max(y + 60, 690); // nunca menos de 690, pero si la tabla es más larga, baja más
+    doc.fontSize(12).fillColor('#333');
+    doc.text('Gracias por su compra.', 0, pieY, { align: 'center' });
+    doc.text('Rider Motos - Av.Uruguay 61 - Tel: 3541 43-7332', 0, pieY + 18, { align: 'center' });
+    doc.text('www.ridermotos.com.ar', 0, pieY + 36, { align: 'center', link: 'http://www.ridermotos.com.ar', underline: true });
 
     doc.end();
   });
