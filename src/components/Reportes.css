@@ -147,6 +147,9 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  max-width: 520px !important;
+  min-width: 340px;
+  width: 100%;
 }
 .reporte-modal-content h2 {
   color: #ffd700;
@@ -303,6 +306,9 @@
   padding: 12px 8px 0 8px;
   position: relative;
   margin-bottom: 8px;
+  max-width: 220px !important;
+  min-width: 180px;
+  width: 100%;
 }
 
 .reporte-cuadro-fecha {
@@ -319,10 +325,14 @@
 }
 
 .reporte-cuadro-cliente {
+  max-width: 220px;
+  min-width: 140px;
+  margin: 0 auto;
   color: #fff;
-  font-size: 1.05rem;
-  margin-bottom: 18px;
+  word-break: break-word;
   text-align: center;
+  margin-bottom: 48px;
+  padding-bottom: 18px;
 }
 
 .reporte-cuadro-botones {

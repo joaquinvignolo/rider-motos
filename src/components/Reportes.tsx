@@ -389,7 +389,7 @@ const Reportes: React.FC = () => {
                           ${Number(totalPorCliente[cliente]).toFixed(2)}
                         </div>
                         {/* Datos del cliente */}
-                        <div className="reporte-cuadro-cliente" style={{ marginBottom: 20 }}>
+                        <div className="reporte-cuadro-cliente" style={{ marginBottom: 48, wordBreak: "break-word", whiteSpace: "pre-line", maxWidth: 260, minHeight: 80, overflowWrap: "break-word", textAlign: "center", margin: "0 auto", paddingBottom: 18 }}>
                           <b style={{ display: "block", marginBottom: 4 }}>
                             {(ventasCliente[0].cliente_nombre || "") + " " + (ventasCliente[0].cliente_apellido || "")}
                           </b>
@@ -397,7 +397,7 @@ const Reportes: React.FC = () => {
                             <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_telefono}</div>
                           )}
                           {ventasCliente[0].cliente_correo && (
-                            <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_correo}</div>
+                            <div style={{ marginBottom: 4, wordBreak: "break-all" }}>{ventasCliente[0].cliente_correo}</div>
                           )}
                         </div>
                         <div className="reporte-cuadro-botones">
@@ -556,7 +556,13 @@ const Reportes: React.FC = () => {
       {/* MODAL DE DETALLE (para compras y ventas) */}
       {detalleDia && (
         <div className="reporte-modal">
-          <div className="reporte-modal-content">
+          <div className="reporte-modal-content"
+            style={{
+              maxWidth: 520,
+              minWidth: 340,
+              width: "100%",
+            }}
+          >
             <div style={{
               position: "relative",
               marginTop: 24,
