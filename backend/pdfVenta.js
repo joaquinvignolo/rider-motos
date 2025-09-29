@@ -78,7 +78,7 @@ function generarPDFVenta(venta, detalles, cliente) {
     doc.fontSize(11).fillColor('#333')
       .text('Gracias por su compra.', { align: 'center' })
       .moveDown(0.5)
-      .text('Rider Motos - Av. Siempreviva 123 - Tel: 555-1234', { align: 'center' })
+      .text('Rider Motos - Av.Uruguay 61 - Tel: 3541 43-7332', { align: 'center' })
       .text('www.ridermotos.com.ar', { align: 'center', link: 'http://www.ridermotos.com.ar', underline: true });
 
     doc.end();
