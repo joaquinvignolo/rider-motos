@@ -659,7 +659,14 @@ const Reportes: React.FC = () => {
             {/* ----------- VENTAS ----------- */}
             {tipo === "ventas" && Array.isArray(detalleDia?.productos) && (
               <div style={{ display: "flex", flexDirection: "row", gap: 24 }}>
-                <div style={{ flex: 2 }}>
+                <div
+                  style={{
+                    flex: 2,
+                    maxHeight: 420, // ajusta la altura máxima a tu gusto
+                    overflowY: "auto",
+                    paddingRight: 8,
+                  }}
+                >
                   {detalleDia.productos.map((d: any, i: number) => {
                     // Detecta tarjeta de crédito y transferencia
                     const esTarjeta = d.metodo_pago?.toLowerCase().includes("tarjeta");
