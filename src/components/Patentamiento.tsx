@@ -397,50 +397,6 @@ const Patentamiento: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
-              {tramites
-                .filter(t =>
-                  (estadoFiltro === "Todos los estados" || t.estado === estadoFiltro) &&
-                  (busquedaCliente === "" || t.cliente.toLowerCase().includes(busquedaCliente.toLowerCase()))
-                )
-                .map((t, i) => (
-                  <tr key={t.id}>
-                    <td>{t.cliente}</td>
-                    <td>{t.moto}</td>
-                    <td>{t.fechaSolicitud ? new Date(t.fechaSolicitud).toLocaleDateString() : "-"}</td>
-                    <td>
-                      {(t.estado === "Completado" || t.estado === "Finalizado")
-                        ? (t.fechaFinalizacion
-                            ? new Date(t.fechaFinalizacion).toLocaleDateString()
-                            : (t.ultimaActualizacion
-                                ? new Date(t.ultimaActualizacion).toLocaleDateString()
-                                : "-"))
-                        : "-"}
-                    </td>
-                    <td>
-                      <span
-                        className={`estado-badge estado-${t.estado.toLowerCase()}`}
-                        style={t.estado === "Completado" ? { background: "#a32020", color: "#fff" } : {}}
-                      >
-                        {t.estado}
-                      </span>
-                    </td>
-                    <td>{t.observaciones || "-"}</td>
-                    <td>
-                      {t.estado === "Pendiente" ? (
-                        <button
-                          className="btn-agencia btn-accion"
-                          onClick={() => actualizarEstado(t.id)}
-                        >
-                          Actualizar
-                        </button>
-                      ) : (
-                        <span style={{ color: "#a32020", fontWeight: 700 }}>Finalizado</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-=======
               {tramitesPagina.map((t, i) => (
                 <tr key={t.id}>
                   <td>{t.cliente}</td>
@@ -464,7 +420,6 @@ const Patentamiento: React.FC = () => {
                   </td>
                 </tr>
               ))}
->>>>>>> 7bb1f1993f39456a3e7b524ed4fcb6205920ffe3
             </tbody>
           </table>
           <div className="patentamiento-paginacion" style={{ marginTop: 18, display: "flex", gap: 8, alignItems: "center" }}>

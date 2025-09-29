@@ -316,7 +316,7 @@ app.post('/api/ventas', (req, res) => {
                               console.error('Error enviando mail:', errMail);
                               return res.json({ success: true, venta_id, mailEnviado: false });
                             } else {
-                              console.log('Mail enviado:', info);
+                              //console.log('Mail enviado:', info);
                               return res.json({ success: true, venta_id, mailEnviado: true });
                             }
                           });
@@ -552,18 +552,6 @@ app.get('/api/patentamientos', (req, res) => {
   });
 });
 
-<<<<<<< HEAD
-app.put('/api/patentamientos/:id/estado', (req, res) => {
-  const { estado } = req.body;
-  db.query(
-    'UPDATE patentamientos SET estado = ?, fecha_finalizacion = IF(? = "Finalizado", CURDATE(), fecha_finalizacion) WHERE id = ?',
-    [estado, estado, req.params.id],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error al actualizar estado' });
-      res.json({ success: true });
-    }
-  );
-=======
 // Actualizar estado de trámite de patentamiento
 app.patch('/api/patentamientos/:id', (req, res) => {
   const { estado } = req.body;
@@ -578,7 +566,6 @@ app.patch('/api/patentamientos/:id', (req, res) => {
     if (err) return res.status(500).json({ error: 'Error al actualizar trámite' });
     res.json({ success: true });
   });
->>>>>>> 7bb1f1993f39456a3e7b524ed4fcb6205920ffe3
 });
 
 app.listen(3001, () => {
