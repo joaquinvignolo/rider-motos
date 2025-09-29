@@ -436,18 +436,7 @@ const Patentamiento: React.FC = () => {
       {/* Modal de actualización de estado */}
       {tramiteEdit && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.35)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999
-          }}
+          className="patentamiento-modal-backdrop"
           onClick={() => setTramiteEdit(null)}
         >
           <div
