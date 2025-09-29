@@ -412,7 +412,7 @@ const Reportes: React.FC = () => {
                               const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
 
                               // Solo incluí los productos de las ventas filtradas
-                              const productos = ventasFiltradas.flatMap(v =>
+                              const productos = ventasCliente.flatMap(v =>
                                 v.detalles.map(d => ({
                                   ...d,
                                   metodo_pago: v.metodo_pago,
@@ -425,7 +425,7 @@ const Reportes: React.FC = () => {
                                 }))
                               );
 
-                              setDetalleDia({ fecha: ventasFiltradas[0]?.fecha || fecha, productos, cliente });
+                              setDetalleDia({ fecha: ventasCliente[0]?.fecha || fecha, productos, cliente });
                             }}
                             title="Ver detalle"
                           >
