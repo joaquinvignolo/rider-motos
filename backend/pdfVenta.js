@@ -42,18 +42,19 @@ function generarPDFVenta(venta, detalles, cliente) {
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const tableLeft = 40;
     const tableWidth = pageWidth - 2 * (tableLeft - doc.page.margins.left); // para que quede a lo largo
+    // Ajustamos las posiciones de las columnas
     const colX = [
       tableLeft,
       tableLeft + 0.22 * tableWidth,
-      tableLeft + 0.44 * tableWidth,
-      tableLeft + 0.60 * tableWidth,
+      tableLeft + 0.38 * tableWidth, // Cantidad más a la izquierda
+      tableLeft + 0.56 * tableWidth, // Precio más a la izquierda
       tableLeft + 0.75 * tableWidth
     ];
     const colW = [
       0.22 * tableWidth,
-      0.22 * tableWidth,
-      0.16 * tableWidth,
-      0.15 * tableWidth,
+      0.16 * tableWidth, // Marca un poco más angosta
+      0.18 * tableWidth, // Cantidad más ancha
+      0.19 * tableWidth, // Precio más ancha
       0.15 * tableWidth
     ];
 
@@ -64,13 +65,16 @@ function generarPDFVenta(venta, detalles, cliente) {
       .fillColor('#fff')
       .text('Producto', colX[0] + 4, datosY + 5, { width: colW[0] - 8 })
       .text('Marca', colX[1] + 4, datosY + 5, { width: colW[1] - 8 })
-      .text('Cantidad', colX[2] + 4, datosY + 5, { width: colW[2] - 8, align: 'right' })
-      .text('Precio', colX[3] + 4, datosY + 5, { width: colW[3] - 8, align: 'right' })
-      .text('Subtotal', colX[4] + 4, datosY + 5, { width: colW[4] - 8, align: 'right' });
+      // Cantidad centrado
+      .text('Cantidad', colX[2], datosY + 5, { width: colW[2], align: 'center' })
+      // Precio centrado
+      .text('Precio', colX[3], datosY + 5, { width: colW[3], align: 'center' })
+      // Subtotal igual
+      .text('Subtotal', colX[4] + 12, datosY + 5, { width: colW[4] + 12, align: 'right' });
 
     let y = datosY + 22;
 
-    // Tabla: filas (más espacio entre filas)
+    // Filas de la tabla
     doc.font('Helvetica').fontSize(12).fillColor('#222');
     detalles.forEach((d, i) => {
       if (i % 2 === 0) {
@@ -79,9 +83,12 @@ function generarPDFVenta(venta, detalles, cliente) {
       doc
         .text(d.nombre, colX[0] + 4, y + 6, { width: colW[0] - 8 })
         .text(d.marca || '-', colX[1] + 4, y + 6, { width: colW[1] - 8 })
-        .text(d.cantidad, colX[2] + 4, y + 6, { width: colW[2] - 8, align: 'right' })
-        .text(`$${Number(d.precio).toFixed(2)}`, colX[3] + 4, y + 6, { width: colW[3] - 8, align: 'right' })
-        .text(`$${(Number(d.precio) * d.cantidad).toFixed(2)}`, colX[4] + 4, y + 6, { width: colW[4] - 8, align: 'right' });
+        // Cantidad centrado
+        .text(d.cantidad, colX[2], y + 6, { width: colW[2], align: 'center' })
+        // Precio centrado
+        .text(`$${Number(d.precio).toFixed(2)}`, colX[3], y + 6, { width: colW[3], align: 'center' })
+        // Subtotal igual
+        .text(`$${(Number(d.precio) * d.cantidad).toFixed(2)}`, colX[4] + 12, y + 6, { width: colW[4] + 12, align: 'right' });
       y += 24;
       doc.fillColor('#222');
     });
@@ -89,10 +96,19 @@ function generarPDFVenta(venta, detalles, cliente) {
     // Línea divisoria antes del total
     doc.moveTo(tableLeft, y + 2).lineTo(tableLeft + tableWidth, y + 2).strokeColor('#a32020').lineWidth(1).stroke();
 
-    // Total (alineado a la derecha, una sola línea)
-    doc.font('Helvetica-Bold').fontSize(14).fillColor('#a32020')
-      .text('TOTAL:', colX[3] + 4, y + 10, { width: colW[3] - 8, align: 'right' })
-      .text(`$${Number(venta.total).toFixed(2)}`, colX[4] + 4, y + 10, { width: colW[4] - 8, align: 'right' });
+    // Total (alineado a la derecha, una sola línea, sin salto)
+    const totalLabel = 'TOTAL:';
+    const totalValue = `$${Number(venta.total).toFixed(2)}`;
+    doc.font('Helvetica-Bold').fontSize(14).fillColor('#a32020');
+
+    // Calculamos el ancho del texto para alinearlo bien a la derecha
+    const totalTextWidth = doc.widthOfString(`${totalLabel}   ${totalValue}`);
+    const totalX = tableLeft + tableWidth - totalTextWidth;
+
+    doc.text(`${totalLabel}   ${totalValue}`, totalX, y + 10, {
+      width: totalTextWidth,
+      align: 'left'
+    });
 
     // Pie de página: más abajo, pero siempre en la misma hoja
     const pieY = Math.max(y + 60, 690); // nunca menos de 690, pero si la tabla es más larga, baja más
