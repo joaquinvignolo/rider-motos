@@ -252,7 +252,7 @@ app.patch('/api/clientes/:id/activo', (req, res) => {
 app.post('/api/ventas', (req, res) => {
   const { cliente_id, total, tipo_venta, metodo_pago, productos } = req.body;
   const clienteIdFinal = typeof cliente_id === "undefined" ? null : cliente_id;
-  console.log("Datos recibidos en /api/ventas:", req.body);
+  //console.log("Datos recibidos en /api/ventas:", req.body);
   db.query(
     'INSERT INTO ventas (cliente_id, fecha, total, tipo_venta, metodo_pago) VALUES (?, NOW(), ?, ?, ?)',
     [clienteIdFinal, total, tipo_venta, metodo_pago],

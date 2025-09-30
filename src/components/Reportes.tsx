@@ -662,7 +662,7 @@ const Reportes: React.FC = () => {
                 <div
                   style={{
                     flex: 2,
-                    maxHeight: 420, // ajusta la altura máxima a tu gusto
+                    maxHeight: 420, 
                     overflowY: "auto",
                     paddingRight: 8,
                   }}
@@ -672,12 +672,6 @@ const Reportes: React.FC = () => {
                     const esTarjeta = d.metodo_pago?.toLowerCase().includes("tarjeta");
                     const esTransferencia = d.metodo_pago?.toLowerCase().includes("transferencia");
                     const esMorado = esTarjeta || esTransferencia;
-
-                    // Si el recargo ya viene aplicado desde ventas, no lo sumes de nuevo
-                    // Si NO viene aplicado, descomenta la línea siguiente y ajusta el porcentaje
-                    // const recargo = esTarjeta ? 0.2 : 0;
-                    // const totalProducto = (Number(d.precio) * Number(d.cantidad)) * (1 + recargo);
-
                     const totalProducto = Number(d.precio) * Number(d.cantidad);
 
                     return (
@@ -790,7 +784,7 @@ const Reportes: React.FC = () => {
               style={{
                 position: "fixed",
                 top: "50%",
-                left: "calc(50% + 340px)", // Ajusta según el ancho de tu modal principal
+                left: "calc(50% + 340px)", 
                 transform: "translateY(-50%)",
                 background: "#232526",
                 borderRadius: 12,
@@ -869,7 +863,7 @@ function exportarDetalleAPDF(detalle: any) {
   doc.setTextColor(163, 32, 32);
   doc.text("Detalle de Venta", 105, y, { align: "center" });
 
-  // Fecha (centrada, sin datos de cliente al lado)
+  // Fecha
   y += 10;
   doc.setFontSize(13);
   doc.setTextColor(80, 80, 80);
@@ -932,7 +926,7 @@ function exportarDetalleAPDF(detalle: any) {
     y
   );
 
-  // Datos del cliente (solo abajo a la derecha si existe)
+  // Datos del cliente
   const cliente = detalle.productos[0];
   if (
     cliente?.cliente_nombre ||

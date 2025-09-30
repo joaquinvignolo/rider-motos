@@ -102,7 +102,7 @@ const Patentamiento: React.FC = () => {
       const res = await fetch(`http://localhost:3001/api/patentamientos/${id}/estado`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: "Completado" }) // <-- CAMBIÁ ESTO
+        body: JSON.stringify({ estado: "Completado" }) 
       });
       const data = await res.json();
       if (data.success) {
