@@ -552,7 +552,7 @@ app.get('/api/patentamientos', (req, res) => {
   });
 });
 
-// Actualizar estado de trámite de patentamiento
+// Actualizar estado de trámite de patentamiento y enviar email si es "Completado"
 app.patch('/api/patentamientos/:id', (req, res) => {
   const { estado } = req.body;
   let query = 'UPDATE patentamientos SET estado=?, ultima_actualizacion=NOW()';
@@ -562,9 +562,51 @@ app.patch('/api/patentamientos/:id', (req, res) => {
   }
   query += ' WHERE id=?';
   params.push(req.params.id);
+
   db.query(query, params, (err) => {
     if (err) return res.status(500).json({ error: 'Error al actualizar trámite' });
-    res.json({ success: true });
+
+    // Si el estado es "Completado", enviar email al cliente
+    if (estado === 'Completado') {
+      db.query(`
+        SELECT c.correo, c.nombre, c.apellido, marcas.nombre as marca, productos.nombre as moto
+        FROM patentamientos p
+        JOIN ventas v ON p.venta_id = v.id
+        JOIN clientes c ON v.cliente_id = c.id
+        JOIN detalle_ventas dv ON dv.venta_id = v.id
+        JOIN productos ON dv.producto_id = productos.id
+        LEFT JOIN marcas ON productos.marca_id = marcas.id
+        WHERE p.id = ? AND productos.tipo = 'moto'
+        LIMIT 1
+      `, [req.params.id], (err2, results) => {
+        if (!err2 && results.length && results[0].correo) {
+          const cliente = results[0];
+          transporter.sendMail({
+            from: '"Rider Motos" <ridermotos@gmail.com>',
+            to: cliente.correo,
+            subject: '¡Tu moto ya está patentada!',
+            text: `Hola ${cliente.nombre} ${cliente.apellido},\n\nTe informamos que el trámite de patentamiento de tu moto ${cliente.marca} ${cliente.moto} ha sido completado exitosamente.\n\n¡Gracias por confiar en Rider Motos!`,
+            html: `
+              <div style="font-family: Arial, sans-serif; color: #000000ff;">
+                <h2 style="color: #a32020;">¡Tu moto ya está patentada!</h2>
+                <p>Hola <b>${cliente.nombre} ${cliente.apellido}</b>,</p>
+                <p>Te informamos que el trámite de patentamiento de tu moto <b>${cliente.marca} ${cliente.moto}</b> ha sido <b style="color: #8ee097ff;">completado exitosamente</b>.</p>
+                <p>¡Gracias por confiar en <b>Rider Motos</b>!</p>
+                <hr>
+                <small style="color: #888;">Este es un mensaje automático, por favor no responder.</small>
+              </div>
+            `
+          }, (errMail) => {
+            return res.json({ success: true });
+          });
+        } else {
+          // Si no hay correo, igual respondé éxito
+          return res.json({ success: true });
+        }
+      });
+    } else {
+      res.json({ success: true });
+    }
   });
 });
 

@@ -344,10 +344,6 @@ const Patentamiento: React.FC = () => {
           }}>
           <div className="patentamiento-list-header" style={{ marginBottom: 10 }}>
             <h3 className="patentamiento-subtitulo" style={{ color: "#a32020", fontWeight: 700, fontSize: "1.3rem" }}>Trámites de Patentamiento</h3>
-            <button className="btn-agencia btn-reporte" style={{ float: "right" }}>
-              <span role="img" aria-label="reporte" style={{ marginRight: 6 }}></span>
-              Imprimir Reporte
-            </button>
           </div>
           {/* Filtros de trámites */}
           <div className="patentamiento-list-filtros" style={{ marginBottom: 14, display: "flex", gap: "18px" }}>
