@@ -26,17 +26,19 @@ function MenuPrincipal() {
             marginTop: "140px"
           }}
         >
-          {}
+          {/* Primera columna */}
           <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
             <button onClick={() => navigate("/compras")}>COMPRAS</button>
             <button onClick={() => navigate("/productos")}>PRODUCTOS</button>
             <button onClick={() => navigate("/ventas")}>VENTAS</button>
+            <button onClick={() => navigate("/marcas")}>MARCAS</button>
           </div>
-          {}
+          {/* Segunda columna */}
           <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
             <button onClick={() => navigate("/clientes")}>CLIENTES</button>
             <button onClick={() => navigate("/patentamientos")}>PATENTAMIENTOS</button>
             <button onClick={() => navigate("/reportes")}>REPORTES</button>
+            <button onClick={() => navigate("/proveedores")}>PROVEEDORES</button>
           </div>
         </main>
       </div>
