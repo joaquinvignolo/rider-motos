@@ -81,10 +81,9 @@ const Compras = () => {
         if (
             precioUnitario === '' ||
             isNaN(precioNum) ||
-            precioNum <= 0 ||
-            !Number.isInteger(precioNum)
+            precioNum <= 0
         ) {
-            setMensajeError("El precio unitario debe ser un número entero mayor a 0.");
+            setMensajeError("El precio unitario debe ser un número mayor a 0.");
             return;
         }
         if (carrito.some(item => item.id === productoSeleccionado)) {
@@ -173,7 +172,6 @@ const Compras = () => {
                  setCantidad(1);
                  setPrecioUnitario('');
                  setTimeout(() => setMensajeExito(''), 3500);
-                // Bloqueo breve del botón tras el éxito (igual que ventas)
                 setCooldownBtn(true);
                 setTimeout(() => setCooldownBtn(false), 2000);
              } else {
@@ -321,6 +319,7 @@ const Compras = () => {
                         <input
                             type="number"
                             min={0}
+                            step="any"
                             value={precioUnitario}
                             onChange={e => setPrecioUnitario(e.target.value)}
                         />
@@ -334,7 +333,7 @@ const Compras = () => {
                             rows={3}
                             maxLength={120}
                             style={{
-                                resize: 'none', // <--- evita que se estire el modal para abajo
+                                resize: 'none', 
                                 width: '100%',
                                 background: '#232526',
                                 color: '#fff',
@@ -390,8 +389,8 @@ const Compras = () => {
                                         </td>
                                         <td>{item.marca}</td>
                                         <td>{item.cantidad}</td>
-                                        <td>${Number(item.precio)}</td>
-                                        <td>${Number(item.precio) * item.cantidad}</td>
+                                        <td>${Number(item.precio).toFixed(2)}</td>
+                                        <td>${(Number(item.precio) * item.cantidad).toFixed(2)}</td>
                                         <td>{item.observaciones || ''}</td>
                                     </tr>
                                 ))}
@@ -400,7 +399,7 @@ const Compras = () => {
                     )}
                     <div className="total-row">
                         <span>Total:</span>
-                        <span className="total">${total}</span>
+                        <span className="total">${total.toFixed(2)}</span>
                     </div>
                 </div>
                 {}
@@ -410,7 +409,7 @@ const Compras = () => {
                         color: "#fff",
                         padding: "12px 20px",
                         borderRadius: 8,
-                        marginTop: 18,      // separación del carrito
+                        marginTop: 18,      
                         marginBottom: 18,
                         fontWeight: 700,
                         boxShadow: "0 2px 8px rgba(30,126,52,0.18)"
