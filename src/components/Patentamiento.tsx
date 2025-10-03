@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
 import PaginacionUnificada from "./PaginacionUnificada";
+import IndicadorCarga from "./IndicadorCarga";
 
 const estados = ["Todos los estados", "Pendiente", "En Proceso", "Completado"];
 
@@ -20,6 +21,7 @@ const Patentamiento: React.FC = () => {
   const [tramiteEdit, setTramiteEdit] = useState<any | null>(null);
   const [nuevoEstado, setNuevoEstado] = useState<string>("Pendiente");
   const [paginaActual, setPaginaActual] = useState(1);
+  const [cargandoEstado, setCargandoEstado] = useState(false);
   const tramitesPorPagina = 10;
 
   // Traer ventas disponibles para patentamiento
@@ -447,6 +449,20 @@ const Patentamiento: React.FC = () => {
             }}
             onClick={e => e.stopPropagation()}
           >
+            {/* Indicador de carga superpuesto */}
+            {cargandoEstado && (
+              <div style={{
+                position: "absolute",
+                top: 0, left: 0, right: 0, bottom: 0,
+                background: "rgba(0,0,0,0.9)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10
+              }}>
+                <IndicadorCarga mensaje="Actualizando estado..." />
+              </div>
+            )}
             <h3 style={{ color: "#a32020", fontWeight: 700, marginBottom: 18 }}>
               Actualizar estado de trámite
             </h3>
@@ -483,6 +499,7 @@ const Patentamiento: React.FC = () => {
                   border: "none"
                 }}
                 onClick={async () => {
+                  setCargandoEstado(true);
                   try {
                     const res = await fetch(`http://localhost:3001/api/patentamientos/${tramiteEdit.id}`, {
                       method: "PATCH",
@@ -505,6 +522,8 @@ const Patentamiento: React.FC = () => {
                   } catch {
                     setMensaje("Error de conexión con el servidor.");
                     setTipoMensaje("error");
+                  } finally {
+                    setCargandoEstado(false);
                   }
                 }}
               >
