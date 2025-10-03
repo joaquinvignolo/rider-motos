@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Ventas.css";
+import IndicadorCarga from "./IndicadorCarga";
 
 type ProductoVenta = {
   id: number;
@@ -36,6 +37,7 @@ const Ventas: React.FC = () => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [mensajeError, setMensajeError] = useState<string>("");
   const [mensajeExito, setMensajeExito] = useState<string>("");
+  const [cargando, setCargando] = useState(false);
 
   // Cargar productos según tipo seleccionado y término de búsqueda
   useEffect(() => {
@@ -173,6 +175,8 @@ const Ventas: React.FC = () => {
       }))
     };
 
+    setCargando(true); // Mostrar indicador
+
     try {
       const res = await fetch("http://localhost:3001/api/ventas", {
         method: "POST",
@@ -214,6 +218,8 @@ const Ventas: React.FC = () => {
       }
     } catch (err) {
       setMensajeError("Error de conexión al registrar la venta.");
+    } finally {
+      setCargando(false); // Ocultar indicador
     }
   };
 
@@ -258,6 +264,7 @@ const Ventas: React.FC = () => {
         INICIO
       </button>
       <h1>REGISTRAR VENTA</h1>
+      {cargando && <IndicadorCarga mensaje="Registrando venta..." />}
       <form className="venta-form" onSubmit={e => { e.preventDefault(); registrarVenta(); }}>
         
         {}
@@ -539,7 +546,7 @@ const Ventas: React.FC = () => {
           <div className="alert alert-success">{mensajeExito}</div>
         )}
 
-        <button className="confirmar-venta-btn" type="submit" disabled={!!mensajeExito}>
+        <button className="confirmar-venta-btn" type="submit" disabled={!!mensajeExito || cargando}>
           CONFIRMAR VENTA
         </button>
       </form>

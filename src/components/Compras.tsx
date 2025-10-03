@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Compras.css';
+import IndicadorCarga from "./IndicadorCarga";
 
 interface Marca {
     id: number;
@@ -199,7 +200,8 @@ const Compras = () => {
                 INICIO
             </button>
             <div className="compras-container">
-                {}
+                {/* Indicador de carga global */}
+                {confirmando && <IndicadorCarga mensaje="Registrando compra..." />}
                 <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
                 <h2>Crear un pedido</h2>
                 {}
