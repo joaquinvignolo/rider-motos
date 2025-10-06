@@ -515,8 +515,15 @@ app.get('/api/ventas-disponibles-patentamiento', (req, res) => {
 
 // Crear trámite de patentamiento
 app.post('/api/patentamientos', (req, res) => {
-  const { venta_id, observaciones } = req.body;
+  const { venta_id, observaciones, numero_chasis, numero_motor, numero_certificado } = req.body;
   if (!venta_id) return res.status(400).json({ error: "Debe seleccionar una venta." });
+  if (
+    !numero_chasis || !numero_chasis.trim() ||
+    !numero_motor || !numero_motor.trim() ||
+    !numero_certificado || !numero_certificado.trim()
+  ) {
+    return res.status(400).json({ error: "Debe ingresar chasis, motor y certificado." });
+  }
   db.query('SELECT id FROM patentamientos WHERE venta_id = ?', [venta_id], (err, rows) => {
     if (err) return res.status(500).json({ error: "Error al validar trámite existente." });
     if (rows.length > 0) return res.status(400).json({ error: "Ya existe un trámite para esta venta." });
@@ -525,7 +532,16 @@ app.post('/api/patentamientos', (req, res) => {
       [venta_id, observaciones || null],
       (err2, result) => {
         if (err2) return res.status(500).json({ error: "Error al iniciar trámite." });
-        res.json({ success: true, id: result.insertId });
+        const patentamiento_id = result.insertId;
+        // Insertar datos únicos de la moto
+        db.query(
+          'INSERT INTO motos_entregadas (patentamiento_id, numero_chasis, numero_motor, numero_certificado) VALUES (?, ?, ?, ?)',
+          [patentamiento_id, numero_chasis, numero_motor, numero_certificado],
+          (err3) => {
+            if (err3) return res.status(500).json({ error: "Error al registrar datos de la moto." });
+            res.json({ success: true, id: patentamiento_id });
+          }
+        );
       }
     );
   });
@@ -608,6 +624,33 @@ app.patch('/api/patentamientos/:id', (req, res) => {
       res.json({ success: true });
     }
   });
+});
+
+app.post('/api/motos-entregadas', (req, res) => {
+  const { patentamiento_id, numero_chasis, numero_motor, numero_certificado } = req.body;
+  if (!patentamiento_id || !numero_chasis || !numero_motor || !numero_certificado) {
+    return res.status(400).json({ error: "Faltan datos obligatorios." });
+  }
+  db.query(
+    'INSERT INTO motos_entregadas (patentamiento_id, numero_chasis, numero_motor, numero_certificado) VALUES (?, ?, ?, ?)',
+    [patentamiento_id, numero_chasis, numero_motor, numero_certificado],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: "Error al registrar la moto entregada." });
+      res.json({ success: true, id: result.insertId });
+    }
+  );
+});
+
+app.get('/api/motos-entregadas/:patentamiento_id', (req, res) => {
+  db.query(
+    'SELECT numero_chasis, numero_motor, numero_certificado FROM motos_entregadas WHERE patentamiento_id = ?',
+    [req.params.patentamiento_id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Error al obtener datos de la moto." });
+      if (!results.length) return res.status(404).json({ error: "No se encontraron datos para este trámite." });
+      res.json(results[0]);
+    }
+  );
 });
 
 app.listen(3001, () => {

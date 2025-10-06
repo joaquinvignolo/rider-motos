@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Patentamiento.css";
 import PaginacionUnificada from "./PaginacionUnificada";
@@ -22,6 +22,10 @@ const Patentamiento: React.FC = () => {
   const [nuevoEstado, setNuevoEstado] = useState<string>("Pendiente");
   const [paginaActual, setPaginaActual] = useState(1);
   const [cargandoEstado, setCargandoEstado] = useState(false);
+  const [numeroChasis, setNumeroChasis] = useState("");
+  const [numeroMotor, setNumeroMotor] = useState("");
+  const [numeroCertificado, setNumeroCertificado] = useState("");
+  const [datosMoto, setDatosMoto] = useState<any | null>(null);
   const tramitesPorPagina = 10;
 
   // Traer ventas disponibles para patentamiento
@@ -33,12 +37,25 @@ const Patentamiento: React.FC = () => {
 
   // Traer trámites existentes
   useEffect(() => {
-    fetch("http://localhost:3001/api/patentamientos")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setTramites(data);
-        else setTramites([]);
-      });
+    const actualizarTramitesConDatos = async () => {
+      const res = await fetch("http://localhost:3001/api/patentamientos");
+      const data = await res.json();
+      const tramitesConDatos = await Promise.all(
+        data.map(async tramite => {
+          try {
+            const res = await fetch(`http://localhost:3001/api/motos-entregadas/${tramite.id}`);
+            if (res.ok) {
+              const datosMoto = await res.json();
+              return { ...tramite, datosMoto };
+            }
+          } catch {}
+          return { ...tramite, datosMoto: null };
+        })
+      );
+      setTramites(tramitesConDatos);
+    };
+
+    actualizarTramitesConDatos();
   }, []);
 
   // Al seleccionar una venta, autocompletar cliente y moto
@@ -64,13 +81,25 @@ const Patentamiento: React.FC = () => {
       setTipoMensaje("error");
       return;
     }
+    if (
+      !numeroChasis.trim() ||
+      !numeroMotor.trim() ||
+      !numeroCertificado.trim()
+    ) {
+      setMensaje("Debe ingresar chasis, motor y certificado.");
+      setTipoMensaje("error");
+      return;
+    }
     try {
       const res = await fetch("http://localhost:3001/api/patentamientos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          venta_id: ventaSeleccionada,
-          observaciones
+          venta_id: Number(ventaSeleccionada),
+          observaciones,
+          numero_chasis: numeroChasis.trim(),
+          numero_motor: numeroMotor.trim(),
+          numero_certificado: numeroCertificado.trim()
         })
       });
       const data = await res.json();
@@ -81,6 +110,9 @@ const Patentamiento: React.FC = () => {
         setClienteSeleccionado("");
         setMotoSeleccionada("");
         setObservaciones("");
+        setNumeroChasis("");
+        setNumeroMotor("");
+        setNumeroCertificado("");
         // Actualizar lista de trámites
         fetch("http://localhost:3001/api/patentamientos")
           .then(res => res.json())
@@ -138,6 +170,17 @@ const Patentamiento: React.FC = () => {
     (paginaActual - 1) * tramitesPorPagina,
     paginaActual * tramitesPorPagina
   );
+
+  useEffect(() => {
+    if (tramiteEdit) {
+      fetch(`http://localhost:3001/api/motos-entregadas/${tramiteEdit.id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => setDatosMoto(data))
+        .catch(() => setDatosMoto(null));
+    } else {
+      setDatosMoto(null);
+    }
+  }, [tramiteEdit]);
 
   return (
     <div className="patentamiento-container">
@@ -294,6 +337,59 @@ const Patentamiento: React.FC = () => {
                 />
               </div>
             </div>
+            <div style={{ display: "flex", gap: "18px" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ color: "#fff", fontWeight: 600 }}>N° Chasis</label>
+                <input
+                  type="text"
+                  value={numeroChasis}
+                  onChange={e => setNumeroChasis(e.target.value)}
+                  required
+                  style={{
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    fontSize: "1em"
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <label style={{ color: "#fff", fontWeight: 600 }}>N° Motor</label>
+                <input
+                  type="text"
+                  value={numeroMotor}
+                  onChange={e => setNumeroMotor(e.target.value)}
+                  required
+                  style={{
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    fontSize: "1em"
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+              <label style={{ color: "#fff", fontWeight: 600 }}>N° Certificado</label>
+              <input
+                type="text"
+                value={numeroCertificado}
+                onChange={e => setNumeroCertificado(e.target.value)}
+                required
+                style={{
+                  background: "#181818",
+                  color: "#fff",
+                  border: "1.5px solid #a32020",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                  fontSize: "1em"
+                }}
+              />
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ color: "#fff", fontWeight: 600 }}>Observaciones</label>
               <textarea
@@ -391,6 +487,9 @@ const Patentamiento: React.FC = () => {
                 <th>Fecha Finalización</th>
                 <th>Estado</th>
                 <th>Observaciones</th>
+                <th>Chasis</th>
+                <th>Motor</th>
+                <th>Certificado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -405,6 +504,21 @@ const Patentamiento: React.FC = () => {
                     <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
                   </td>
                   <td>{t.observaciones || "-"}</td>
+                  <td>
+                    {t.datosMoto
+                      ? t.datosMoto.numero_chasis
+                      : <span style={{ color: "#888" }}>-</span>}
+                  </td>
+                  <td>
+                    {t.datosMoto
+                      ? t.datosMoto.numero_motor
+                      : <span style={{ color: "#888" }}>-</span>}
+                  </td>
+                  <td>
+                    {t.datosMoto
+                      ? t.datosMoto.numero_certificado
+                      : <span style={{ color: "#888" }}>-</span>}
+                  </td>
                   <td>
                     <button
                       className="btn-agencia btn-accion"
@@ -487,6 +601,13 @@ const Patentamiento: React.FC = () => {
                 ))}
               </select>
             </div>
+            {datosMoto && (
+              <div style={{ margin: "18px 0 0 0", padding: "12px", background: "#181818", borderRadius: 8 }}>
+                <div><b>Chasis:</b> {datosMoto.numero_chasis}</div>
+                <div><b>Motor:</b> {datosMoto.numero_motor}</div>
+                <div><b>Certificado:</b> {datosMoto.numero_certificado}</div>
+              </div>
+            )}
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
               <button
                 className="btn-agencia"
