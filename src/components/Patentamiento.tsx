@@ -28,6 +28,25 @@ const Patentamiento: React.FC = () => {
   const [datosMoto, setDatosMoto] = useState<any | null>(null);
   const tramitesPorPagina = 10;
 
+  // Función para traer trámites con datos únicos
+  const actualizarTramitesConDatos = async () => {
+    const res = await fetch("http://localhost:3001/api/patentamientos");
+    const data = await res.json();
+    const tramitesConDatos = await Promise.all(
+      data.map(async tramite => {
+        try {
+          const res = await fetch(`http://localhost:3001/api/motos-entregadas/${tramite.id}`);
+          if (res.ok) {
+            const datosMoto = await res.json();
+            return { ...tramite, datosMoto };
+          }
+        } catch {}
+        return { ...tramite, datosMoto: null };
+      })
+    );
+    setTramites(tramitesConDatos);
+  };
+
   // Traer ventas disponibles para patentamiento
   useEffect(() => {
     fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
@@ -35,26 +54,8 @@ const Patentamiento: React.FC = () => {
       .then(data => setVentasDisponibles(data));
   }, []);
 
-  // Traer trámites existentes
+  // Traer trámites existentes con datos únicos
   useEffect(() => {
-    const actualizarTramitesConDatos = async () => {
-      const res = await fetch("http://localhost:3001/api/patentamientos");
-      const data = await res.json();
-      const tramitesConDatos = await Promise.all(
-        data.map(async tramite => {
-          try {
-            const res = await fetch(`http://localhost:3001/api/motos-entregadas/${tramite.id}`);
-            if (res.ok) {
-              const datosMoto = await res.json();
-              return { ...tramite, datosMoto };
-            }
-          } catch {}
-          return { ...tramite, datosMoto: null };
-        })
-      );
-      setTramites(tramitesConDatos);
-    };
-
     actualizarTramitesConDatos();
   }, []);
 
@@ -113,10 +114,8 @@ const Patentamiento: React.FC = () => {
         setNumeroChasis("");
         setNumeroMotor("");
         setNumeroCertificado("");
-        // Actualizar lista de trámites
-        fetch("http://localhost:3001/api/patentamientos")
-          .then(res => res.json())
-          .then(data => setTramites(data));
+        // Actualizar lista de trámites con datos únicos
+        await actualizarTramitesConDatos();
         // Actualizar ventas disponibles
         fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
           .then(res => res.json())
@@ -140,7 +139,7 @@ const Patentamiento: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setTramites(tramites.map(t => t.id === id ? { ...t, estado: "Completado" } : t));
+        await actualizarTramitesConDatos();
       } else {
         setMensaje("No se pudo actualizar el estado.");
         setTipoMensaje("error");
@@ -632,10 +631,8 @@ const Patentamiento: React.FC = () => {
                       setMensaje("Estado actualizado correctamente.");
                       setTipoMensaje("success");
                       setTramiteEdit(null);
-                      // Refrescar trámites
-                      fetch("http://localhost:3001/api/patentamientos")
-                        .then(res => res.json())
-                        .then(data => setTramites(data));
+                      // Refrescar trámites con datos únicos
+                      await actualizarTramitesConDatos();
                     } else {
                       setMensaje(data.error || "No se pudo actualizar el estado.");
                       setTipoMensaje("error");
