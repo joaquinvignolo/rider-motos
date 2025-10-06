@@ -477,62 +477,96 @@ const Patentamiento: React.FC = () => {
               }}
             />
           </div>
-          <table className="patentamiento-table" style={{ background: "#232526", color: "#fff" }}>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Moto</th>
-                <th>Fecha Solicitud</th>
-                <th>Fecha Finalización</th>
-                <th>Estado</th>
-                <th>Observaciones</th>
-                <th>Chasis</th>
-                <th>Motor</th>
-                <th>Certificado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tramitesPagina.map((t, i) => (
-                <tr key={t.id}>
-                  <td>{t.cliente}</td>
-                  <td>{t.moto}</td>
-                  <td>{t.fechaSolicitud?.slice(0, 10)}</td>
-                  <td>{t.estado === "Completado" && t.fechaFinalizacion ? t.fechaFinalizacion.slice(0, 10) : "-"}</td>
-                  <td>
-                    <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
-                  </td>
-                  <td>{t.observaciones || "-"}</td>
-                  <td>
-                    {t.datosMoto
-                      ? t.datosMoto.numero_chasis
-                      : <span style={{ color: "#888" }}>-</span>}
-                  </td>
-                  <td>
-                    {t.datosMoto
-                      ? t.datosMoto.numero_motor
-                      : <span style={{ color: "#888" }}>-</span>}
-                  </td>
-                  <td>
-                    {t.datosMoto
-                      ? t.datosMoto.numero_certificado
-                      : <span style={{ color: "#888" }}>-</span>}
-                  </td>
-                  <td>
-                    <button
-                      className="btn-agencia btn-accion"
-                      onClick={() => {
-                        setTramiteEdit(t);
-                        setNuevoEstado(t.estado);
-                      }}
-                    >
-                      Actualizar
-                    </button>
-                  </td>
+          <div style={{ overflowX: "auto", width: "100%" }}>
+            <table
+              className="patentamiento-table"
+              style={{
+                background: "#232526",
+                color: "#fff",
+                minWidth: 1200, 
+                tableLayout: "fixed"
+              }}
+            >
+              <thead>
+                <tr>
+                  <th style={{ maxWidth: 140 }}>Cliente</th>
+                  <th style={{ maxWidth: 140 }}>Moto</th>
+                  <th style={{ maxWidth: 110 }}>Fecha Solicitud</th>
+                  <th style={{ maxWidth: 130 }}>Fecha Finalización</th>
+                  <th style={{ maxWidth: 100 }}>Estado</th>
+                  <th style={{ maxWidth: 200 }}>Observaciones</th>
+                  <th style={{ maxWidth: 160 }}>Chasis</th>
+                  <th style={{ maxWidth: 160 }}>Motor</th>
+                  <th style={{ maxWidth: 160 }}>Certificado</th>
+                  <th style={{ maxWidth: 110 }}>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tramitesPagina.map((t, i) => (
+                  <tr key={t.id}>
+                    <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.cliente}>{t.cliente}</td>
+                    <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.moto}>{t.moto}</td>
+                    <td>{t.fechaSolicitud?.slice(0, 10)}</td>
+                    <td>{t.estado === "Completado" && t.fechaFinalizacion ? t.fechaFinalizacion.slice(0, 10) : "-"}</td>
+                    <td>
+                      <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
+                    </td>
+                    <td
+                      style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      title={t.observaciones || "-"}
+                    >
+                      {t.observaciones
+                        ? t.observaciones.length > 30
+                          ? t.observaciones.slice(0, 30) + "..."
+                          : t.observaciones
+                        : <span style={{ color: "#888" }}>-</span>}
+                    </td>
+                    <td
+                      style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      title={t.datosMoto?.numero_chasis || "-"}
+                    >
+                      {t.datosMoto
+                        ? t.datosMoto.numero_chasis.length > 20
+                          ? t.datosMoto.numero_chasis.slice(0, 20) + "..."
+                          : t.datosMoto.numero_chasis
+                        : <span style={{ color: "#888" }}>-</span>}
+                    </td>
+                    <td
+                      style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      title={t.datosMoto?.numero_motor || "-"}
+                    >
+                      {t.datosMoto
+                        ? t.datosMoto.numero_motor.length > 20
+                          ? t.datosMoto.numero_motor.slice(0, 20) + "..."
+                          : t.datosMoto.numero_motor
+                        : <span style={{ color: "#888" }}>-</span>}
+                    </td>
+                    <td
+                      style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                      title={t.datosMoto?.numero_certificado || "-"}
+                    >
+                      {t.datosMoto
+                        ? t.datosMoto.numero_certificado.length > 20
+                          ? t.datosMoto.numero_certificado.slice(0, 20) + "..."
+                          : t.datosMoto.numero_certificado
+                        : <span style={{ color: "#888" }}>-</span>}
+                    </td>
+                    <td>
+                      <button
+                        className="btn-agencia btn-accion"
+                        onClick={() => {
+                          setTramiteEdit(t);
+                          setNuevoEstado(t.estado);
+                        }}
+                      >
+                        Actualizar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <div className="patentamiento-paginacion" style={{ marginTop: 18, display: "flex", gap: 8, alignItems: "center" }}>
             <PaginacionUnificada
               pagina={paginaActual}
@@ -557,8 +591,13 @@ const Patentamiento: React.FC = () => {
               borderRadius: "16px",
               padding: "32px 36px",
               minWidth: "340px",
+              maxWidth: "95vw",
+              maxHeight: "90vh",
               boxShadow: "0 4px 24px #0008",
-              position: "relative"
+              position: "relative",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column"
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -600,13 +639,37 @@ const Patentamiento: React.FC = () => {
                 ))}
               </select>
             </div>
-            {datosMoto && (
-              <div style={{ margin: "18px 0 0 0", padding: "12px", background: "#181818", borderRadius: 8 }}>
-                <div><b>Chasis:</b> {datosMoto.numero_chasis}</div>
-                <div><b>Motor:</b> {datosMoto.numero_motor}</div>
-                <div><b>Certificado:</b> {datosMoto.numero_certificado}</div>
-              </div>
-            )}
+            <div
+              style={{
+                overflowY: "auto",
+                flex: 1,
+                minHeight: 0
+              }}
+            >
+              {datosMoto && (
+                <div
+                  style={{
+                    margin: "18px 0 0 0",
+                    padding: "12px",
+                    background: "#181818",
+                    borderRadius: 8,
+                    wordBreak: "break-all",
+                    whiteSpace: "pre-wrap",
+                    maxHeight: 200,
+                    overflowY: "auto"
+                  }}
+                >
+                  <div><b>Chasis:</b> {datosMoto.numero_chasis}</div>
+                  <div><b>Motor:</b> {datosMoto.numero_motor}</div>
+                  <div><b>Certificado:</b> {datosMoto.numero_certificado}</div>
+                  {tramiteEdit?.observaciones && (
+                    <div style={{ marginTop: 8 }}>
+                      <b>Observaciones:</b> {tramiteEdit.observaciones}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
               <button
                 className="btn-agencia"
