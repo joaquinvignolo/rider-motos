@@ -584,31 +584,46 @@ app.patch('/api/patentamientos/:id', (req, res) => {
 
     // Si el estado es "Completado", enviar email al cliente
     if (estado === 'Completado') {
+      // Traer datos del cliente, moto y patentamiento
       db.query(`
-        SELECT c.correo, c.nombre, c.apellido, marcas.nombre as marca, productos.nombre as moto
+        SELECT c.correo, c.nombre, c.apellido, marcas.nombre as marca, productos.nombre as moto,
+               p.fecha_finalizacion, me.numero_chasis, me.numero_motor, me.numero_certificado
         FROM patentamientos p
         JOIN ventas v ON p.venta_id = v.id
         JOIN clientes c ON v.cliente_id = c.id
         JOIN detalle_ventas dv ON dv.venta_id = v.id
         JOIN productos ON dv.producto_id = productos.id
         LEFT JOIN marcas ON productos.marca_id = marcas.id
+        LEFT JOIN motos_entregadas me ON me.patentamiento_id = p.id
         WHERE p.id = ? AND productos.tipo = 'moto'
         LIMIT 1
       `, [req.params.id], (err2, results) => {
         if (!err2 && results.length && results[0].correo) {
           const cliente = results[0];
+          const fechaFinal = cliente.fecha_finalizacion
+            ? new Date(cliente.fecha_finalizacion).toLocaleDateString()
+            : "-";
           transporter.sendMail({
             from: '"Rider Motos" <ridermotos@gmail.com>',
             to: cliente.correo,
             subject: '¡Tu moto ya está patentada!',
-            text: `Hola ${cliente.nombre} ${cliente.apellido},\n\nTe informamos que el trámite de patentamiento de tu moto ${cliente.marca} ${cliente.moto} ha sido completado exitosamente.\n\n¡Gracias por confiar en Rider Motos!`,
             html: `
-              <div style="font-family: Arial, sans-serif; color: #000000ff;">
-                <h2 style="color: #a32020;">¡Tu moto ya está patentada!</h2>
+              <div style="font-family: Arial, sans-serif; color: #222; background: #f8f8f8; padding: 32px; border-radius: 12px; max-width: 520px; margin: auto;">
+                <h2 style="color: #a32020; margin-bottom: 12px;">¡Tu moto ya está patentada!</h2>
                 <p>Hola <b>${cliente.nombre} ${cliente.apellido}</b>,</p>
-                <p>Te informamos que el trámite de patentamiento de tu moto <b>${cliente.marca} ${cliente.moto}</b> ha sido <b style="color: #8ee097ff;">completado exitosamente</b>.</p>
-                <p>¡Gracias por confiar en <b>Rider Motos</b>!</p>
-                <hr>
+                <p>
+                  Te informamos que el trámite de patentamiento de tu moto <b>${cliente.marca} ${cliente.moto}</b> ha sido <span style="color: #27ae60; font-weight: bold;">completado exitosamente</span> el día <b>${fechaFinal}</b>.
+                </p>
+                <div style="background: #fff; border-radius: 8px; padding: 18px 22px; margin: 18px 0; box-shadow: 0 2px 8px #0001;">
+                  <h4 style="color: #a32020; margin-bottom: 10px;">Datos de tu moto:</h4>
+                  <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li><b>Chasis:</b> ${cliente.numero_chasis || "-"}</li>
+                    <li><b>Motor:</b> ${cliente.numero_motor || "-"}</li>
+                    <li><b>Certificado:</b> ${cliente.numero_certificado || "-"}</li>
+                  </ul>
+                </div>
+                <p style="margin-top: 18px;">¡Gracias por confiar en <b>Rider Motos</b>!<br>Estamos a tu disposición para cualquier consulta.</p>
+                <hr style="margin: 28px 0 12px 0; border: none; border-top: 1px solid #eee;">
                 <small style="color: #888;">Este es un mensaje automático, por favor no responder.</small>
               </div>
             `
