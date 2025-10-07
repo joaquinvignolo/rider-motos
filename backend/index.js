@@ -524,27 +524,60 @@ app.post('/api/patentamientos', (req, res) => {
   ) {
     return res.status(400).json({ error: "Debe ingresar chasis, motor y certificado." });
   }
-  db.query('SELECT id FROM patentamientos WHERE venta_id = ?', [venta_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: "Error al validar trámite existente." });
-    if (rows.length > 0) return res.status(400).json({ error: "Ya existe un trámite para esta venta." });
-    db.query(
-      'INSERT INTO patentamientos (venta_id, fecha_solicitud, observaciones) VALUES (?, CURDATE(), ?)',
-      [venta_id, observaciones || null],
-      (err2, result) => {
-        if (err2) return res.status(500).json({ error: "Error al iniciar trámite." });
-        const patentamiento_id = result.insertId;
-        // Insertar datos únicos de la moto
+
+  function validarCampo(campo, nombre, min, max) {
+    if (!campo || typeof campo !== "string" || !campo.trim()) {
+      return `${nombre} es obligatorio.`;
+    }
+    if (campo.length < min || campo.length > max) {
+      return `${nombre} debe tener entre ${min} y ${max} caracteres.`;
+    }
+    if (!/^[A-Za-z0-9\-\.]+$/.test(campo)) {
+      return `${nombre} solo puede contener letras, números, guiones o puntos.`;
+    }
+    return null;
+  }
+
+  const errorChasis = validarCampo(numero_chasis, "Chasis", 10, 20);
+  const errorMotor = validarCampo(numero_motor, "Motor", 5, 20);
+  const errorCertificado = validarCampo(numero_certificado, "Certificado", 5, 30);
+
+  if (errorChasis || errorMotor || errorCertificado) {
+    return res.status(400).json({ error: errorChasis || errorMotor || errorCertificado });
+  }
+
+  // Validar unicidad de chasis y motor
+  db.query(
+    'SELECT id FROM motos_entregadas WHERE numero_chasis = ? OR numero_motor = ?',
+    [numero_chasis, numero_motor],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "Error al validar unicidad." });
+      if (rows.length > 0) {
+        return res.status(400).json({ error: "El número de chasis o motor ya está registrado." });
+      }
+      db.query('SELECT id FROM patentamientos WHERE venta_id = ?', [venta_id], (err, rows) => {
+        if (err) return res.status(500).json({ error: "Error al validar trámite existente." });
+        if (rows.length > 0) return res.status(400).json({ error: "Ya existe un trámite para esta venta." });
         db.query(
-          'INSERT INTO motos_entregadas (patentamiento_id, numero_chasis, numero_motor, numero_certificado) VALUES (?, ?, ?, ?)',
-          [patentamiento_id, numero_chasis, numero_motor, numero_certificado],
-          (err3) => {
-            if (err3) return res.status(500).json({ error: "Error al registrar datos de la moto." });
-            res.json({ success: true, id: patentamiento_id });
+          'INSERT INTO patentamientos (venta_id, fecha_solicitud, observaciones) VALUES (?, CURDATE(), ?)',
+          [venta_id, observaciones || null],
+          (err2, result) => {
+            if (err2) return res.status(500).json({ error: "Error al iniciar trámite." });
+            const patentamiento_id = result.insertId;
+            // Insertar datos únicos de la moto
+            db.query(
+              'INSERT INTO motos_entregadas (patentamiento_id, numero_chasis, numero_motor, numero_certificado) VALUES (?, ?, ?, ?)',
+              [patentamiento_id, numero_chasis, numero_motor, numero_certificado],
+              (err3) => {
+                if (err3) return res.status(500).json({ error: "Error al registrar datos de la moto." });
+                res.json({ success: true, id: patentamiento_id });
+              }
+            );
           }
         );
-      }
-    );
-  });
+      });
+    }
+  );
 });
 
 // Listar trámites de patentamiento con datos de cliente y moto

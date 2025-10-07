@@ -91,6 +91,24 @@ const Patentamiento: React.FC = () => {
       setTipoMensaje("error");
       return;
     }
+
+    const validarCampo = (valor: string, nombre: string, min: number, max: number) => {
+      if (!valor.trim()) return `El campo ${nombre} es obligatorio.`;
+      if (valor.length < min || valor.length > max) return `${nombre} debe tener entre ${min} y ${max} caracteres.`;
+      if (!/^[A-Za-z0-9\-\.]+$/.test(valor)) return `${nombre} solo puede contener letras, números, guiones o puntos.`;
+      return null;
+    };
+
+    const errorChasis = validarCampo(numeroChasis, "Chasis", 10, 20);
+    const errorMotor = validarCampo(numeroMotor, "Motor", 5, 20);
+    const errorCertificado = validarCampo(numeroCertificado, "Certificado", 5, 30);
+
+    if (errorChasis || errorMotor || errorCertificado) {
+      setMensaje(errorChasis || errorMotor || errorCertificado);
+      setTipoMensaje("error");
+      return;
+    }
+
     try {
       const res = await fetch("http://localhost:3001/api/patentamientos", {
         method: "POST",
