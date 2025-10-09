@@ -151,32 +151,33 @@ const Reportes: React.FC = () => {
   // ✅ AGRUPAR COMPRAS POR FECHA Y TIPO (USANDO CAMPO 'tipo')
   const agrupadasCompras: {
     [fecha: string]: {
-      motos: any[];
-      accesorios: any[];
-      repuestos: { [proveedor: string]: any[] };
+      [proveedor: string]: {
+        compra: Compra;
+        productos: any[];
+      };
     };
   } = {};
 
   if (tipo === "compras") {
     filtrados.forEach((compra: Compra) => {
-      const fecha = new Date(compra.fecha_emision || compra.fecha).toLocaleDateString();  // ← USAR fecha_emision
+      const fecha = new Date(compra.fecha_emision || compra.fecha).toLocaleDateString();
+      const proveedor = compra.proveedor?.trim() || "Proveedor no especificado";
+      
       if (!agrupadasCompras[fecha]) {
-        agrupadasCompras[fecha] = { motos: [], accesorios: [], repuestos: {} };
+        agrupadasCompras[fecha] = {};
       }
-
-      // ✅ USAR EL CAMPO 'tipo' directamente
+      
+      // ✅ AGRUPAR POR PROVEEDOR (sin importar el tipo)
+      if (!agrupadasCompras[fecha][proveedor]) {
+        agrupadasCompras[fecha][proveedor] = {
+          compra: compra, // Guardar referencia a la compra completa
+          productos: []
+        };
+      }
+      
+      // Agregar todos los productos del proveedor
       compra.detalles.forEach(d => {
-        if (d.tipo === "moto") {
-          agrupadasCompras[fecha].motos.push({ ...d, compra });
-        } else if (d.tipo === "accesorio") {
-          agrupadasCompras[fecha].accesorios.push({ ...d, compra });
-        } else if (d.tipo === "repuesto") {
-          const prov = compra.proveedor?.trim() || "Proveedor no especificado";
-          if (!agrupadasCompras[fecha].repuestos[prov]) {
-            agrupadasCompras[fecha].repuestos[prov] = [];
-          }
-          agrupadasCompras[fecha].repuestos[prov].push({ ...d, compra });
-        }
+        agrupadasCompras[fecha][proveedor].productos.push({ ...d, compra });
       });
     });
   }
@@ -407,114 +408,43 @@ const Reportes: React.FC = () => {
               );
             }
             if (tipo === "compras") {
-              const comprasPorTipo = agrupadasCompras[fecha] || {};
+              const comprasPorProveedor = agrupadasCompras[fecha] || {};
+              
               return (
                 <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
                   <div className="mini-titulo-fecha">{fecha}</div>
                   <div className="reportes-grid-cuadrada">
                     
-                    {/* ✅ MOTOS CON TOTAL Y CONTADOR */}
-                    {comprasPorTipo.motos && comprasPorTipo.motos.length > 0 && (
-                      <div className="reporte-cuadro" key="motos">
-                        <div className="reporte-cuadro-fecha">{fecha}</div>
-                        
-                        {/* ✅ TOTAL */}
-                        <div className="reporte-cuadro-total">
-                          ${comprasPorTipo.motos
-                            .reduce((acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 0)
-                            .toFixed(2)}
-                        </div>
-                        
-                        {/* ✅ TIPO + CANTIDAD */}
-                        <div className="reporte-cuadro-cliente" style={{ color: "#a32020", fontWeight: 700 }}>
-                          🏍️ Motos ({comprasPorTipo.motos.reduce((acc, d) => acc + d.cantidad, 0)})
-                        </div>
-                        
-                        <div className="reporte-cuadro-botones">
-                          <button
-                            className="ver-btn"
-                            onClick={() =>
-                              setDetalleDia({
-                                fecha,
-                                proveedor: "Motos",
-                                comprobante: comprasPorTipo.motos[0]?.compra ? {
-                                  tipo: comprasPorTipo.motos[0].compra.tipo_comprobante,
-                                  numero: comprasPorTipo.motos[0].compra.numero_comprobante,
-                                  fecha_emision: comprasPorTipo.motos[0].compra.fecha_emision
-                                } : null,
-                                detalles: agruparYSumarProductos(comprasPorTipo.motos)
-                              })
-                            }
-                            title="Ver detalle"
-                          >
-                            {iconoOjo}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* ✅ ACCESORIOS CON TOTAL Y CONTADOR */}
-                    {comprasPorTipo.accesorios && comprasPorTipo.accesorios.length > 0 && (
-                      <div className="reporte-cuadro" key="accesorios">
-                        <div className="reporte-cuadro-fecha">{fecha}</div>
-                        
-                        {/* ✅ TOTAL */}
-                        <div className="reporte-cuadro-total">
-                          ${comprasPorTipo.accesorios
-                            .reduce((acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 0)
-                            .toFixed(2)}
-                        </div>
-                        
-                        {/* ✅ TIPO + CANTIDAD */}
-                        <div className="reporte-cuadro-cliente" style={{ color: "#a32020", fontWeight: 700 }}>
-                          🧰 Accesorios ({comprasPorTipo.accesorios.reduce((acc, d) => acc + d.cantidad, 0)})
-                        </div>
-                        
-                        <div className="reporte-cuadro-botones">
-                          <button
-                            className="ver-btn"
-                            onClick={() =>
-                              setDetalleDia({
-                                fecha,
-                                proveedor: "Accesorios",
-                                comprobante: comprasPorTipo.accesorios[0]?.compra ? {
-                                  tipo: comprasPorTipo.accesorios[0].compra.tipo_comprobante,
-                                  numero: comprasPorTipo.accesorios[0].compra.numero_comprobante,
-                                  fecha_emision: comprasPorTipo.accesorios[0].compra.fecha_emision
-                                } : null,
-                                detalles: agruparYSumarProductos(comprasPorTipo.accesorios)
-                              })
-                            }
-                            title="Ver detalle"
-                          >
-                            {iconoOjo}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* ✅ REPUESTOS POR PROVEEDOR CON TOTAL Y CONTADOR */}
-                    {Object.entries(comprasPorTipo.repuestos || {}).map(([prov, detallesProveedor]) => {
-                      const comprobante = detallesProveedor[0]?.compra ? {
-                        tipo: detallesProveedor[0].compra.tipo_comprobante,
-                        numero: detallesProveedor[0].compra.numero_comprobante,
-                        fecha_emision: detallesProveedor[0].compra.fecha_emision
+                    {/* ✅ UNA TARJETA POR PROVEEDOR */}
+                    {Object.entries(comprasPorProveedor).map(([proveedor, datos]) => {
+                      const { compra, productos } = datos;
+                      
+                      // Datos del comprobante
+                      const comprobante = compra ? {
+                        tipo: compra.tipo_comprobante,
+                        numero: compra.numero_comprobante,
+                        fecha_emision: compra.fecha_emision
                       } : null;
                       
-                      // ✅ CALCULAR TOTAL
-                      const totalProveedor = detallesProveedor.reduce(
+                      // Calcular total del proveedor
+                      const totalProveedor = productos.reduce(
                         (acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 
                         0
                       );
                       
-                      // ✅ CALCULAR CANTIDAD TOTAL
-                      const cantidadTotal = detallesProveedor.reduce(
+                      // Calcular cantidad total de productos
+                      const cantidadTotal = productos.reduce(
                         (acc, d) => acc + d.cantidad, 
                         0
                       );
+                      
+                      // Contar tipos de productos
+                      const motos = productos.filter(d => d.tipo === "moto").length;
+                      const accesorios = productos.filter(d => d.tipo === "accesorio").length;
+                      const repuestos = productos.filter(d => d.tipo === "repuesto").length;
 
                       return (
-                        <div className="reporte-cuadro" key={prov}>
+                        <div className="reporte-cuadro" key={proveedor}>
                           <div className="reporte-cuadro-fecha">{fecha}</div>
                           
                           {/* ✅ TOTAL */}
@@ -522,63 +452,72 @@ const Reportes: React.FC = () => {
                             ${totalProveedor.toFixed(2)}
                           </div>
                           
-                          {/* ✅ PROVEEDOR + CANTIDAD */}
+                          {/* ✅ PROVEEDOR */}
                           <div className="reporte-cuadro-cliente" style={{ 
                             color: "#a32020", 
                             fontWeight: 700,
-                            marginBottom: comprobante ? 4 : 0,
-                            fontSize: 15  // ← Reducir si es muy largo
+                            fontSize: 15,
+                            lineHeight: 1.3,
+                            marginBottom: 4,
+                            maxHeight: 40,
+                            overflow: "hidden"
                           }}>
-                            🔧 {prov}
-                            <div style={{ 
-                              fontSize: 12, 
-                              color: "#bdbdbd", 
-                              fontWeight: 500,
-                              marginTop: 2
-                            }}>
+                            🔧 {proveedor}
+                          </div>
+                          
+                          {/* ✅ DETALLE DE PRODUCTOS */}
+                          <div style={{ 
+                            fontSize: 11, 
+                            color: "#bdbdbd", 
+                            textAlign: "center",
+                            lineHeight: 1.2,
+                            marginBottom: 6
+                          }}>
+                            {motos > 0 && <div>🏍️ {motos} moto{motos > 1 ? 's' : ''}</div>}
+                            {accesorios > 0 && <div>🧰 {accesorios} accesorio{accesorios > 1 ? 's' : ''}</div>}
+                            {repuestos > 0 && <div>🔧 {repuestos} repuesto{repuestos > 1 ? 's' : ''}</div>}
+                            <div style={{ marginTop: 2, fontWeight: 600, color: "#888" }}>
                               ({cantidadTotal} {cantidadTotal === 1 ? 'unidad' : 'unidades'})
                             </div>
                           </div>
                           
-                          {/* ✅ COMPROBANTE (más compacto) */}
+                          {/* ✅ COMPROBANTE */}
                           {comprobante && (
-                            <div style={{ 
-                              fontSize: 11,
+                            <div className="info-comprobante" style={{ 
+                              fontSize: 10,
                               color: "#888", 
-                              marginTop: 4,
-                              marginBottom: 8,
                               textAlign: "center",
-                              paddingLeft: 8,
-                              paddingRight: 8,
-                              lineHeight: 1.3,
-                              position: "relative",
-                              zIndex: 1
+                              lineHeight: 1.2,
+                              marginBottom: 8,
+                              paddingLeft: 6,
+                              paddingRight: 6
                             }}>
-                              <div style={{ fontWeight: 600, color: "#bdbdbd", fontSize: 12 }}>
+                              <div style={{ fontWeight: 600, color: "#aaa", fontSize: 11 }}>
                                 {comprobante.tipo}
                               </div>
                               {comprobante.numero && (
-                                <div style={{ marginTop: 1, fontSize: 10 }}>
+                                <div style={{ fontSize: 9, marginTop: 1 }}>
                                   Nº {comprobante.numero}
                                 </div>
                               )}
                               {comprobante.fecha_emision && (
-                                <div style={{ marginTop: 1, fontSize: 9 }}>
+                                <div style={{ fontSize: 8, marginTop: 1 }}>
                                   {new Date(comprobante.fecha_emision).toLocaleDateString("es-AR")}
                                 </div>
                               )}
                             </div>
                           )}
                           
+                          {/* ✅ BOTÓN */}
                           <div className="reporte-cuadro-botones">
                             <button
                               className="ver-btn"
                               onClick={() =>
                                 setDetalleDia({
                                   fecha,
-                                  proveedor: prov,
+                                  proveedor,
                                   comprobante,
-                                  detalles: agruparYSumarProductos(detallesProveedor)
+                                  detalles: agruparYSumarProductos(productos)
                                 })
                               }
                               title="Ver detalle"

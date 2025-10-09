@@ -296,17 +296,19 @@
   background: #181818;
   border: 2px solid #353535;
   border-radius: 12px;
-  width: 170px;
-  height: 170px;
+  /* ✅ CAMBIAR altura fija por dinámica */
+  min-height: 170px;
+  max-height: 240px;
+  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between; /* ✅ Distribuir espacio */
   box-shadow: 0 2px 8px #0007;
-  padding: 12px 8px 0 8px;
+  padding: 12px 10px 10px 10px; /* ✅ Padding más equilibrado */
   position: relative;
   margin-bottom: 8px;
-  max-width: 220px !important;
+  max-width: 220px;
   min-width: 180px;
   width: 100%;
 }
@@ -325,40 +327,74 @@
 }
 
 .reporte-cuadro-cliente {
-  max-width: 220px;
-  min-width: 140px;
-  margin: 0 auto;
   color: #fff;
   word-break: break-word;
   text-align: center;
-  margin-bottom: 48px;
-  padding-bottom: 18px;
+  /* ✅ ELIMINAR margin-bottom y padding-bottom */
+  margin: 8px 0; /* ✅ Espacio vertical equilibrado */
+  padding: 0 8px; /* ✅ Solo padding lateral */
+  max-height: 60px; /* ✅ Limitar altura */
+  overflow: hidden;
+  flex-grow: 0; /* ✅ No crecer */
+}
+
+/* ✅ AGREGAR clase para información de productos */
+.info-productos {
+  font-size: 11px;
+  color: #bdbdbd;
+  text-align: center;
+  line-height: 1.2;
+  margin: 4px 0 6px 0;
+  padding: 0 6px;
+  max-height: 55px;
+  overflow: hidden;
+  flex-shrink: 0; /* ✅ No encoger */
+}
+
+.info-comprobante {
+  font-size: 10px;
+  color: #888;
+  text-align: center;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  padding: 0 6px;
+  max-height: 42px;
+  overflow: hidden;
+  flex-shrink: 0; /* ✅ No encoger */
 }
 
 .reporte-cuadro-botones {
   display: flex;
   gap: 10px;
-  position: absolute;
-  bottom: 12px;
-  left: 0;
+  /* ✅ CAMBIAR de absolute a flex */
+  margin-top: auto; /* ✅ Empujar al final */
+  padding-top: 8px;
   width: 100%;
   justify-content: center;
+  flex-shrink: 0; /* ✅ No encoger */
 }
 
-.ver-btn, .eliminar-btn {
+.ver-btn {
   background: #a32020;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 6px 16px;
-  font-size: 1rem;
-  font-weight: 700;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background 0.18s;
+  transition: background 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  z-index: 5; /* ✅ Por encima del contenido */
 }
+
 .ver-btn:hover {
   background: #d32f2f;
+  transform: scale(1.08);
 }
+
 .eliminar-btn {
   background: #353535;
   color: #fff;
