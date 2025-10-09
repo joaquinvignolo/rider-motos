@@ -211,6 +211,7 @@ const Reportes: React.FC = () => {
       </div>
       <div className="reportes-box">
         <h1 className="reportes-titulo">REPORTES</h1>
+        
         {/* Minitítulo con flecha */}
         <div style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 8 }}>
           <button
@@ -233,6 +234,7 @@ const Reportes: React.FC = () => {
           <span style={{ fontSize: 18, color: "#bdbdbd", fontWeight: 600, letterSpacing: 1 }}>
             {tipo === "ventas" ? "Ventas" : "Compras"}
           </span>
+          
           {/* Buscador */}
           <input
             type="text"
@@ -256,26 +258,31 @@ const Reportes: React.FC = () => {
           />
         </div>
         <hr className="reportes-divisor" />
-        <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", marginBottom: 18, gap: 12 }}>
-          <label style={{ color: "#fff", fontWeight: 600 }}>
-            Desde:{" "}
-            <input
-              type="date"
-              value={desde}
-              onChange={e => { setDesde(e.target.value); setPagina(1); }}
-              style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
-            />
-          </label>
-          <label style={{ color: "#fff", fontWeight: 600 }}>
-            Hasta:{" "}
-            <input
-              type="date"
-              value={hasta}
-              onChange={e => { setHasta(e.target.value); setPagina(1); }}
-              style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
-            />
-          </label>
+        
+        {/* Filtros compacto */}
+        <div style={{ width: "100%", display: "flex", justifyContent: "space-between", marginBottom: 16, gap: 12 }}>
+          <div style={{ display: "flex", gap: 12 }}>
+            <label style={{ color: "#fff", fontWeight: 600 }}>
+              Desde:{" "}
+              <input
+                type="date"
+                value={desde}
+                onChange={e => { setDesde(e.target.value); setPagina(1); }}
+                style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
+              />
+            </label>
+            <label style={{ color: "#fff", fontWeight: 600 }}>
+              Hasta:{" "}
+              <input
+                type="date"
+                value={hasta}
+                onChange={e => { setHasta(e.target.value); setPagina(1); }}
+                style={{ borderRadius: 8, border: "1.5px solid #a32020", background: "#232526", color: "#fff", padding: "6px 10px", fontWeight: 600 }}
+              />
+            </label>
+          </div>
         </div>
+        
         {fechasPagina.length === 0 ? (
           <div className="reportes-vacio">
             <span role="img" aria-label="historial" style={{ fontSize: 40, marginBottom: 12 }}>📄</span>
@@ -285,29 +292,23 @@ const Reportes: React.FC = () => {
           </div>
         ) : (
           fechasPagina.map(fecha => {
+            
+            /* ========================================
+               ✅ VENTAS - TARJETAS SIMPLIFICADAS
+               ======================================== */
             if (tipo === "ventas") {
               const ventasDelDia = agrupadas[fecha];
-
-              // Agrupar: accesorios/repuestos (consumidor final) y motos (otros clientes)
               const accesorios = ventasDelDia.filter(v => v.cliente === "Consumidor final");
               const clientesMotos = ventasDelDia.filter(v => v.cliente !== "Consumidor final");
-              // Agrupar motos por cliente
               const motosPorCliente: { [cliente: string]: Venta[] } = {};
               clientesMotos.forEach(v => {
                 if (!motosPorCliente[v.cliente]) motosPorCliente[v.cliente] = [];
                 motosPorCliente[v.cliente].push(v);
               });
 
-              // Calcular total del día para cada grupo
-              const totalAccesoriosEfectivo = accesorios
-                .filter(v => v.metodo_pago !== "tarjeta" && v.metodo_pago !== "transferencia")
-                .reduce((acc, v) => acc + Number(v.total), 0);
-
               const tieneEfectivo = accesorios.some(v => v.metodo_pago === "efectivo");
               const totalAccesorios = tieneEfectivo
-                ? accesorios
-                    .filter(v => v.metodo_pago === "efectivo")
-                    .reduce((acc, v) => acc + Number(v.total), 0)
+                ? accesorios.filter(v => v.metodo_pago === "efectivo").reduce((acc, v) => acc + Number(v.total), 0)
                 : accesorios.reduce((acc, v) => acc + Number(v.total), 0);
 
               const totalPorCliente: { [cliente: string]: number } = {};
@@ -325,14 +326,33 @@ const Reportes: React.FC = () => {
                 <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
                   <div className="mini-titulo-fecha">{fecha}</div>
                   <div className="reportes-grid-cuadrada">
-                    {/* Accesorios/Repuestos - Consumidor final */}
+                    
+                    {/* ✅ CONSUMIDOR FINAL - SIMPLIFICADO */}
                     {accesorios.length > 0 && (
                       <div className="reporte-cuadro">
                         <div className="reporte-cuadro-fecha">{fecha}</div>
                         <div className="reporte-cuadro-total">
                           ${Number(totalAccesorios).toFixed(2)}
                         </div>
-                        <div className="reporte-cuadro-cliente">Consumidor final</div>
+                        
+                        {/* ✅ CLIENTE */}
+                        <div className="reporte-cuadro-cliente" style={{ 
+                          fontSize: 14, 
+                          marginBottom: 4 
+                        }}>
+                          Consumidor final
+                        </div>
+                        
+                        {/* ✅ MÉTODO DE PAGO (lo más importante) */}
+                        <div style={{
+                          fontSize: 12,
+                          color: tieneEfectivo ? "#4caf50" : "#b36aff",
+                          fontWeight: 600,
+                          marginBottom: 8
+                        }}>
+                          {tieneEfectivo ? "💰 Efectivo" : "💳 Tarjeta/Transf"}
+                        </div>
+                        
                         <div className="reporte-cuadro-botones">
                           <button
                             className="ver-btn"
@@ -352,61 +372,77 @@ const Reportes: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    {/* Motos - por cliente */}
-                    {Object.entries(motosPorCliente).map(([cliente, ventasCliente]) => (
-                      <div className="reporte-cuadro" key={cliente}>
-                        <div className="reporte-cuadro-fecha">{fecha}</div>
-                        <div className="reporte-cuadro-total">
-                          ${Number(totalPorCliente[cliente]).toFixed(2)}
+                    
+                    {/* ✅ CLIENTES - SIMPLIFICADO */}
+                    {Object.entries(motosPorCliente).map(([cliente, ventasCliente]) => {
+                      const tieneEfectivoCliente = ventasCliente.some(v => 
+                        v.metodo_pago !== "tarjeta" && v.metodo_pago !== "transferencia"
+                      );
+                      
+                      return (
+                        <div className="reporte-cuadro" key={cliente}>
+                          <div className="reporte-cuadro-fecha">{fecha}</div>
+                          <div className="reporte-cuadro-total">
+                            ${Number(totalPorCliente[cliente]).toFixed(2)}
+                          </div>
+                          
+                          {/* ✅ SOLO NOMBRE Y APELLIDO */}
+                          <div className="reporte-cuadro-cliente" style={{
+                            fontSize: 14,
+                            lineHeight: 1.3,
+                            marginBottom: 4,
+                            maxHeight: 36,
+                            overflow: "hidden"
+                          }}>
+                            <b>
+                              {ventasCliente[0].cliente_nombre} {ventasCliente[0].cliente_apellido}
+                            </b>
+                          </div>
+                          
+                          {/* ✅ MÉTODO DE PAGO */}
+                          <div style={{
+                            fontSize: 12,
+                            color: tieneEfectivoCliente ? "#4caf50" : "#b36aff",
+                            fontWeight: 600,
+                            marginBottom: 8
+                          }}>
+                            {tieneEfectivoCliente ? "💰 Efectivo" : "💳 Tarjeta/Transf"}
+                          </div>
+                          
+                          <div className="reporte-cuadro-botones">
+                            <button
+                              className="ver-btn"
+                              onClick={() => {
+                                const productos = ventasCliente.flatMap(v =>
+                                  v.detalles.map(d => ({
+                                    ...d,
+                                    metodo_pago: v.metodo_pago,
+                                    cliente: v.cliente,
+                                    total: v.total,
+                                    cliente_nombre: v.cliente_nombre,
+                                    cliente_apellido: v.cliente_apellido,
+                                    cliente_telefono: v.cliente_telefono,
+                                    cliente_correo: v.cliente_correo
+                                  }))
+                                );
+                                setDetalleDia({ fecha: ventasCliente[0]?.fecha || fecha, productos, cliente });
+                              }}
+                              title="Ver detalle"
+                            >
+                              {iconoOjo}
+                            </button>
+                          </div>
                         </div>
-                        {/* Datos del cliente */}
-                        <div className="reporte-cuadro-cliente" style={{ marginBottom: 48, wordBreak: "break-word", whiteSpace: "pre-line", maxWidth: 260, minHeight: 80, overflowWrap: "break-word", textAlign: "center", margin: "0 auto", paddingBottom: 18 }}>
-                          <b style={{ display: "block", marginBottom: 4 }}>
-                            {(ventasCliente[0].cliente_nombre || "") + " " + (ventasCliente[0].cliente_apellido || "")}
-                          </b>
-                          {ventasCliente[0].cliente_telefono && (
-                            <div style={{ marginBottom: 4 }}>{ventasCliente[0].cliente_telefono}</div>
-                          )}
-                          {ventasCliente[0].cliente_correo && (
-                            <div style={{ marginBottom: 4, wordBreak: "break-all" }}>{ventasCliente[0].cliente_correo}</div>
-                          )}
-                        </div>
-                        <div className="reporte-cuadro-botones">
-                          <button
-                            className="ver-btn"
-                            onClick={() => {
-                              const efectivo = ventasCliente
-                                .filter(v => v.metodo_pago !== "tarjeta" && v.metodo_pago !== "transferencia");
-                              const tarjTransf = ventasCliente
-                                .filter(v => v.metodo_pago === "tarjeta" || v.metodo_pago === "transferencia");
-                              const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
-
-                              const productos = ventasCliente.flatMap(v =>
-                                v.detalles.map(d => ({
-                                  ...d,
-                                  metodo_pago: v.metodo_pago,
-                                  cliente: v.cliente,
-                                  total: v.total,
-                                  cliente_nombre: v.cliente_nombre,
-                                  cliente_apellido: v.cliente_apellido,
-                                  cliente_telefono: v.cliente_telefono,
-                                  cliente_correo: v.cliente_correo
-                                }))
-                              );
-
-                              setDetalleDia({ fecha: ventasCliente[0]?.fecha || fecha, productos, cliente });
-                            }}
-                            title="Ver detalle"
-                          >
-                            {iconoOjo}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
             }
+            
+            /* ========================================
+               ✅ COMPRAS - TARJETAS SIMPLIFICADAS
+               ======================================== */
             if (tipo === "compras") {
               const comprasPorProveedor = agrupadasCompras[fecha] || {};
               
@@ -415,33 +451,18 @@ const Reportes: React.FC = () => {
                   <div className="mini-titulo-fecha">{fecha}</div>
                   <div className="reportes-grid-cuadrada">
                     
-                    {/* ✅ UNA TARJETA POR PROVEEDOR */}
                     {Object.entries(comprasPorProveedor).map(([proveedor, datos]) => {
                       const { compra, productos } = datos;
-                      
-                      // Datos del comprobante
                       const comprobante = compra ? {
                         tipo: compra.tipo_comprobante,
                         numero: compra.numero_comprobante,
                         fecha_emision: compra.fecha_emision
                       } : null;
                       
-                      // Calcular total del proveedor
                       const totalProveedor = productos.reduce(
                         (acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 
                         0
                       );
-                      
-                      // Calcular cantidad total de productos
-                      const cantidadTotal = productos.reduce(
-                        (acc, d) => acc + d.cantidad, 
-                        0
-                      );
-                      
-                      // Contar tipos de productos
-                      const motos = productos.filter(d => d.tipo === "moto").length;
-                      const accesorios = productos.filter(d => d.tipo === "accesorio").length;
-                      const repuestos = productos.filter(d => d.tipo === "repuesto").length;
 
                       return (
                         <div className="reporte-cuadro" key={proveedor}>
@@ -456,59 +477,35 @@ const Reportes: React.FC = () => {
                           <div className="reporte-cuadro-cliente" style={{ 
                             color: "#a32020", 
                             fontWeight: 700,
-                            fontSize: 15,
+                            fontSize: 14,
                             lineHeight: 1.3,
-                            marginBottom: 4,
-                            maxHeight: 40,
+                            marginBottom: 6,
+                            maxHeight: 36,
                             overflow: "hidden"
                           }}>
                             🔧 {proveedor}
                           </div>
                           
-                          {/* ✅ DETALLE DE PRODUCTOS */}
-                          <div style={{ 
-                            fontSize: 11, 
-                            color: "#bdbdbd", 
-                            textAlign: "center",
-                            lineHeight: 1.2,
-                            marginBottom: 6
-                          }}>
-                            {motos > 0 && <div>🏍️ {motos} moto{motos > 1 ? 's' : ''}</div>}
-                            {accesorios > 0 && <div>🧰 {accesorios} accesorio{accesorios > 1 ? 's' : ''}</div>}
-                            {repuestos > 0 && <div>🔧 {repuestos} repuesto{repuestos > 1 ? 's' : ''}</div>}
-                            <div style={{ marginTop: 2, fontWeight: 600, color: "#888" }}>
-                              ({cantidadTotal} {cantidadTotal === 1 ? 'unidad' : 'unidades'})
-                            </div>
-                          </div>
-                          
-                          {/* ✅ COMPROBANTE */}
+                          {/* ✅ COMPROBANTE COMPACTO */}
                           {comprobante && (
-                            <div className="info-comprobante" style={{ 
-                              fontSize: 10,
+                            <div style={{ 
+                              fontSize: 11,
                               color: "#888", 
                               textAlign: "center",
                               lineHeight: 1.2,
-                              marginBottom: 8,
-                              paddingLeft: 6,
-                              paddingRight: 6
+                              marginBottom: 10
                             }}>
-                              <div style={{ fontWeight: 600, color: "#aaa", fontSize: 11 }}>
+                              <div style={{ fontWeight: 600, color: "#bbb" }}>
                                 {comprobante.tipo}
                               </div>
                               {comprobante.numero && (
-                                <div style={{ fontSize: 9, marginTop: 1 }}>
+                                <div style={{ fontSize: 10, marginTop: 2 }}>
                                   Nº {comprobante.numero}
-                                </div>
-                              )}
-                              {comprobante.fecha_emision && (
-                                <div style={{ fontSize: 8, marginTop: 1 }}>
-                                  {new Date(comprobante.fecha_emision).toLocaleDateString("es-AR")}
                                 </div>
                               )}
                             </div>
                           )}
                           
-                          {/* ✅ BOTÓN */}
                           <div className="reporte-cuadro-botones">
                             <button
                               className="ver-btn"
@@ -535,6 +532,7 @@ const Reportes: React.FC = () => {
             return null;
           })
         )}
+        
         {/* Paginación */}
         {totalPaginas > 1 && (
           <PaginacionUnificada
@@ -545,35 +543,39 @@ const Reportes: React.FC = () => {
           />
         )}
       </div>
-      {/* MODAL DE DETALLE (para compras y ventas) */}
+      
+      /* ========================================
+         ✅ MODAL COMPACTO - COMPRAS Y VENTAS
+         ======================================== */
       {detalleDia && (
         <div className="reporte-modal">
           <div className="reporte-modal-content"
             style={{
-              maxWidth: 520,
-              minWidth: 340,
+              maxWidth: 480,  // ← Reducir de 520 a 480
+              minWidth: 320,
               width: "100%",
             }}
           >
+            {/* Header compacto */}
             <div style={{
               position: "relative",
-              marginTop: 24,
-              marginBottom: 32,
-              minHeight: 48
+              marginTop: 18,  // ← Reducir de 24 a 18
+              marginBottom: 24,  // ← Reducir de 32 a 24
+              minHeight: 40
             }}>
-              {/* Botón cliente */}
+              {/* Botón cliente (solo ventas) */}
               {tipo === "ventas" && detalleDia.productos[0]?.cliente !== "Consumidor final" && (
                 <button
                   style={{
                     position: "absolute",
-                    right: -32, 
-                    top: -32,  
+                    right: -28,  // ← Ajustar de -32 a -28
+                    top: -28,
                     background: "#232526",
                     color: "#a32020",
                     border: "1.5px solid #a32020",
                     borderRadius: "50%",
-                    width: 44,
-                    height: 44,
+                    width: 40,  // ← Reducir de 44 a 40
+                    height: 40,
                     fontWeight: 700,
                     cursor: "pointer",
                     display: "flex",
@@ -590,16 +592,17 @@ const Reportes: React.FC = () => {
                     display: "inline-block",
                     transform: mostrarCliente ? "rotate(90deg)" : "rotate(0deg)",
                     transition: "transform 0.2s",
-                    fontSize: 26,
+                    fontSize: 22,  // ← Reducir de 26 a 22
                     color: "#a32020"
                   }}>▶</span>
                 </button>
               )}
-              {/* Título centrado */}
+              
+              {/* Título */}
               <h2 style={{
                 color: "#a32020",
                 margin: 0,
-                fontSize: 30,
+                fontSize: 26,  // ← Reducir de 30 a 26
                 fontWeight: 700,
                 letterSpacing: 1,
                 width: "100%",
@@ -607,15 +610,16 @@ const Reportes: React.FC = () => {
               }}>
                 {tipo === "compras" ? "Detalle de Compra" : "Detalle Venta"}
               </h2>
-              {/* Fecha en diagonal abajo a la derecha del título */}
+              
+              {/* Fecha */}
               <div style={{
                 position: "absolute",
                 right: 0,
-                top: 44,
+                top: 36,  // ← Ajustar de 44 a 36
                 color: "#bdbdbd",
                 fontWeight: 600,
-                fontSize: 16,
-                minWidth: 120,
+                fontSize: 14,  // ← Reducir de 16 a 14
+                minWidth: 100,
                 textAlign: "right"
               }}>
                 {detalleDia.fecha && !isNaN(new Date(detalleDia.fecha).getTime())
@@ -626,22 +630,22 @@ const Reportes: React.FC = () => {
               </div>
             </div>
             
-            {/* ----------- COMPRAS ----------- */}
+            {/* ========== COMPRAS ========== */}
             {tipo === "compras" && Array.isArray(detalleDia?.detalles) && (
               <>
-                {/* ✅ AGREGAR PROVEEDOR */}
+                {/* Proveedor */}
                 <div style={{
                   background: "#1a1a1a",
                   borderRadius: 8,
-                  padding: "10px 18px",
-                  marginBottom: 12,
+                  padding: "8px 16px",  // ← Reducir padding
+                  marginBottom: 10,
                   color: "#ffd700",
                   border: "1px solid #353535",
-                  fontSize: 15,
+                  fontSize: 14,  // ← Reducir de 15 a 14
                   fontWeight: 600,
                   textAlign: "center"
                 }}>
-                  🔧 Proveedor: {detalleDia.proveedor}
+                  🔧 {detalleDia.proveedor}
                 </div>
                 
                 {/* Comprobante */}
@@ -649,42 +653,44 @@ const Reportes: React.FC = () => {
                   <div style={{
                     background: "#1a1a1a",
                     borderRadius: 8,
-                    padding: "12px 18px",
-                    marginBottom: 20,
+                    padding: "10px 16px",  // ← Reducir padding
+                    marginBottom: 16,  // ← Reducir de 20 a 16
                     color: "#fff",
                     border: "1px solid #353535"
                   }}>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: "#ffd700", marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#ffd700", marginBottom: 4 }}>
                       Comprobante
                     </div>
-                    <div><b>Tipo:</b> {detalleDia.comprobante.tipo}</div>
+                    <div style={{ fontSize: 13 }}><b>Tipo:</b> {detalleDia.comprobante.tipo}</div>
                     {detalleDia.comprobante.numero && (
-                      <div><b>Número:</b> {detalleDia.comprobante.numero}</div>
+                      <div style={{ fontSize: 13 }}><b>Número:</b> {detalleDia.comprobante.numero}</div>
                     )}
                     {detalleDia.comprobante.fecha_emision && (
-                      <div><b>Fecha de emisión:</b> {new Date(detalleDia.comprobante.fecha_emision).toLocaleDateString("es-AR")}</div>
+                      <div style={{ fontSize: 13 }}>
+                        <b>Emisión:</b> {new Date(detalleDia.comprobante.fecha_emision).toLocaleDateString("es-AR")}
+                      </div>
                     )}
                   </div>
                 )}
                 
-                {/* ✅ AGREGAR CONTENEDOR CON SCROLL */}
+                {/* ✅ PRODUCTOS CON SCROLL */}
                 <div style={{
-                  maxHeight: 400,  // ← AGREGAR altura máxima
-                  overflowY: "auto",  // ← AGREGAR scroll vertical
-                  paddingRight: 8,  // ← Espacio para el scrollbar
-                  marginBottom: 12  // ← Espacio antes del total
+                  maxHeight: 340,  // ← Reducir de 400 a 340
+                  overflowY: "auto",
+                  paddingRight: 8,
+                  marginBottom: 10
                 }}>
                   {detalleDia.detalles.map((d: any, i: number) => (
                     <div key={i} style={{ 
-                      marginBottom: 16, 
+                      marginBottom: 14,  // ← Reducir de 16 a 14
                       color: "#fff", 
-                      paddingBottom: 12, 
-                      borderBottom: "1px solid #333" 
+                      paddingBottom: 10,  // ← Reducir de 12 a 10
+                      borderBottom: "1px solid #333",
+                      fontSize: 13  // ← Reducir de 14 a 13
                     }}>
                       <div><b>Producto:</b> {d.nombre}</div>
                       <div><b>Marca:</b> {d.marca || "Sin marca"}</div>
                       <div><b>Cantidad:</b> {d.cantidad}</div>
-                      
                       {d.precio && (
                         <>
                           <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
@@ -693,9 +699,8 @@ const Reportes: React.FC = () => {
                           </div>
                         </>
                       )}
-                      
                       {d.observaciones && d.observaciones.trim() !== "" && (
-                        <div style={{ marginTop: 4, fontStyle: "italic", color: "#bdbdbd" }}>
+                        <div style={{ marginTop: 3, fontStyle: "italic", color: "#bdbdbd", fontSize: 12 }}>
                           <b>Obs:</b> {d.observaciones}
                         </div>
                       )}
@@ -703,17 +708,17 @@ const Reportes: React.FC = () => {
                   ))}
                 </div>
                 
-                {/* Total FUERA del contenedor con scroll */}
+                {/* Total */}
                 <div style={{
-                  marginTop: 18,
-                  paddingTop: 12,
+                  marginTop: 14,  // ← Reducir de 18 a 14
+                  paddingTop: 10,  // ← Reducir de 12 a 10
                   borderTop: "2px solid #a32020",
                   fontWeight: 700,
-                  fontSize: 18,
+                  fontSize: 16,  // ← Reducir de 18 a 16
                   color: "#ffd700",
                   textAlign: "right"
                 }}>
-                  Total compra: ${detalleDia.detalles.reduce(
+                  Total: ${detalleDia.detalles.reduce(
                     (acc: number, d: any) => acc + (Number(d.precio || 0) * d.cantidad),
                     0
                   ).toFixed(2)}
@@ -721,17 +726,16 @@ const Reportes: React.FC = () => {
               </>
             )}
 
-            {/* ----------- VENTAS ----------- */}
+            {/* ========== VENTAS ========== */}
             {tipo === "ventas" && Array.isArray(detalleDia?.productos) && (
-              <div style={{ display: "flex", flexDirection: "row", gap: 24 }}>
-                <div
-                  style={{
-                    flex: 2,
-                    maxHeight: 420, 
-                    overflowY: "auto",
-                    paddingRight: 8,
-                  }}
-                >
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                
+                {/* ✅ PRODUCTOS CON SCROLL */}
+                <div style={{
+                  maxHeight: 360,  // ← Reducir de 420 a 360
+                  overflowY: "auto",
+                  paddingRight: 8,
+                }}>
                   {detalleDia.productos.map((d: any, i: number) => {
                     const esTarjeta = d.metodo_pago === "tarjeta";
                     const esTransferencia = d.metodo_pago === "transferencia";
@@ -742,49 +746,43 @@ const Reportes: React.FC = () => {
                       <div
                         key={i}
                         style={{
-                          marginBottom: 22,
+                          marginBottom: 18,  // ← Reducir de 22 a 18
                           color: esMorado ? "#b36aff" : "#fff",
                           background: esMorado ? "#232526" : "inherit",
-                          paddingBottom: 12,
+                          paddingBottom: 10,  // ← Reducir de 12 a 10
                           borderBottom: "1px solid #333",
+                          fontSize: 13  // ← Reducir tamaño de fuente
                         }}
                       >
                         <div><b>Producto:</b> {d.nombre}</div>
-                        
-                        {/* ✅ AGREGAR MARCA */}
-                        {d.marca && (
-                          <div><b>Marca:</b> {d.marca}</div>
-                        )}
-                        
+                        {d.marca && <div><b>Marca:</b> {d.marca}</div>}
                         <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
                         <div><b>Cantidad:</b> {d.cantidad}</div>
                         <div><b>Método de pago:</b> {d.metodo_pago}</div>
                         <div style={{ fontWeight: 700, color: esMorado ? "#b36aff" : "#ffd700" }}>
                           <b>Subtotal:</b> ${totalProducto.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                           {esTarjeta && (
-                            <span style={{ fontWeight: 400, fontSize: 13 }}> (incluye recargo)</span>
+                            <span style={{ fontWeight: 400, fontSize: 12 }}> (incluye recargo)</span>
                           )}
                         </div>
                       </div>
                     );
                   })}
-                  
-                  {/* Total efectivo */}
-                  <div style={{ marginTop: 18, fontWeight: 700, color: "#a32020", fontSize: 18, textAlign: "right" }}>
-                    Total efectivo: $
+                </div>
+                
+                {/* Totales */}
+                <div style={{ paddingTop: 10, borderTop: "2px solid #a32020" }}>
+                  <div style={{ fontWeight: 700, color: "#4caf50", fontSize: 15, textAlign: "right", marginBottom: 4 }}>
+                    💰 Efectivo: $
                     {detalleDia.productos
                       .filter((d: any) => d.metodo_pago === "efectivo")
                       .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
                       .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                   </div>
-                  {/* Total en TJ/TF */}
-                  <div style={{ fontWeight: 700, color: "#b36aff", fontSize: 18, textAlign: "right" }}>
-                    Total en TJ/TF: $
+                  <div style={{ fontWeight: 700, color: "#b36aff", fontSize: 15, textAlign: "right" }}>
+                    💳 TJ/TF: $
                     {detalleDia.productos
-                      .filter((d: any) =>
-                        d.metodo_pago === "tarjeta" ||
-                        d.metodo_pago === "transferencia"
-                      )
+                      .filter((d: any) => d.metodo_pago === "tarjeta" || d.metodo_pago === "transferencia")
                       .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
                       .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                   </div>
@@ -797,9 +795,9 @@ const Reportes: React.FC = () => {
               display: "flex",
               width: "100%",
               justifyContent: "center",
-              alignItems: "flex-end",
-              gap: 64,
-              marginTop: 28
+              alignItems: "center",
+              gap: 48,  // ← Reducir de 64 a 48
+              marginTop: 20  // ← Reducir de 28 a 20
             }}>
               <button
                 className="exportar-pdf-btn"
@@ -808,11 +806,11 @@ const Reportes: React.FC = () => {
                   color: "#fff",
                   border: "none",
                   borderRadius: 8,
-                  padding: "8px 22px",
+                  padding: "7px 20px",  // ← Reducir padding
                   fontWeight: 700,
-                  fontSize: 16,
+                  fontSize: 14,  // ← Reducir de 16 a 14
                   cursor: "pointer",
-                  minHeight: 48
+                  minHeight: 40  // ← Reducir de 48 a 40
                 }}
                 onClick={() => tipo === "compras"
                   ? exportarDetalleCompraAPDF(detalleDia)
@@ -828,11 +826,11 @@ const Reportes: React.FC = () => {
                   color: "#fff",
                   border: "none",
                   borderRadius: 8,
-                  padding: "8px 22px",
+                  padding: "7px 20px",
                   fontWeight: 700,
-                  fontSize: 16,
+                  fontSize: 14,
                   cursor: "pointer",
-                  minHeight: 48
+                  minHeight: 40
                 }}
                 onClick={() => setDetalleDia(null)}
               >
@@ -840,68 +838,58 @@ const Reportes: React.FC = () => {
               </button>
             </div>
           </div>
-          {/* MODAL APARTE DE DATOS DEL CLIENTE */}
+          
+          {/* Modal de datos del cliente (ventas) */}
           {mostrarCliente && detalleDia.productos[0]?.cliente !== "Consumidor final" && (
-            <div
-              style={{
-                position: "fixed",
-                top: "50%",
-                left: "calc(50% + 340px)", 
-                transform: "translateY(-50%)",
-                background: "#232526",
-                borderRadius: 12,
-                boxShadow: "0 2px 18px rgba(0,0,0,0.22)",
-                padding: "28px 32px",
-                minWidth: 320,
-                zIndex: 9999,
-                color: "#fff",
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  marginBottom: 10,
-                  fontWeight: 700,
-                  fontSize: 19,
-                  color: "#a32020",
-                  letterSpacing: 0.5,
-                }}
-              >
+            <div style={{
+              position: "fixed",
+              top: "50%",
+              left: "calc(50% + 300px)",  // ← Ajustar de 340px a 300px
+              transform: "translateY(-50%)",
+              background: "#232526",
+              borderRadius: 12,
+              boxShadow: "0 2px 18px rgba(0,0,0,0.22)",
+              padding: "22px 28px",  // ← Reducir padding
+              minWidth: 280,  // ← Reducir de 320 a 280
+              zIndex: 9999,
+              color: "#fff",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,  // ← Reducir de 10 a 8
+            }}>
+              <div style={{
+                marginBottom: 8,
+                fontWeight: 700,
+                fontSize: 17,  // ← Reducir de 19 a 17
+                color: "#a32020",
+                letterSpacing: 0.5,
+              }}>
                 Datos del Cliente
               </div>
-              <div>
-                <b>Nombre y Apellido:</b>
-                <br />
-                {(detalleDia.productos[0].cliente_nombre || "") +
-                  " " +
-                  (detalleDia.productos[0].cliente_apellido || "")}
+              <div style={{ fontSize: 13 }}>
+                <b>Nombre y Apellido:</b><br />
+                {(detalleDia.productos[0].cliente_nombre || "") + " " + (detalleDia.productos[0].cliente_apellido || "")}
               </div>
               {detalleDia.productos[0].cliente_correo && (
-                <div>
-                  <b>Correo:</b>
-                  <br />
-                  {detalleDia.productos[0].cliente_correo}
+                <div style={{ fontSize: 13 }}>
+                  <b>Correo:</b><br />{detalleDia.productos[0].cliente_correo}
                 </div>
               )}
               {detalleDia.productos[0].cliente_telefono && (
-                <div>
-                  <b>Teléfono:</b>
-                  <br />
-                  {detalleDia.productos[0].cliente_telefono}
+                <div style={{ fontSize: 13 }}>
+                  <b>Teléfono:</b><br />{detalleDia.productos[0].cliente_telefono}
                 </div>
               )}
               <button
                 style={{
-                  marginTop: 18,
+                  marginTop: 14,  // ← Reducir de 18 a 14
                   background: "#a32020",
                   color: "#fff",
                   border: "none",
                   borderRadius: 8,
-                  padding: "8px 22px",
+                  padding: "7px 20px",  // ← Reducir padding
                   fontWeight: 700,
-                  fontSize: 15,
+                  fontSize: 14,  // ← Reducir de 15 a 14
                   cursor: "pointer"
                 }}
                 onClick={() => setMostrarCliente(false)}
