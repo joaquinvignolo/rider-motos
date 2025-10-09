@@ -83,12 +83,10 @@ const Productos: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (seccion === "repuestos") {
-      fetch("http://localhost:3001/api/proveedores")
-        .then(res => res.json())
-        .then(data => setProveedores(data));
-    }
-  }, [seccion]);
+    fetch("http://localhost:3001/api/proveedores")
+      .then(res => res.json())
+      .then(data => setProveedores(data));
+  }, []);
 
   // Abrir modal para agregar o editar
   const handleAgregar = () => {
@@ -120,7 +118,7 @@ const Productos: React.FC = () => {
       setMensajeValidacion("La marca es obligatoria.");
       return;
     }
-    if (seccion === "repuestos" && !proveedor.trim()) {
+    if (!proveedor.trim()) {
       setMensajeValidacion("El proveedor es obligatorio.");
       return;
     }
@@ -251,7 +249,6 @@ const Productos: React.FC = () => {
               {proveedores.map(p => (
                 <option key={p.id} value={p.nombre}>{p.nombre}</option>
               ))}
-              {}
               {proveedor && !proveedores.some(p => p.nombre === proveedor) && (
                 <option value={proveedor}>{proveedor}</option>
               )}
@@ -310,11 +307,9 @@ const Productos: React.FC = () => {
         <div>
           <strong>Cantidad:</strong> {productoSeleccionado?.cantidad}
         </div>
-        {seccion === "repuestos" && (
-          <div>
-            <strong>Proveedor:</strong> {productoSeleccionado?.proveedor}
-          </div>
-        )}
+        <div>
+          <strong>Proveedor:</strong> {productoSeleccionado?.proveedor}
+        </div>
         {seccion === "motos" && (
           <div>
             <strong>Precio:</strong> ${productoSeleccionado?.precio}

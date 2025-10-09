@@ -101,30 +101,18 @@ app.post('/api/productos', (req, res) => {
     if (err || marcaRows.length === 0) return res.status(400).json({ error: 'Marca no encontrada' });
     const marca_id = marcaRows[0].id;
 
-    if (tipo === 'repuesto' && proveedor) {
-      db.query('SELECT id FROM proveedores WHERE nombre = ?', [proveedor], (err2, provRows) => {
-        if (err2 || provRows.length === 0) return res.status(400).json({ error: 'Proveedor no encontrado' });
-        const proveedor_id = provRows[0].id;
-        db.query(
-          'INSERT INTO productos (nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [nombre, descripcion, precio, cantidadFinal, marca_id, proveedor_id, tipo],
-          (err3, result) => {
-            if (err3) return res.status(500).json({ error: 'Error al agregar producto' });
-            res.json({ success: true, id: result.insertId });
-          }
-        );
-      });
-    } else {
-      // Para motos y accesorios (sin proveedor)
+    db.query('SELECT id FROM proveedores WHERE nombre = ?', [proveedor], (err2, provRows) => {
+      if (err2 || provRows.length === 0) return res.status(400).json({ error: 'Proveedor no encontrado' });
+      const proveedor_id = provRows[0].id;
       db.query(
-        'INSERT INTO productos (nombre, descripcion, precio, cantidad, marca_id, tipo) VALUES (?, ?, ?, ?, ?, ?)',
-        [nombre, descripcion, precio, cantidadFinal, marca_id, tipo],
+        'INSERT INTO productos (nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [nombre, descripcion, precio, cantidadFinal, marca_id, proveedor_id, tipo],
         (err3, result) => {
           if (err3) return res.status(500).json({ error: 'Error al agregar producto' });
           res.json({ success: true, id: result.insertId });
         }
       );
-    }
+    });
   });
 });
 
@@ -139,35 +127,24 @@ app.delete('/api/productos/:id', (req, res) => {
 // Editar producto
 app.put('/api/productos/:id', (req, res) => {
   const { nombre, descripcion, precio, cantidad, marca, proveedor, tipo } = req.body;
-  const activo = Number(cantidad) > 0 ? 1 : 0; // Determina si el producto está activo según la cantidad
+  const activo = Number(cantidad) > 0 ? 1 : 0;
 
   db.query('SELECT id FROM marcas WHERE nombre = ?', [marca], (err, marcaRows) => {
     if (err || marcaRows.length === 0) return res.status(400).json({ error: 'Marca no encontrada' });
     const marca_id = marcaRows[0].id;
 
-    if (tipo === 'repuesto' && proveedor) {
-      db.query('SELECT id FROM proveedores WHERE nombre = ?', [proveedor], (err2, provRows) => {
-        if (err2 || provRows.length === 0) return res.status(400).json({ error: 'Proveedor no encontrado' });
-        const proveedor_id = provRows[0].id;
-        db.query(
-          'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=?, tipo=?, activo=? WHERE id=?',
-          [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo, activo, req.params.id],
-          (err3) => {
-            if (err3) return res.status(500).json({ error: 'Error al editar producto' });
-            res.json({ success: true });
-          }
-        );
-      });
-    } else {
+    db.query('SELECT id FROM proveedores WHERE nombre = ?', [proveedor], (err2, provRows) => {
+      if (err2 || provRows.length === 0) return res.status(400).json({ error: 'Proveedor no encontrado' });
+      const proveedor_id = provRows[0].id;
       db.query(
-        'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=NULL, tipo=?, activo=? WHERE id=?',
-        [nombre, descripcion, precio, cantidad, marca_id, tipo, activo, req.params.id],
+        'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=?, tipo=?, activo=? WHERE id=?',
+        [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo, activo, req.params.id],
         (err3) => {
           if (err3) return res.status(500).json({ error: 'Error al editar producto' });
           res.json({ success: true });
         }
       );
-    }
+    });
   });
 });
 
