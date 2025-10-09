@@ -369,28 +369,92 @@ app.get('/api/ventas', async (req, res) => {
 
 // Registrar compra
 app.post('/api/compras', (req, res) => {
-  let { proveedor_id, total, observaciones, productos } = req.body;
+  let { 
+    proveedor_id, 
+    total, 
+    observaciones, 
+    productos, 
+    tipo_comprobante, 
+    numero_comprobante, 
+    fecha_emision 
+  } = req.body;
   
+  // ========== VALIDACIONES ==========
+  
+  // 1. Proveedor obligatorio
   if (!proveedor_id || proveedor_id === "" || proveedor_id === "null" || proveedor_id === null) {
     return res.status(400).json({ error: 'El proveedor es obligatorio' });
   }
   
+  // 2. Tipo de comprobante obligatorio
+  if (!tipo_comprobante || tipo_comprobante.trim() === "") {
+    return res.status(400).json({ error: 'El tipo de comprobante es obligatorio' });
+  }
+  
+  // 3. Validar tipo de comprobante permitido
+  const tiposPermitidos = ['Factura A', 'Factura B', 'Factura C', 'Remito', 'Presupuesto', 'Ticket'];
+  if (!tiposPermitidos.includes(tipo_comprobante)) {
+    return res.status(400).json({ error: 'Tipo de comprobante inválido' });
+  }
+  
+  // 4. Fecha de emisión (si no viene, usar fecha actual)
+  if (!fecha_emision || fecha_emision.trim() === "") {
+    fecha_emision = new Date().toISOString().split('T')[0];
+  }
+  
+  // 5. Validar que la fecha no sea futura
+  const fechaEmisionDate = new Date(fecha_emision);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  if (fechaEmisionDate > hoy) {
+    return res.status(400).json({ error: 'La fecha de emisión no puede ser futura' });
+  }
+  
+  // 6. Validar formato de número de comprobante (opcional pero si existe debe ser válido)
+  if (numero_comprobante && numero_comprobante.trim() !== "") {
+    if (numero_comprobante.length > 50) {
+      return res.status(400).json({ error: 'El número de comprobante no puede superar 50 caracteres' });
+    }
+    // Opcional: validar formato (ej: 0001-00001234)
+    // const formatoValido = /^\d{4}-\d{8}$/;
+    // if (!formatoValido.test(numero_comprobante)) {
+    //   return res.status(400).json({ error: 'Formato de comprobante inválido (debe ser: 0001-00001234)' });
+    // }
+  }
+  
+  // 7. Validar que haya productos
+  if (!productos || !Array.isArray(productos) || productos.length === 0) {
+    return res.status(400).json({ error: 'Debe agregar al menos un producto' });
+  }
+  
+  // ========== INSERTAR COMPRA ==========
+  
   db.query(
-    'INSERT INTO compras (proveedor_id, total, observaciones) VALUES (?, ?, ?)',
-    [proveedor_id, total, observaciones || null],
+    `INSERT INTO compras 
+      (proveedor_id, tipo_comprobante, numero_comprobante, fecha_emision, total, observaciones) 
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      proveedor_id, 
+      tipo_comprobante, 
+      numero_comprobante || null, 
+      fecha_emision, 
+      total, 
+      observaciones || null
+    ],
     (err, result) => {
       if (err) {
         console.error("Error al registrar compra:", err);
-        return res.status(500).json({ error: 'Error al registrar compra' });
+        return res.status(500).json({ error: 'Error al registrar compra: ' + err.message });
       }
       const compra_id = result.insertId;
       
+      // Insertar detalles
       const detalles = productos.map(p => [
         compra_id,
         p.id,
         p.cantidad,
         p.precio,
-        null 
+        null // observaciones individuales (ya no se usan)
       ]);
       
       db.query(
@@ -399,9 +463,10 @@ app.post('/api/compras', (req, res) => {
         (err2) => {
           if (err2) {
             console.error("Error al registrar detalle de compra:", err2);
-            return res.status(500).json({ error: 'Error al registrar detalle de compra' });
+            return res.status(500).json({ error: 'Error al registrar detalle de compra: ' + err2.message });
           }
-          // Sumar stock de cada producto comprado
+          
+          // Actualizar stock
           const updates = productos.map(p =>
             new Promise((resolve, reject) => {
               db.query(
@@ -414,11 +479,12 @@ app.post('/api/compras', (req, res) => {
               );
             })
           );
+          
           Promise.all(updates)
             .then(() => res.json({ success: true, compra_id }))
             .catch(err3 => {
               console.error("Error al actualizar stock:", err3);
-              res.status(500).json({ error: 'Error al actualizar stock' });
+              res.status(500).json({ error: 'Error al actualizar stock: ' + err3.message });
             });
         }
       );
@@ -426,25 +492,38 @@ app.post('/api/compras', (req, res) => {
   );
 });
 
-// Obtener todas las compras
+// ========== ACTUALIZAR GET /api/compras ==========
 app.get('/api/compras', async (req, res) => {
   try {
-    // 1. Traer todas las compras con datos completos del proveedor
     const [compras] = await db.promise().query(`
-      SELECT c.id, c.fecha, c.total, IFNULL(p.nombre, 'Sin proveedor') as proveedor
+      SELECT 
+        c.id, 
+        c.fecha, 
+        c.fecha_emision, 
+        c.tipo_comprobante, 
+        c.numero_comprobante, 
+        c.total, 
+        c.observaciones,
+        IFNULL(p.nombre, 'Sin proveedor') as proveedor
       FROM compras c
       LEFT JOIN proveedores p ON c.proveedor_id = p.id
-      ORDER BY c.fecha DESC
+      ORDER BY c.fecha_emision DESC, c.fecha DESC
     `);
 
-    // 2. Traer detalles de todas las compras
     const [detalles] = await db.promise().query(`
-      SELECT dc.compra_id, dc.cantidad, dc.precio_unitario as precio, pr.nombre, dc.observaciones
+      SELECT 
+        dc.compra_id, 
+        dc.cantidad, 
+        dc.precio_unitario as precio, 
+        pr.nombre, 
+        pr.proveedor_id,
+        prov.nombre as proveedor,
+        dc.observaciones
       FROM detalle_compras dc
       JOIN productos pr ON dc.producto_id = pr.id
+      LEFT JOIN proveedores prov ON pr.proveedor_id = prov.id
     `);
 
-    // 3. Asociar detalles a cada compra
     const comprasConDetalles = compras.map(compra => ({
       ...compra,
       detalles: detalles
@@ -453,6 +532,7 @@ app.get('/api/compras', async (req, res) => {
           nombre: d.nombre,
           cantidad: d.cantidad,
           precio: d.precio,
+          proveedor: d.proveedor, // AGREGAR proveedor del producto
           observaciones: d.observaciones
         }))
     }));
@@ -460,7 +540,7 @@ app.get('/api/compras', async (req, res) => {
     res.json(comprasConDetalles);
   } catch (err) {
     console.error("Error en /api/compras:", err);
-    res.status(500).json({ error: 'Error al obtener compras' });
+    res.status(500).json({ error: 'Error al obtener compras: ' + err.message });
   }
 });
 

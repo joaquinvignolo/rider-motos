@@ -46,6 +46,11 @@ const Compras = () => {
     const [confirmando, setConfirmando] = useState<boolean>(false);
     const [cooldownBtn, setCooldownBtn] = useState<boolean>(false);
 
+    // ========== AGREGAR NUEVOS ESTADOS ==========
+    const [tipoComprobante, setTipoComprobante] = useState<string>('Factura B');
+    const [numeroComprobante, setNumeroComprobante] = useState<string>('');
+    const [fechaEmision, setFechaEmision] = useState<string>(new Date().toISOString().split('T')[0]);
+
     useEffect(() => {
         fetch('http://localhost:3001/api/marcas')
             .then(res => res.json())
@@ -118,23 +123,47 @@ const Compras = () => {
         window.location.href = '/menu';
     };
 
+    // ========== ACTUALIZAR confirmarCompra ==========
     const confirmarCompra = async () => {
         if (confirmando || cooldownBtn) return;
+        
+        // Validaciones
+        let errores: string[] = [];
+        
         if (carrito.length === 0) {
-            setMensajeError("El carrito está vacío.");
-            return;
+            errores.push("El carrito está vacío.");
         }
         if (!proveedorSeleccionado) {
-            setMensajeError("Seleccione un proveedor.");
+            errores.push("Seleccione un proveedor.");
+        }
+        if (!tipoComprobante) {
+            errores.push("Seleccione un tipo de comprobante.");
+        }
+        if (!fechaEmision) {
+            errores.push("Ingrese la fecha de emisión.");
+        } else {
+            const fechaEmisionDate = new Date(fechaEmision);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            if (fechaEmisionDate > hoy) {
+                errores.push("La fecha de emisión no puede ser futura.");
+            }
+        }
+        
+        if (errores.length > 0) {
+            setMensajeError(errores.join(" | "));
             return;
         }
+        
         setMensajeError('');
+        
         const proveedor = proveedores.find(p => p.nombre === proveedorSeleccionado);
         if (!proveedor) {
             setMensajeError("Proveedor no válido.");
             return;
         }
         const proveedor_id = proveedor.id;
+        
         try {
             setConfirmando(true);
             const res = await fetch('http://localhost:3001/api/compras', {
@@ -144,6 +173,9 @@ const Compras = () => {
                     proveedor_id,
                     total,
                     observaciones,
+                    tipo_comprobante: tipoComprobante,
+                    numero_comprobante: numeroComprobante.trim() || null,
+                    fecha_emision: fechaEmision,
                     productos: carrito.map(item => ({
                         id: item.id,
                         cantidad: item.cantidad,
@@ -153,8 +185,12 @@ const Compras = () => {
             });
             const data = await res.json();
             if (data.success) {
+                // Limpiar formulario
                 setCarrito([]);
                 setObservaciones('');
+                setNumeroComprobante('');
+                setFechaEmision(new Date().toISOString().split('T')[0]);
+                setTipoComprobante('Factura B');
                 setMensajeError('');
                 setMensajeExito('¡Compra registrada correctamente!');
                 setTipo('moto');
@@ -221,6 +257,72 @@ const Compras = () => {
                             {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </div>
+                    
+                    {/* ========== AGREGAR ESTOS CAMPOS DESPUÉS DE "Tipo de Compra" ========== */}
+                    
+                    <div className="form-row">
+                        <label>Tipo de Comprobante</label>
+                        <select
+                            value={tipoComprobante}
+                            onChange={e => setTipoComprobante(e.target.value)}
+                            style={{
+                                background: '#232526',
+                                color: '#fff',
+                                border: '1px solid #353535',
+                                borderRadius: '8px',
+                                padding: '8px',
+                                fontSize: '1rem',
+                                width: '100%'
+                            }}
+                        >
+                            <option value="Factura A">Factura A</option>
+                            <option value="Factura B">Factura B</option>
+                            <option value="Factura C">Factura C</option>
+                            <option value="Remito">Remito</option>
+                            <option value="Presupuesto">Presupuesto</option>
+                            <option value="Ticket">Ticket</option>
+                        </select>
+                    </div>
+                    
+                    <div className="form-row">
+                        <label>Nº de Comprobante (opcional)</label>
+                        <input
+                            type="text"
+                            value={numeroComprobante}
+                            onChange={e => setNumeroComprobante(e.target.value)}
+                            placeholder="Ej: 0001-00001234"
+                            maxLength={50}
+                            style={{
+                                background: '#232526',
+                                color: '#fff',
+                                border: '1px solid #353535',
+                                borderRadius: '8px',
+                                padding: '8px',
+                                fontSize: '1rem',
+                                width: '100%'
+                            }}
+                        />
+                    </div>
+                    
+                    <div className="form-row">
+                        <label>Fecha de Emisión</label>
+                        <input
+                            type="date"
+                            value={fechaEmision}
+                            onChange={e => setFechaEmision(e.target.value)}
+                            max={new Date().toISOString().split('T')[0]}
+                            style={{
+                                background: '#232526',
+                                color: '#fff',
+                                border: '1px solid #353535',
+                                borderRadius: '8px',
+                                padding: '8px',
+                                fontSize: '1rem',
+                                width: '100%'
+                            }}
+                        />
+                    </div>
+                    
                     <div className="form-row">
                         <label>Proveedor</label>
                         <select
