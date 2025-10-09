@@ -367,132 +367,7 @@ app.get('/api/ventas', async (req, res) => {
   }
 });
 
-// Registrar compra
-app.post('/api/compras', (req, res) => {
-  let { 
-    proveedor_id, 
-    total, 
-    observaciones, 
-    productos, 
-    tipo_comprobante, 
-    numero_comprobante, 
-    fecha_emision 
-  } = req.body;
-  
-  // ========== VALIDACIONES ==========
-  
-  // 1. Proveedor obligatorio
-  if (!proveedor_id || proveedor_id === "" || proveedor_id === "null" || proveedor_id === null) {
-    return res.status(400).json({ error: 'El proveedor es obligatorio' });
-  }
-  
-  // 2. Tipo de comprobante obligatorio
-  if (!tipo_comprobante || tipo_comprobante.trim() === "") {
-    return res.status(400).json({ error: 'El tipo de comprobante es obligatorio' });
-  }
-  
-  // 3. Validar tipo de comprobante permitido
-  const tiposPermitidos = ['Factura A', 'Factura B', 'Factura C', 'Remito', 'Presupuesto', 'Ticket'];
-  if (!tiposPermitidos.includes(tipo_comprobante)) {
-    return res.status(400).json({ error: 'Tipo de comprobante inválido' });
-  }
-  
-  // 4. Fecha de emisión (si no viene, usar fecha actual)
-  if (!fecha_emision || fecha_emision.trim() === "") {
-    fecha_emision = new Date().toISOString().split('T')[0];
-  }
-  
-  // 5. Validar que la fecha no sea futura
-  const fechaEmisionDate = new Date(fecha_emision);
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  if (fechaEmisionDate > hoy) {
-    return res.status(400).json({ error: 'La fecha de emisión no puede ser futura' });
-  }
-  
-  // 6. Validar formato de número de comprobante (opcional pero si existe debe ser válido)
-  if (numero_comprobante && numero_comprobante.trim() !== "") {
-    if (numero_comprobante.length > 50) {
-      return res.status(400).json({ error: 'El número de comprobante no puede superar 50 caracteres' });
-    }
-    // Opcional: validar formato (ej: 0001-00001234)
-    // const formatoValido = /^\d{4}-\d{8}$/;
-    // if (!formatoValido.test(numero_comprobante)) {
-    //   return res.status(400).json({ error: 'Formato de comprobante inválido (debe ser: 0001-00001234)' });
-    // }
-  }
-  
-  // 7. Validar que haya productos
-  if (!productos || !Array.isArray(productos) || productos.length === 0) {
-    return res.status(400).json({ error: 'Debe agregar al menos un producto' });
-  }
-  
-  // ========== INSERTAR COMPRA ==========
-  
-  db.query(
-    `INSERT INTO compras 
-      (proveedor_id, tipo_comprobante, numero_comprobante, fecha_emision, total, observaciones) 
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      proveedor_id, 
-      tipo_comprobante, 
-      numero_comprobante || null, 
-      fecha_emision, 
-      total, 
-      observaciones || null
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Error al registrar compra:", err);
-        return res.status(500).json({ error: 'Error al registrar compra: ' + err.message });
-      }
-      const compra_id = result.insertId;
-      
-      // Insertar detalles
-      const detalles = productos.map(p => [
-        compra_id,
-        p.id,
-        p.cantidad,
-        p.precio,
-        null // observaciones individuales (ya no se usan)
-      ]);
-      
-      db.query(
-        'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, observaciones) VALUES ?',
-        [detalles],
-        (err2) => {
-          if (err2) {
-            console.error("Error al registrar detalle de compra:", err2);
-            return res.status(500).json({ error: 'Error al registrar detalle de compra: ' + err2.message });
-          }
-          
-          // Actualizar stock
-          const updates = productos.map(p =>
-            new Promise((resolve, reject) => {
-              db.query(
-                'UPDATE productos SET cantidad = cantidad + ? WHERE id = ?',
-                [p.cantidad, p.id],
-                (err3) => {
-                  if (err3) reject(err3);
-                  else resolve();
-                }
-              );
-            })
-          );
-          
-          Promise.all(updates)
-            .then(() => res.json({ success: true, compra_id }))
-            .catch(err3 => {
-              console.error("Error al actualizar stock:", err3);
-              res.status(500).json({ error: 'Error al actualizar stock: ' + err3.message });
-            });
-        }
-      );
-    }
-  );
-});
-
-// ========== ACTUALIZAR GET /api/compras ==========
+// Ruta para obtener todas las compras
 app.get('/api/compras', async (req, res) => {
   try {
     const [compras] = await db.promise().query(`
@@ -504,9 +379,9 @@ app.get('/api/compras', async (req, res) => {
         c.numero_comprobante, 
         c.total, 
         c.observaciones,
-        IFNULL(p.nombre, 'Sin proveedor') as proveedor
+        p.nombre as proveedor
       FROM compras c
-      LEFT JOIN proveedores p ON c.proveedor_id = p.id
+      INNER JOIN proveedores p ON c.proveedor_id = p.id
       ORDER BY c.fecha_emision DESC, c.fecha DESC
     `);
 
@@ -532,7 +407,7 @@ app.get('/api/compras', async (req, res) => {
           nombre: d.nombre,
           cantidad: d.cantidad,
           precio: d.precio,
-          proveedor: d.proveedor, // AGREGAR proveedor del producto
+          proveedor: d.proveedor,
           observaciones: d.observaciones
         }))
     }));
@@ -544,225 +419,143 @@ app.get('/api/compras', async (req, res) => {
   }
 });
 
-// Ventas de motos sin trámite de patentamiento
-app.get('/api/ventas-disponibles-patentamiento', (req, res) => {
-  db.query(`
-    SELECT 
-      v.id, 
-      v.fecha, 
-      c.nombre as cliente_nombre, 
-      c.apellido as cliente_apellido,
-      pr.nombre as moto_nombre, 
-      m.nombre as marca
-    FROM ventas v
-    JOIN detalle_ventas dv ON dv.venta_id = v.id
-    JOIN productos pr ON dv.producto_id = pr.id
-    LEFT JOIN marcas m ON pr.marca_id = m.id
-    LEFT JOIN clientes c ON v.cliente_id = c.id
-    WHERE pr.tipo = 'moto'
-      AND v.id NOT IN (SELECT venta_id FROM patentamientos)
-      AND v.cliente_id IS NOT NULL
-    ORDER BY v.fecha DESC
-  `, (err, results) => {
-    if (err) {
-      console.error("Error SQL ventas disponibles:", err);
-      return res.status(500).json({ error: 'Error al obtener ventas disponibles' });
-    }
-    //console.log("Ventas disponibles para patentamiento:", results);
-    res.json(results);
-  });
-});
-
-// Crear trámite de patentamiento
-app.post('/api/patentamientos', (req, res) => {
-  const { venta_id, observaciones, numero_chasis, numero_motor, numero_certificado } = req.body;
-  if (!venta_id) return res.status(400).json({ error: "Debe seleccionar una venta." });
-  if (
-    !numero_chasis || !numero_chasis.trim() ||
-    !numero_motor || !numero_motor.trim() ||
-    !numero_certificado || !numero_certificado.trim()
-  ) {
-    return res.status(400).json({ error: "Debe ingresar chasis, motor y certificado." });
+// Ruta para registrar una nueva compra
+app.post('/api/compras', (req, res) => {
+  let { 
+    proveedor_id, 
+    total, 
+    observaciones, 
+    productos, 
+    tipo_comprobante, 
+    numero_comprobante, 
+    fecha_emision 
+  } = req.body;
+  
+  // 1. Proveedor obligatorio
+  if (!proveedor_id || proveedor_id === "" || proveedor_id === "null" || proveedor_id === null) {
+    return res.status(400).json({ error: 'El proveedor es obligatorio' });
   }
-
-  function validarCampo(campo, nombre, min, max) {
-    if (!campo || typeof campo !== "string" || !campo.trim()) {
-      return `${nombre} es obligatorio.`;
+  
+  // 2. Validar que el proveedor exista
+  db.query('SELECT id FROM proveedores WHERE id = ?', [proveedor_id], (err, provRows) => {
+    if (err || provRows.length === 0) {
+      return res.status(400).json({ error: 'Proveedor no válido o no existe' });
     }
-    if (campo.length < min || campo.length > max) {
-      return `${nombre} debe tener entre ${min} y ${max} caracteres.`;
+    
+    // 3. Tipo de comprobante obligatorio
+    if (!tipo_comprobante || tipo_comprobante.trim() === "") {
+      return res.status(400).json({ error: 'El tipo de comprobante es obligatorio' });
     }
-    if (!/^[A-Za-z0-9\-\.]+$/.test(campo)) {
-      return `${nombre} solo puede contener letras, números, guiones o puntos.`;
+    
+    // 4. Validar tipo de comprobante permitido
+    const tiposPermitidos = ['Factura A', 'Factura B', 'Factura C', 'Remito', 'Presupuesto', 'Ticket'];
+    if (!tiposPermitidos.includes(tipo_comprobante)) {
+      return res.status(400).json({ error: 'Tipo de comprobante inválido' });
     }
-    return null;
-  }
-
-  const errorChasis = validarCampo(numero_chasis, "Chasis", 10, 20);
-  const errorMotor = validarCampo(numero_motor, "Motor", 5, 20);
-  const errorCertificado = validarCampo(numero_certificado, "Certificado", 5, 30);
-
-  if (errorChasis || errorMotor || errorCertificado) {
-    return res.status(400).json({ error: errorChasis || errorMotor || errorCertificado });
-  }
-
-  // Validar unicidad de chasis y motor
-  db.query(
-    'SELECT id FROM motos_entregadas WHERE numero_chasis = ? OR numero_motor = ?',
-    [numero_chasis, numero_motor],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: "Error al validar unicidad." });
-      if (rows.length > 0) {
-        return res.status(400).json({ error: "El número de chasis o motor ya está registrado." });
+    
+    // 5. Número de comprobante SIEMPRE obligatorio (la factura ya existe)
+    if (!numero_comprobante || numero_comprobante.trim() === '') {
+      return res.status(400).json({ 
+        error: 'El número de comprobante es obligatorio (factura en papel)' 
+      });
+    }
+    
+    if (numero_comprobante.length > 50) {
+      return res.status(400).json({ error: 'El número de comprobante no puede superar 50 caracteres' });
+    }
+    
+    // 6. Fecha de emisión
+    if (!fecha_emision || fecha_emision.trim() === "") {
+      fecha_emision = new Date().toISOString().split('T')[0];
+    }
+    
+    // 7. Validar que la fecha no sea futura
+    const fechaEmisionDate = new Date(fecha_emision);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    if (fechaEmisionDate > hoy) {
+      return res.status(400).json({ error: 'La fecha de emisión no puede ser futura' });
+    }
+    
+    // 8. Validar que haya productos
+    if (!productos || !Array.isArray(productos) || productos.length === 0) {
+      return res.status(400).json({ error: 'Debe agregar al menos un producto' });
+    }
+    
+    // 9. Validar precios y cantidades
+    for (const p of productos) {
+      if (!p.cantidad || p.cantidad <= 0) {
+        return res.status(400).json({ error: `Cantidad inválida para producto ID ${p.id}` });
       }
-      db.query('SELECT id FROM patentamientos WHERE venta_id = ?', [venta_id], (err, rows) => {
-        if (err) return res.status(500).json({ error: "Error al validar trámite existente." });
-        if (rows.length > 0) return res.status(400).json({ error: "Ya existe un trámite para esta venta." });
+      if (!p.precio || p.precio <= 0) {
+        return res.status(400).json({ error: `Precio inválido para producto ID ${p.id}` });
+      }
+    }
+    
+    // 10. Insertar compra
+    db.query(
+      `INSERT INTO compras 
+        (proveedor_id, tipo_comprobante, numero_comprobante, fecha_emision, total, observaciones) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        proveedor_id, 
+        tipo_comprobante, 
+        numero_comprobante, 
+        fecha_emision, 
+        total, 
+        observaciones || null
+      ],
+      (err3, result) => {
+        if (err3) {
+          console.error("Error al registrar compra:", err3);
+          return res.status(500).json({ error: 'Error al registrar compra: ' + err3.message });
+        }
+        const compra_id = result.insertId;
+        
+        const detalles = productos.map(p => [
+          compra_id,
+          p.id,
+          p.cantidad,
+          p.precio,
+          null
+        ]);
+        
         db.query(
-          'INSERT INTO patentamientos (venta_id, fecha_solicitud, observaciones) VALUES (?, CURDATE(), ?)',
-          [venta_id, observaciones || null],
-          (err2, result) => {
-            if (err2) return res.status(500).json({ error: "Error al iniciar trámite." });
-            const patentamiento_id = result.insertId;
-            // Insertar datos únicos de la moto
-            db.query(
-              'INSERT INTO motos_entregadas (patentamiento_id, numero_chasis, numero_motor, numero_certificado) VALUES (?, ?, ?, ?)',
-              [patentamiento_id, numero_chasis, numero_motor, numero_certificado],
-              (err3) => {
-                if (err3) return res.status(500).json({ error: "Error al registrar datos de la moto." });
-                res.json({ success: true, id: patentamiento_id });
-              }
+          'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, observaciones) VALUES ?',
+          [detalles],
+          (err4) => {
+            if (err4) {
+              console.error("Error al registrar detalle de compra:", err4);
+              return res.status(500).json({ error: 'Error al registrar detalle de compra: ' + err4.message });
+            }
+            
+            // Actualizar stock
+            const updates = productos.map(p =>
+              new Promise((resolve, reject) => {
+                db.query(
+                  'UPDATE productos SET cantidad = cantidad + ? WHERE id = ?',
+                  [p.cantidad, p.id],
+                  (err5) => {
+                    if (err5) reject(err5);
+                    else resolve();
+                  }
+                );
+              })
             );
+            
+            Promise.all(updates)
+              .then(() => res.json({ success: true, compra_id }))
+              .catch(err6 => {
+                console.error("Error al actualizar stock:", err6);
+                res.status(500).json({ error: 'Error al actualizar stock: ' + err6.message });
+              });
           }
         );
-      });
-    }
-  );
-});
-
-// Listar trámites de patentamiento con datos de cliente y moto
-app.get('/api/patentamientos', (req, res) => {
-  db.query(`
-    SELECT p.id, p.fecha_solicitud as fechaSolicitud, p.fecha_finalizacion as fechaFinalizacion, p.ultima_actualizacion as ultimaActualizacion,
-           p.estado, p.observaciones,
-           CONCAT(c.nombre, ' ', c.apellido) as cliente,
-           CONCAT(marcas.nombre, ' ', productos.nombre) as moto
-    FROM patentamientos p
-    JOIN ventas v ON p.venta_id = v.id
-    JOIN clientes c ON v.cliente_id = c.id
-    JOIN detalle_ventas dv ON dv.venta_id = v.id
-    JOIN productos ON dv.producto_id = productos.id
-    LEFT JOIN marcas ON productos.marca_id = marcas.id
-    WHERE productos.tipo = 'moto'
-    ORDER BY p.fecha_solicitud DESC
-  `, (err, results) => {
-    if (err) return res.status(500).json({ error: 'Error al obtener trámites' });
-    res.json(results);
+      }
+    );
   });
-});
-
-// Actualizar estado de trámite de patentamiento y enviar email si es "Completado"
-app.patch('/api/patentamientos/:id', (req, res) => {
-  const { estado } = req.body;
-  let query = 'UPDATE patentamientos SET estado=?, ultima_actualizacion=NOW()';
-  let params = [estado];
-  if (estado === 'Completado') {
-    query += ', fecha_finalizacion=CURDATE()';
-  }
-  query += ' WHERE id=?';
-  params.push(req.params.id);
-
-  db.query(query, params, (err) => {
-    if (err) return res.status(500).json({ error: 'Error al actualizar trámite' });
-
-    // Si el estado es "Completado", enviar email al cliente
-    if (estado === 'Completado') {
-      // Traer datos del cliente, moto y patentamiento
-      db.query(`
-        SELECT c.correo, c.nombre, c.apellido, marcas.nombre as marca, productos.nombre as moto,
-               p.fecha_finalizacion, me.numero_chasis, me.numero_motor, me.numero_certificado
-        FROM patentamientos p
-        JOIN ventas v ON p.venta_id = v.id
-        JOIN clientes c ON v.cliente_id = c.id
-        JOIN detalle_ventas dv ON dv.venta_id = v.id
-        JOIN productos ON dv.producto_id = productos.id
-        LEFT JOIN marcas ON productos.marca_id = marcas.id
-        LEFT JOIN motos_entregadas me ON me.patentamiento_id = p.id
-        WHERE p.id = ? AND productos.tipo = 'moto'
-        LIMIT 1
-      `, [req.params.id], (err2, results) => {
-        if (!err2 && results.length && results[0].correo) {
-          const cliente = results[0];
-          const fechaFinal = cliente.fecha_finalizacion
-            ? new Date(cliente.fecha_finalizacion).toLocaleDateString()
-            : "-";
-          transporter.sendMail({
-            from: '"Rider Motos" <ridermotos@gmail.com>',
-            to: cliente.correo,
-            subject: '¡Tu moto ya está patentada!',
-            html: `
-              <div style="font-family: Arial, sans-serif; color: #222; background: #f8f8f8; padding: 32px; border-radius: 12px; max-width: 520px; margin: auto;">
-                <h2 style="color: #a32020; margin-bottom: 12px;">¡Tu moto ya está patentada!</h2>
-                <p>Hola <b>${cliente.nombre} ${cliente.apellido}</b>,</p>
-                <p>
-                  Te informamos que el trámite de patentamiento de tu moto <b>${cliente.marca} ${cliente.moto}</b> ha sido <span style="color: #27ae60; font-weight: bold;">completado exitosamente</span> el día <b>${fechaFinal}</b>.
-                </p>
-                <div style="background: #fff; border-radius: 8px; padding: 18px 22px; margin: 18px 0; box-shadow: 0 2px 8px #0001;">
-                  <h4 style="color: #a32020; margin-bottom: 10px;">Datos de tu moto:</h4>
-                  <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li><b>Chasis:</b> ${cliente.numero_chasis || "-"}</li>
-                    <li><b>Motor:</b> ${cliente.numero_motor || "-"}</li>
-                    <li><b>Certificado:</b> ${cliente.numero_certificado || "-"}</li>
-                  </ul>
-                </div>
-                <p style="margin-top: 18px;">¡Gracias por confiar en <b>Rider Motos</b>!<br>Estamos a tu disposición para cualquier consulta.</p>
-                <hr style="margin: 28px 0 12px 0; border: none; border-top: 1px solid #eee;">
-                <small style="color: #888;">Este es un mensaje automático, por favor no responder.</small>
-              </div>
-            `
-          }, (errMail) => {
-            return res.json({ success: true });
-          });
-        } else {
-          // Si no hay correo, igual respondé éxito
-          return res.json({ success: true });
-        }
-      });
-    } else {
-      res.json({ success: true });
-    }
-  });
-});
-
-app.post('/api/motos-entregadas', (req, res) => {
-  const { patentamiento_id, numero_chasis, numero_motor, numero_certificado } = req.body;
-  if (!patentamiento_id || !numero_chasis || !numero_motor || !numero_certificado) {
-    return res.status(400).json({ error: "Faltan datos obligatorios." });
-  }
-  db.query(
-    'INSERT INTO motos_entregadas (patentamiento_id, numero_chasis, numero_motor, numero_certificado) VALUES (?, ?, ?, ?)',
-    [patentamiento_id, numero_chasis, numero_motor, numero_certificado],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: "Error al registrar la moto entregada." });
-      res.json({ success: true, id: result.insertId });
-    }
-  );
-});
-
-app.get('/api/motos-entregadas/:patentamiento_id', (req, res) => {
-  db.query(
-    'SELECT numero_chasis, numero_motor, numero_certificado FROM motos_entregadas WHERE patentamiento_id = ?',
-    [req.params.patentamiento_id],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: "Error al obtener datos de la moto." });
-      if (!results.length) return res.status(404).json({ error: "No se encontraron datos para este trámite." });
-      res.json(results[0]);
-    }
-  );
 });
 
 app.listen(3001, () => {
-  console.log('API corriendo en http://localhost:3001');
+  console.log('Servidor corriendo en http://localhost:3001');
 });
-
-console.log("Iniciando backend Rider Motos...");
