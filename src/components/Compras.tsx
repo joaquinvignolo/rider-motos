@@ -79,11 +79,7 @@ const Compras = () => {
             return;
         }
         const precioNum = Number(precioUnitario);
-        if (
-            precioUnitario === '' ||
-            isNaN(precioNum) ||
-            precioNum <= 0
-        ) {
+        if (precioUnitario === '' || isNaN(precioNum) || precioNum <= 0) {
             setMensajeError("El precio unitario debe ser un número mayor a 0.");
             return;
         }
@@ -91,13 +87,13 @@ const Compras = () => {
             setMensajeError("Este producto ya está en el carrito.");
             return;
         }
-        if (tipo === "repuesto" && !proveedorSeleccionado) {
+        if (!proveedorSeleccionado) {
             setMensajeError("Seleccione un proveedor.");
             return;
         }
         if (tipo === "moto" && !marcaSeleccionada) {
             setMensajeError("Seleccione una marca.");
-             return;
+            return;
         }
         setMensajeError('');
         const prod = productos.find(p => p.id === productoSeleccionado);
@@ -105,13 +101,11 @@ const Compras = () => {
         setCarrito([...carrito, {
             ...prod,
             cantidad: cantidad,
-            precio: precioNum,
-            observaciones 
+            precio: precioNum
         }]);
         setCantidad(1);
         setProductoSeleccionado(null);
         setPrecioUnitario('');
-        setObservaciones(''); 
     };
 
     const eliminarDelCarrito = (idx: number) => {
@@ -126,63 +120,60 @@ const Compras = () => {
 
     const confirmarCompra = async () => {
         if (confirmando || cooldownBtn) return;
-         if (carrito.length === 0) {
-             setMensajeError("El carrito está vacío.");
-             return;
-         }
-         if (tipo === "repuesto" && !proveedorSeleccionado) {
-             setMensajeError("Seleccione un proveedor.");
-             return;
-         }
-         setMensajeError('');
-         let proveedor_id = null;
-         if (tipo === "repuesto") {
-             const proveedor = proveedores.find(p => p.nombre === proveedorSeleccionado);
-             if (!proveedor) {
-                 setMensajeError("Proveedor no válido.");
-                 return;
-             }
-             proveedor_id = proveedor.id;
-         }
-         try {
-             setConfirmando(true);
-             const res = await fetch('http://localhost:3001/api/compras', {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({
-                     proveedor_id,
-                     total,
-                     observaciones,
-                     productos: carrito.map(item => ({
-                         id: item.id,
-                         cantidad: item.cantidad,
-                         precio: Number(item.precio)
-                     }))
-                 })
-             });
-             const data = await res.json();
-             if (data.success) {
-                 setCarrito([]);
-                 setObservaciones('');
-                 setMensajeError('');
-                 setMensajeExito('¡Compra registrada correctamente!');
-                 setTipo('moto');
-                 setMarcaSeleccionada('');
-                 setProveedorSeleccionado('');
-                 setProductoSeleccionado(null);
-                 setCantidad(1);
-                 setPrecioUnitario('');
-                 setTimeout(() => setMensajeExito(''), 3500);
+        if (carrito.length === 0) {
+            setMensajeError("El carrito está vacío.");
+            return;
+        }
+        if (!proveedorSeleccionado) {
+            setMensajeError("Seleccione un proveedor.");
+            return;
+        }
+        setMensajeError('');
+        const proveedor = proveedores.find(p => p.nombre === proveedorSeleccionado);
+        if (!proveedor) {
+            setMensajeError("Proveedor no válido.");
+            return;
+        }
+        const proveedor_id = proveedor.id;
+        try {
+            setConfirmando(true);
+            const res = await fetch('http://localhost:3001/api/compras', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    proveedor_id,
+                    total,
+                    observaciones,
+                    productos: carrito.map(item => ({
+                        id: item.id,
+                        cantidad: item.cantidad,
+                        precio: Number(item.precio)
+                    }))
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCarrito([]);
+                setObservaciones('');
+                setMensajeError('');
+                setMensajeExito('¡Compra registrada correctamente!');
+                setTipo('moto');
+                setMarcaSeleccionada('');
+                setProveedorSeleccionado('');
+                setProductoSeleccionado(null);
+                setCantidad(1);
+                setPrecioUnitario('');
+                setTimeout(() => setMensajeExito(''), 3500);
                 setCooldownBtn(true);
                 setTimeout(() => setCooldownBtn(false), 2000);
-             } else {
-                 setMensajeError(data.error || 'Error al registrar la compra');
-             }
-         } catch (err) {
-             setMensajeError('Error de conexión con el servidor');
-         } finally {
-             setConfirmando(false);
-         }
+            } else {
+                setMensajeError(data.error || 'Error al registrar la compra');
+            }
+        } catch (err) {
+            setMensajeError('Error de conexión con el servidor');
+        } finally {
+            setConfirmando(false);
+        }
     };
 
     return (
@@ -230,21 +221,19 @@ const Compras = () => {
                             {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </div>
-                    {tipo === 'repuesto' && (
-                        <div className="form-row">
-                            <label>Proveedor</label>
-                            <select
-                                value={proveedorSeleccionado}
-                                onChange={e => {
-                                    setProveedorSeleccionado(e.target.value);
-                                    setProductoSeleccionado(null);
-                                }}
-                            >
-                                <option value="">Seleccione un proveedor</option>
-                                {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
-                            </select>
-                        </div>
-                    )}
+                    <div className="form-row">
+                        <label>Proveedor</label>
+                        <select
+                            value={proveedorSeleccionado}
+                            onChange={e => {
+                                setProveedorSeleccionado(e.target.value);
+                                setProductoSeleccionado(null);
+                            }}
+                        >
+                            <option value="">Seleccione un proveedor</option>
+                            {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
+                        </select>
+                    </div>
                     {(tipo === 'repuesto' || tipo === 'accesorio') && (
                         <div className="form-row">
                             <label>Calidad</label>
@@ -286,17 +275,23 @@ const Compras = () => {
                         >
                             <option value="">Seleccione un producto</option>
                             {productos
-                                .filter(p =>
-                                    (tipo === 'repuesto' ? p.proveedor === proveedorSeleccionado : true) &&
-                                    (tipo === 'moto'
-                                        ? p.marca === marcaSeleccionada
-                                        : (tipo === 'repuesto' || tipo === 'accesorio')
-                                            ? (marcaSeleccionada
-                                                ? p.marca.toLowerCase() === marcaSeleccionada.toLowerCase()
-                                                : true)
-                                            : true
-                                    )
-                                )
+                                .filter(p => {
+                                    if (proveedorSeleccionado && p.proveedor !== proveedorSeleccionado) {
+                                        return false;
+                                    }
+                                    
+                                    if (tipo === 'moto') {
+                                        return p.marca === marcaSeleccionada;
+                                    }
+                                    
+                                    if (tipo === 'repuesto' || tipo === 'accesorio') {
+                                        return marcaSeleccionada 
+                                            ? p.marca.toLowerCase() === marcaSeleccionada.toLowerCase()
+                                            : true;
+                                    }
+                                    
+                                    return true;
+                                })
                                 .map(p => (
                                     <option key={p.id} value={p.id}>
                                         {p.nombre} ({p.marca}{p.proveedor ? ` - ${p.proveedor}` : ''})
@@ -355,7 +350,7 @@ const Compras = () => {
                             productoSeleccionado === null ||
                             !cantidad || cantidad < 1 ||
                             precioUnitario === '' || Number(precioUnitario) <= 0 ||
-                            (tipo === "repuesto" && !proveedorSeleccionado) ||
+                            !proveedorSeleccionado ||
                             (tipo === "moto" && !marcaSeleccionada)
                         }
                     >
@@ -370,10 +365,10 @@ const Compras = () => {
                                 <tr>
                                     <th>Producto</th>
                                     <th>Marca</th>
+                                    <th>Proveedor</th> 
                                     <th>Cantidad</th>
                                     <th>Precio Unitario</th>
                                     <th>Subtotal</th>
-                                    <th>Obs.</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -390,10 +385,10 @@ const Compras = () => {
                                             </button>
                                         </td>
                                         <td>{item.marca}</td>
+                                        <td>{item.proveedor || proveedorSeleccionado}</td>
                                         <td>{item.cantidad}</td>
                                         <td>${Number(item.precio).toFixed(2)}</td>
                                         <td>${(Number(item.precio) * item.cantidad).toFixed(2)}</td>
-                                        <td>{item.observaciones || ''}</td>
                                     </tr>
                                 ))}
                             </tbody>

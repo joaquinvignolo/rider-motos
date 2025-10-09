@@ -370,25 +370,29 @@ app.get('/api/ventas', async (req, res) => {
 // Registrar compra
 app.post('/api/compras', (req, res) => {
   let { proveedor_id, total, observaciones, productos } = req.body;
-  if (!proveedor_id || proveedor_id === "" || proveedor_id === "null") {
-    proveedor_id = null;
+  
+  if (!proveedor_id || proveedor_id === "" || proveedor_id === "null" || proveedor_id === null) {
+    return res.status(400).json({ error: 'El proveedor es obligatorio' });
   }
+  
   db.query(
     'INSERT INTO compras (proveedor_id, total, observaciones) VALUES (?, ?, ?)',
-    [proveedor_id, total, observaciones],
+    [proveedor_id, total, observaciones || null],
     (err, result) => {
       if (err) {
         console.error("Error al registrar compra:", err);
         return res.status(500).json({ error: 'Error al registrar compra' });
       }
       const compra_id = result.insertId;
+      
       const detalles = productos.map(p => [
         compra_id,
         p.id,
         p.cantidad,
         p.precio,
-        p.observaciones || null // <-- agrega la observación de cada producto
+        null 
       ]);
+      
       db.query(
         'INSERT INTO detalle_compras (compra_id, producto_id, cantidad, precio_unitario, observaciones) VALUES ?',
         [detalles],
