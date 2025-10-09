@@ -338,9 +338,10 @@ app.get('/api/ventas', async (req, res) => {
       ORDER BY v.fecha DESC
     `);
 
-    // 2. Traer detalles de todas las ventas
+    // 2. Traer detalles de todas las ventas CON TIPO Y MARCA
     const [detalles] = await db.promise().query(`
-      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario as precio, pr.nombre, pr.descripcion, m.nombre as marca
+      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario as precio, 
+             pr.nombre, pr.descripcion, pr.tipo, m.nombre as marca
       FROM detalle_ventas dv
       JOIN productos pr ON dv.producto_id = pr.id
       LEFT JOIN marcas m ON pr.marca_id = m.id
@@ -354,9 +355,9 @@ app.get('/api/ventas', async (req, res) => {
         .map(d => ({
           nombre: d.nombre,
           marca: d.marca,
+          tipo: d.tipo,  // ← AGREGAR
           cantidad: d.cantidad,
-          precio: d.precio,
-          observaciones: d.observaciones
+          precio: d.precio
         }))
     }));
 
@@ -391,6 +392,7 @@ app.get('/api/compras', async (req, res) => {
         dc.cantidad, 
         dc.precio_unitario as precio, 
         pr.nombre,
+        pr.tipo,  -- ← AGREGAR
         m.nombre as marca,
         dc.observaciones
       FROM detalle_compras dc
@@ -404,9 +406,10 @@ app.get('/api/compras', async (req, res) => {
         .filter(d => d.compra_id === compra.id)
         .map(d => ({
           nombre: d.nombre,
+          tipo: d.tipo,  // ← AGREGAR
+          marca: d.marca,
           cantidad: d.cantidad,
           precio: d.precio,
-          proveedor: d.proveedor,
           observaciones: d.observaciones
         }))
     }));
@@ -479,6 +482,11 @@ app.post('/api/compras', (req, res) => {
     // 8. Validar que haya productos
     if (!productos || !Array.isArray(productos) || productos.length === 0) {
       return res.status(400).json({ error: 'Debe agregar al menos un producto' });
+    }
+    
+    // LÍNEA 520 - ✅ AGREGAR validación de total
+    if (!total || total <= 0) {
+      return res.status(400).json({ error: 'El total debe ser mayor a $0' });
     }
     
     // 9. Validar precios y cantidades

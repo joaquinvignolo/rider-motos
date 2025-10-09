@@ -12,40 +12,38 @@ type Venta = {
   descripcion: string;
   metodo_pago?: string;
   cliente_nombre?: string;
+  cliente_apellido?: string;
   cliente_telefono?: string;
-  cliente_email?: string;
+  cliente_correo?: string;
   detalles: {
     nombre: string;
     descripcion: string;
     marca: string;
+    tipo: string;  // ← AGREGAR
     cantidad: number;
     precio: number;
-    metodo_pago?: string; 
+    metodo_pago?: string;
   }[];
 };
 
 type Compra = {
   id: number;
   fecha: string;
+  fecha_emision?: string;  // ← AGREGAR
+  tipo_comprobante?: string;  // ← AGREGAR
+  numero_comprobante?: string;  // ← AGREGAR
   proveedor: string;
   total: number;
+  observaciones?: string;  // ← AGREGAR
   detalles: {
     nombre: string;
+    tipo: string;  // ← AGREGAR
+    marca: string;
     cantidad: number;
-    observaciones?: string;
     precio?: number;
+    observaciones?: string;
   }[];
 };
-
-function agruparPorFecha(ventas: Venta[]) {
-  const agrupadas: { [fecha: string]: Venta[] } = {};
-  ventas.forEach(v => {
-    const fecha = new Date(v.fecha).toLocaleDateString();
-    if (!agrupadas[fecha]) agrupadas[fecha] = [];
-    agrupadas[fecha].push(v);
-  });
-  return agrupadas;
-}
 
 // Agrupa productos por nombre+observación y suma cantidades
 function agruparYSumarProductos(productos: any[]) {
@@ -82,7 +80,6 @@ const Reportes: React.FC = () => {
   const [tipo, setTipo] = useState<"ventas" | "compras">("ventas");
   const [busqueda, setBusqueda] = useState<string>("");
   const [mostrarCliente, setMostrarCliente] = useState(false);
-  const [mostrarClienteDatos, setMostrarClienteDatos] = useState(false);
 
   // Cargar ventas y compras
   useEffect(() => {
@@ -107,7 +104,9 @@ const Reportes: React.FC = () => {
   // Filtrado y agrupado según tipo
   const registros = tipo === "ventas" ? ventas : compras;
   const filtrados = registros.filter(r => {
-    const fecha = new Date(r.fecha);
+    const fecha = tipo === "compras" 
+      ? new Date(r.fecha_emision || r.fecha)  // ← CAMBIAR ESTA LÍNEA
+      : new Date(r.fecha);
     let ok = true;
     if (desde) ok = ok && fecha >= new Date(desde + "T00:00:00");
     if (hasta) ok = ok && fecha <= new Date(hasta + "T23:59:59");
@@ -137,7 +136,9 @@ const Reportes: React.FC = () => {
 
   // Agrupar por fecha
   const agrupadas = filtrados.reduce((acc: any, r: any) => {
-    const fecha = new Date(r.fecha).toLocaleDateString();
+    const fecha = tipo === "compras"
+      ? new Date(r.fecha_emision || r.fecha).toLocaleDateString()  // ← CAMBIAR ESTA LÍNEA
+      : new Date(r.fecha).toLocaleDateString();
     if (!acc[fecha]) acc[fecha] = [];
     acc[fecha].push(r);
     return acc;
@@ -147,64 +148,36 @@ const Reportes: React.FC = () => {
   const totalPaginas = Math.ceil(fechas.length / diasPorPagina);
   const fechasPagina = fechas.slice((pagina - 1) * diasPorPagina, pagina * diasPorPagina);
 
-  // Agrupar compras por fecha y tipo (motos, accesorios, repuestos)
+  // ✅ AGRUPAR COMPRAS POR FECHA Y TIPO (USANDO CAMPO 'tipo')
   const agrupadasCompras: {
     [fecha: string]: {
       motos: any[];
       accesorios: any[];
-      [proveedor: string]: any[];
+      repuestos: { [proveedor: string]: any[] };
     };
   } = {};
 
   if (tipo === "compras") {
     filtrados.forEach((compra: Compra) => {
-      const fecha = new Date(compra.fecha).toLocaleDateString();
-      if (!agrupadasCompras[fecha]) agrupadasCompras[fecha] = { motos: [], accesorios: [] };
+      const fecha = new Date(compra.fecha_emision || compra.fecha).toLocaleDateString();  // ← USAR fecha_emision
+      if (!agrupadasCompras[fecha]) {
+        agrupadasCompras[fecha] = { motos: [], accesorios: [], repuestos: {} };
+      }
 
-      // Separar detalles por tipo
-      const motos: typeof compra.detalles = [];
-      const accesorios: typeof compra.detalles = [];
-      const repuestos: typeof compra.detalles = [];
-
+      // ✅ USAR EL CAMPO 'tipo' directamente
       compra.detalles.forEach(d => {
-        const nombre = d.nombre?.toLowerCase() || "";
-        if (
-          nombre.includes("moto") ||
-          nombre.includes("xtz") ||
-          nombre.includes("ninja") ||
-          nombre.includes("cb") ||
-          nombre.includes("cg") ||
-          nombre.includes("xr") ||
-          nombre.includes("wave") ||
-          nombre.includes("z400") ||
-          nombre.includes("tornado") ||
-          nombre.includes("crypton") ||
-          nombre.includes("fazer") ||
-          nombre.includes("fz") ||
-          nombre.includes("titan")
-        ) {
-          motos.push(d);
-        } else if (d.observaciones && (d.observaciones.toLowerCase().includes("accesorio") || nombre.includes("accesorio"))) {
-          accesorios.push(d);
-        } else {
-          repuestos.push(d);
+        if (d.tipo === "moto") {
+          agrupadasCompras[fecha].motos.push({ ...d, compra });
+        } else if (d.tipo === "accesorio") {
+          agrupadasCompras[fecha].accesorios.push({ ...d, compra });
+        } else if (d.tipo === "repuesto") {
+          const prov = compra.proveedor?.trim() || "Proveedor no especificado";
+          if (!agrupadasCompras[fecha].repuestos[prov]) {
+            agrupadasCompras[fecha].repuestos[prov] = [];
+          }
+          agrupadasCompras[fecha].repuestos[prov].push({ ...d, compra });
         }
       });
-
-      // Motos: agrupar todos los detalles de motos en una sola tarjeta por día
-      if (motos.length > 0) {
-        agrupadasCompras[fecha].motos.push(...motos);
-      }
-      // Accesorios: agrupar todos los detalles de accesorios en una sola tarjeta por día
-      if (accesorios.length > 0) {
-        agrupadasCompras[fecha].accesorios.push(...accesorios);
-      }
-      // Repuestos: siguen agrupados por proveedor
-      if (repuestos.length > 0) {
-        const prov = compra.proveedor?.trim() || "Sin proveedor";
-        if (!agrupadasCompras[fecha][prov]) agrupadasCompras[fecha][prov] = [];
-        agrupadasCompras[fecha][prov].push(...repuestos);
-      }
     });
   }
 
@@ -326,10 +299,7 @@ const Reportes: React.FC = () => {
 
               // Calcular total del día para cada grupo
               const totalAccesoriosEfectivo = accesorios
-                .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
-                .reduce((acc, v) => acc + Number(v.total), 0);
-              const totalAccesoriosTarjTransf = accesorios
-                .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia")
+                .filter(v => v.metodo_pago !== "tarjeta" && v.metodo_pago !== "transferencia")
                 .reduce((acc, v) => acc + Number(v.total), 0);
 
               const tieneEfectivo = accesorios.some(v => v.metodo_pago === "efectivo");
@@ -342,10 +312,10 @@ const Reportes: React.FC = () => {
               const totalPorCliente: { [cliente: string]: number } = {};
               Object.entries(motosPorCliente).forEach(([cliente, ventasCliente]) => {
                 const efectivo = ventasCliente
-                  .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia")
+                  .filter(v => v.metodo_pago !== "tarjeta" && v.metodo_pago !== "transferencia")
                   .reduce((acc, v) => acc + Number(v.total), 0);
                 const tarjTransf = ventasCliente
-                  .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia")
+                  .filter(v => v.metodo_pago === "tarjeta" || v.metodo_pago === "transferencia")
                   .reduce((acc, v) => acc + Number(v.total), 0);
                 totalPorCliente[cliente] = efectivo > 0 ? efectivo : tarjTransf;
               });
@@ -404,14 +374,12 @@ const Reportes: React.FC = () => {
                           <button
                             className="ver-btn"
                             onClick={() => {
-                              // Calcula el método de pago principal
                               const efectivo = ventasCliente
-                                .filter(v => v.metodo_pago !== "tarjeta de crédito" && v.metodo_pago !== "transferencia");
+                                .filter(v => v.metodo_pago !== "tarjeta" && v.metodo_pago !== "transferencia");
                               const tarjTransf = ventasCliente
-                                .filter(v => v.metodo_pago === "tarjeta de crédito" || v.metodo_pago === "transferencia");
+                                .filter(v => v.metodo_pago === "tarjeta" || v.metodo_pago === "transferencia");
                               const ventasFiltradas = efectivo.length > 0 ? efectivo : tarjTransf;
 
-                              // Solo incluí los productos de las ventas filtradas
                               const productos = ventasCliente.flatMap(v =>
                                 v.detalles.map(d => ({
                                   ...d,
@@ -444,19 +412,24 @@ const Reportes: React.FC = () => {
                 <div key={fecha} style={{ width: "100%", marginBottom: 32 }}>
                   <div className="mini-titulo-fecha">{fecha}</div>
                   <div className="reportes-grid-cuadrada">
-                    {/* Motos */}
+                    
+                    {/* ✅ MOTOS CON TOTAL Y CONTADOR */}
                     {comprasPorTipo.motos && comprasPorTipo.motos.length > 0 && (
                       <div className="reporte-cuadro" key="motos">
                         <div className="reporte-cuadro-fecha">{fecha}</div>
-                        <div
-                          className="reporte-cuadro-cliente"
-                          style={{
-                            color: "#a32020",
-                            fontWeight: 700
-                          }}
-                        >
-                          Motos
+                        
+                        {/* ✅ TOTAL */}
+                        <div className="reporte-cuadro-total">
+                          ${comprasPorTipo.motos
+                            .reduce((acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 0)
+                            .toFixed(2)}
                         </div>
+                        
+                        {/* ✅ TIPO + CANTIDAD */}
+                        <div className="reporte-cuadro-cliente" style={{ color: "#a32020", fontWeight: 700 }}>
+                          🏍️ Motos ({comprasPorTipo.motos.reduce((acc, d) => acc + d.cantidad, 0)})
+                        </div>
+                        
                         <div className="reporte-cuadro-botones">
                           <button
                             className="ver-btn"
@@ -464,6 +437,11 @@ const Reportes: React.FC = () => {
                               setDetalleDia({
                                 fecha,
                                 proveedor: "Motos",
+                                comprobante: comprasPorTipo.motos[0]?.compra ? {
+                                  tipo: comprasPorTipo.motos[0].compra.tipo_comprobante,
+                                  numero: comprasPorTipo.motos[0].compra.numero_comprobante,
+                                  fecha_emision: comprasPorTipo.motos[0].compra.fecha_emision
+                                } : null,
                                 detalles: agruparYSumarProductos(comprasPorTipo.motos)
                               })
                             }
@@ -474,19 +452,24 @@ const Reportes: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    {/* Accesorios */}
+                    
+                    {/* ✅ ACCESORIOS CON TOTAL Y CONTADOR */}
                     {comprasPorTipo.accesorios && comprasPorTipo.accesorios.length > 0 && (
                       <div className="reporte-cuadro" key="accesorios">
                         <div className="reporte-cuadro-fecha">{fecha}</div>
-                        <div
-                          className="reporte-cuadro-cliente"
-                          style={{
-                            color: "#a32020",
-                            fontWeight: 700
-                          }}
-                        >
-                          Accesorios
+                        
+                        {/* ✅ TOTAL */}
+                        <div className="reporte-cuadro-total">
+                          ${comprasPorTipo.accesorios
+                            .reduce((acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 0)
+                            .toFixed(2)}
                         </div>
+                        
+                        {/* ✅ TIPO + CANTIDAD */}
+                        <div className="reporte-cuadro-cliente" style={{ color: "#a32020", fontWeight: 700 }}>
+                          🧰 Accesorios ({comprasPorTipo.accesorios.reduce((acc, d) => acc + d.cantidad, 0)})
+                        </div>
+                        
                         <div className="reporte-cuadro-botones">
                           <button
                             className="ver-btn"
@@ -494,6 +477,11 @@ const Reportes: React.FC = () => {
                               setDetalleDia({
                                 fecha,
                                 proveedor: "Accesorios",
+                                comprobante: comprasPorTipo.accesorios[0]?.compra ? {
+                                  tipo: comprasPorTipo.accesorios[0].compra.tipo_comprobante,
+                                  numero: comprasPorTipo.accesorios[0].compra.numero_comprobante,
+                                  fecha_emision: comprasPorTipo.accesorios[0].compra.fecha_emision
+                                } : null,
                                 detalles: agruparYSumarProductos(comprasPorTipo.accesorios)
                               })
                             }
@@ -504,21 +492,84 @@ const Reportes: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    {/* Repuestos por proveedor */}
-                    {Object.entries(comprasPorTipo)
-                      .filter(([prov]) => prov !== "motos" && prov !== "accesorios")
-                      .map(([prov, detallesProveedor]) => (
+                    
+                    {/* ✅ REPUESTOS POR PROVEEDOR CON TOTAL Y CONTADOR */}
+                    {Object.entries(comprasPorTipo.repuestos || {}).map(([prov, detallesProveedor]) => {
+                      const comprobante = detallesProveedor[0]?.compra ? {
+                        tipo: detallesProveedor[0].compra.tipo_comprobante,
+                        numero: detallesProveedor[0].compra.numero_comprobante,
+                        fecha_emision: detallesProveedor[0].compra.fecha_emision
+                      } : null;
+                      
+                      // ✅ CALCULAR TOTAL
+                      const totalProveedor = detallesProveedor.reduce(
+                        (acc, d) => acc + (Number(d.precio || 0) * d.cantidad), 
+                        0
+                      );
+                      
+                      // ✅ CALCULAR CANTIDAD TOTAL
+                      const cantidadTotal = detallesProveedor.reduce(
+                        (acc, d) => acc + d.cantidad, 
+                        0
+                      );
+
+                      return (
                         <div className="reporte-cuadro" key={prov}>
                           <div className="reporte-cuadro-fecha">{fecha}</div>
-                          <div
-                            className="reporte-cuadro-cliente"
-                            style={{
-                              color: "#a32020",
-                              fontWeight: 700
-                            }}
-                          >
-                            {prov === "Sin proveedor" ? "Accesorio" : prov}
+                          
+                          {/* ✅ TOTAL */}
+                          <div className="reporte-cuadro-total">
+                            ${totalProveedor.toFixed(2)}
                           </div>
+                          
+                          {/* ✅ PROVEEDOR + CANTIDAD */}
+                          <div className="reporte-cuadro-cliente" style={{ 
+                            color: "#a32020", 
+                            fontWeight: 700,
+                            marginBottom: comprobante ? 4 : 0,
+                            fontSize: 15  // ← Reducir si es muy largo
+                          }}>
+                            🔧 {prov}
+                            <div style={{ 
+                              fontSize: 12, 
+                              color: "#bdbdbd", 
+                              fontWeight: 500,
+                              marginTop: 2
+                            }}>
+                              ({cantidadTotal} {cantidadTotal === 1 ? 'unidad' : 'unidades'})
+                            </div>
+                          </div>
+                          
+                          {/* ✅ COMPROBANTE (más compacto) */}
+                          {comprobante && (
+                            <div style={{ 
+                              fontSize: 11,
+                              color: "#888", 
+                              marginTop: 4,
+                              marginBottom: 8,
+                              textAlign: "center",
+                              paddingLeft: 8,
+                              paddingRight: 8,
+                              lineHeight: 1.3,
+                              position: "relative",
+                              zIndex: 1
+                            }}>
+                              <div style={{ fontWeight: 600, color: "#bdbdbd", fontSize: 12 }}>
+                                {comprobante.tipo}
+                              </div>
+                              {comprobante.numero && (
+                                <div style={{ marginTop: 1, fontSize: 10 }}>
+                                  Nº {comprobante.numero}
+                                </div>
+                              )}
+                              {comprobante.fecha_emision && (
+                                <div style={{ marginTop: 1, fontSize: 9 }}>
+                                  {new Date(comprobante.fecha_emision).toLocaleDateString("es-AR")}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
                           <div className="reporte-cuadro-botones">
                             <button
                               className="ver-btn"
@@ -526,6 +577,7 @@ const Reportes: React.FC = () => {
                                 setDetalleDia({
                                   fecha,
                                   proveedor: prov,
+                                  comprobante,
                                   detalles: agruparYSumarProductos(detallesProveedor)
                                 })
                               }
@@ -535,7 +587,8 @@ const Reportes: React.FC = () => {
                             </button>
                           </div>
                         </div>
-                      ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -569,7 +622,7 @@ const Reportes: React.FC = () => {
               marginBottom: 32,
               minHeight: 48
             }}>
-              {}
+              {/* Botón cliente */}
               {tipo === "ventas" && detalleDia.productos[0]?.cliente !== "Consumidor final" && (
                 <button
                   style={{
@@ -633,26 +686,99 @@ const Reportes: React.FC = () => {
                     : ""}
               </div>
             </div>
+            
             {/* ----------- COMPRAS ----------- */}
             {tipo === "compras" && Array.isArray(detalleDia?.detalles) && (
               <>
-                {detalleDia.detalles.map((d: any, i: number) => {
-                  let marca = "-";
-                  if (d.observaciones?.toLowerCase().includes("primera")) marca = "Primera marca";
-                  else if (d.observaciones?.toLowerCase().includes("segunda")) marca = "Segunda marca";
-                  return (
-                    <div key={i} style={{ marginBottom: 12, color: "#fff" }}>
-                      <div><b>Nombre:</b> {d.nombre}</div>
-                      <div><b>Cantidad:</b> {d.cantidad}</div>
-                      <div style={{ marginTop: 2 }}>
-                        <b>Observación:</b> {d.observaciones && d.observaciones.trim() !== "" ? d.observaciones : "---"}
-                      </div>
-                      <div style={{ marginTop: 2 }}>
-                        <b>Marca:</b> {marca}
-                      </div>
+                {/* ✅ AGREGAR PROVEEDOR */}
+                <div style={{
+                  background: "#1a1a1a",
+                  borderRadius: 8,
+                  padding: "10px 18px",
+                  marginBottom: 12,
+                  color: "#ffd700",
+                  border: "1px solid #353535",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  textAlign: "center"
+                }}>
+                  🔧 Proveedor: {detalleDia.proveedor}
+                </div>
+                
+                {/* Comprobante */}
+                {detalleDia.comprobante && (
+                  <div style={{
+                    background: "#1a1a1a",
+                    borderRadius: 8,
+                    padding: "12px 18px",
+                    marginBottom: 20,
+                    color: "#fff",
+                    border: "1px solid #353535"
+                  }}>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: "#ffd700", marginBottom: 6 }}>
+                      Comprobante
                     </div>
-                  );
-                })}
+                    <div><b>Tipo:</b> {detalleDia.comprobante.tipo}</div>
+                    {detalleDia.comprobante.numero && (
+                      <div><b>Número:</b> {detalleDia.comprobante.numero}</div>
+                    )}
+                    {detalleDia.comprobante.fecha_emision && (
+                      <div><b>Fecha de emisión:</b> {new Date(detalleDia.comprobante.fecha_emision).toLocaleDateString("es-AR")}</div>
+                    )}
+                  </div>
+                )}
+                
+                {/* ✅ AGREGAR CONTENEDOR CON SCROLL */}
+                <div style={{
+                  maxHeight: 400,  // ← AGREGAR altura máxima
+                  overflowY: "auto",  // ← AGREGAR scroll vertical
+                  paddingRight: 8,  // ← Espacio para el scrollbar
+                  marginBottom: 12  // ← Espacio antes del total
+                }}>
+                  {detalleDia.detalles.map((d: any, i: number) => (
+                    <div key={i} style={{ 
+                      marginBottom: 16, 
+                      color: "#fff", 
+                      paddingBottom: 12, 
+                      borderBottom: "1px solid #333" 
+                    }}>
+                      <div><b>Producto:</b> {d.nombre}</div>
+                      <div><b>Marca:</b> {d.marca || "Sin marca"}</div>
+                      <div><b>Cantidad:</b> {d.cantidad}</div>
+                      
+                      {d.precio && (
+                        <>
+                          <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
+                          <div style={{ fontWeight: 700, color: "#ffd700" }}>
+                            <b>Subtotal:</b> ${(Number(d.precio) * d.cantidad).toFixed(2)}
+                          </div>
+                        </>
+                      )}
+                      
+                      {d.observaciones && d.observaciones.trim() !== "" && (
+                        <div style={{ marginTop: 4, fontStyle: "italic", color: "#bdbdbd" }}>
+                          <b>Obs:</b> {d.observaciones}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Total FUERA del contenedor con scroll */}
+                <div style={{
+                  marginTop: 18,
+                  paddingTop: 12,
+                  borderTop: "2px solid #a32020",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: "#ffd700",
+                  textAlign: "right"
+                }}>
+                  Total compra: ${detalleDia.detalles.reduce(
+                    (acc: number, d: any) => acc + (Number(d.precio || 0) * d.cantidad),
+                    0
+                  ).toFixed(2)}
+                </div>
               </>
             )}
 
@@ -668,9 +794,8 @@ const Reportes: React.FC = () => {
                   }}
                 >
                   {detalleDia.productos.map((d: any, i: number) => {
-                    // Detecta tarjeta de crédito y transferencia
-                    const esTarjeta = d.metodo_pago?.toLowerCase().includes("tarjeta");
-                    const esTransferencia = d.metodo_pago?.toLowerCase().includes("transferencia");
+                    const esTarjeta = d.metodo_pago === "tarjeta";
+                    const esTransferencia = d.metodo_pago === "transferencia";
                     const esMorado = esTarjeta || esTransferencia;
                     const totalProducto = Number(d.precio) * Number(d.cantidad);
 
@@ -685,43 +810,41 @@ const Reportes: React.FC = () => {
                           borderBottom: "1px solid #333",
                         }}
                       >
-                        <div>
-                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Nombre:</b> {d.nombre}
-                        </div>
-                        <div>
-                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Cantidad:</b> {d.cantidad}
-                        </div>
-                        <div>
-                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Método de pago:</b>{" "}
-                          <span style={{ color: esMorado ? "#b36aff" : "#fff" }}>{d.metodo_pago}</span>
-                        </div>
-                        <div>
-                          <b style={{ color: esMorado ? "#b36aff" : "#fff" }}>Total producto:</b>{" "}
-                          ${totalProducto.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                        <div><b>Producto:</b> {d.nombre}</div>
+                        
+                        {/* ✅ AGREGAR MARCA */}
+                        {d.marca && (
+                          <div><b>Marca:</b> {d.marca}</div>
+                        )}
+                        
+                        <div><b>Precio unitario:</b> ${Number(d.precio).toFixed(2)}</div>
+                        <div><b>Cantidad:</b> {d.cantidad}</div>
+                        <div><b>Método de pago:</b> {d.metodo_pago}</div>
+                        <div style={{ fontWeight: 700, color: esMorado ? "#b36aff" : "#ffd700" }}>
+                          <b>Subtotal:</b> ${totalProducto.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                           {esTarjeta && (
-                            <span style={{ color: "#b36aff", fontWeight: 400, fontSize: 13 }}>
-                              {" "} (incluye recargo)
-                            </span>
+                            <span style={{ fontWeight: 400, fontSize: 13 }}> (incluye recargo)</span>
                           )}
                         </div>
                       </div>
                     );
                   })}
-                  {/* Total efectivo: solo suma productos con método de pago efectivo */}
+                  
+                  {/* Total efectivo */}
                   <div style={{ marginTop: 18, fontWeight: 700, color: "#a32020", fontSize: 18, textAlign: "right" }}>
                     Total efectivo: $
                     {detalleDia.productos
-                      .filter((d: any) => d.metodo_pago?.toLowerCase() === "efectivo")
+                      .filter((d: any) => d.metodo_pago === "efectivo")
                       .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
                       .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
                   </div>
-                  {/* Total en TJ/TF: suma tarjeta y transferencia, solo tarjeta lleva recargo */}
+                  {/* Total en TJ/TF */}
                   <div style={{ fontWeight: 700, color: "#b36aff", fontSize: 18, textAlign: "right" }}>
                     Total en TJ/TF: $
                     {detalleDia.productos
                       .filter((d: any) =>
-                        d.metodo_pago?.toLowerCase().includes("tarjeta") ||
-                        d.metodo_pago?.toLowerCase().includes("transferencia")
+                        d.metodo_pago === "tarjeta" ||
+                        d.metodo_pago === "transferencia"
                       )
                       .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0)
                       .toLocaleString("es-AR", { minimumFractionDigits: 2 })}
@@ -854,16 +977,16 @@ const Reportes: React.FC = () => {
   );
 };
 
+// ✅ FUNCIONES DE EXPORTACIÓN A PDF ACTUALIZADAS
+
 function exportarDetalleAPDF(detalle: any) {
   const doc = new jsPDF();
   let y = 18;
 
-  // Título
   doc.setFontSize(20);
   doc.setTextColor(163, 32, 32);
   doc.text("Detalle de Venta", 105, y, { align: "center" });
 
-  // Fecha
   y += 10;
   doc.setFontSize(13);
   doc.setTextColor(80, 80, 80);
@@ -880,21 +1003,20 @@ function exportarDetalleAPDF(detalle: any) {
 
   y += 12;
 
-  // Productos
   doc.setFontSize(13);
   doc.setTextColor(0, 0, 0);
   detalle.productos.forEach((d: any, i: number) => {
-    doc.text(`Nombre: ${d.nombre}`, 20, y);
+    doc.text(`Producto: ${d.nombre}`, 20, y);
     y += 7;
-    if (d.descripcion) {
-      doc.text(`Descripción: ${d.descripcion}`, 20, y);
+    if (d.marca) {
+      doc.text(`Marca: ${d.marca}`, 20, y);
       y += 7;
     }
-    doc.text(`Precio: $${Number(d.precio).toFixed(2)}`, 20, y);
+    doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
     y += 7;
     doc.text(`Cantidad: ${d.cantidad}`, 20, y);
     y += 7;
-    doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
+    doc.text(`Método de pago: ${d.metodo_pago}`, 20, y);
     y += 7;
     doc.text(
       `Subtotal: $${(Number(d.precio) * Number(d.cantidad)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
@@ -908,7 +1030,6 @@ function exportarDetalleAPDF(detalle: any) {
     }
   });
 
-  // Total general
   const total = detalle.productos
     .reduce((acc: number, d: any) => acc + Number(d.precio) * Number(d.cantidad), 0);
 
@@ -926,7 +1047,6 @@ function exportarDetalleAPDF(detalle: any) {
     y
   );
 
-  // Datos del cliente
   const cliente = detalle.productos[0];
   if (
     cliente?.cliente_nombre ||
@@ -963,35 +1083,70 @@ function exportarDetalleCompraAPDF(detalle: any) {
   doc.setTextColor(80, 80, 80);
   doc.text(`Fecha: ${detalle.fecha}`, 105, y, { align: "center" });
 
+  // ✅ AGREGAR DATOS DEL COMPROBANTE
+  if (detalle.comprobante) {
+    y += 8;
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Comprobante: ${detalle.comprobante.tipo}`, 20, y);
+    if (detalle.comprobante.numero) {
+      y += 6;
+      doc.text(`Nº: ${detalle.comprobante.numero}`, 20, y);
+    }
+    if (detalle.comprobante.fecha_emision) {
+      y += 6;
+      doc.text(
+        `Emisión: ${new Date(detalle.comprobante.fecha_emision).toLocaleDateString("es-AR")}`,
+        20,
+        y
+      );
+    }
+  }
+
   y += 12;
   doc.setFontSize(13);
   doc.setTextColor(0, 0, 0);
 
+  let totalGeneral = 0;
+
   detalle.detalles.forEach((d: any, i: number) => {
-    doc.text(`Nombre: ${d.nombre}`, 20, y);
+    doc.text(`Producto: ${d.nombre}`, 20, y);
+    y += 7;
+    doc.text(`Marca: ${d.marca || "Sin marca"}`, 20, y);
     y += 7;
     doc.text(`Cantidad: ${d.cantidad}`, 20, y);
     y += 7;
-    doc.text(
-      `Observación: ${d.observaciones && d.observaciones.trim() !== "" ? d.observaciones : "---"}`,
-      20,
-      y
-    );
-    y += 7;
-    let marca = "-";
-    if (d.observaciones?.toLowerCase().includes("primera")) marca = "Primera marca";
-    else if (d.observaciones?.toLowerCase().includes("segunda")) marca = "Segunda marca";
-    doc.text(`Marca: ${marca}`, 20, y);
-    y += 10;
+    
+    // ✅ AGREGAR PRECIOS
+    if (d.precio) {
+      doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
+      y += 7;
+      const subtotal = Number(d.precio) * d.cantidad;
+      doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, y);
+      totalGeneral += subtotal;
+      y += 7;
+    }
+    
+    if (d.observaciones && d.observaciones.trim() !== "") {
+      doc.text(`Obs: ${d.observaciones}`, 20, y);
+      y += 7;
+    }
+    y += 3;
     if (y > 230) {
       doc.addPage();
       y = 18;
     }
   });
 
+  // ✅ AGREGAR TOTAL GENERAL
   y += 4;
   doc.setDrawColor(163, 32, 32);
   doc.line(15, y, 195, y);
+
+  y += 10;
+  doc.setFontSize(15);
+  doc.setTextColor(163, 32, 32);
+  doc.text(`Total compra: $${totalGeneral.toFixed(2)}`, 20, y);
 
   doc.save("detalle-compra.pdf");
 }
