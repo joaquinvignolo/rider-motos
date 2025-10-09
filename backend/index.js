@@ -353,10 +353,10 @@ app.get('/api/ventas', async (req, res) => {
         .filter(d => d.venta_id === venta.id)
         .map(d => ({
           nombre: d.nombre,
-          descripcion: d.descripcion,
           marca: d.marca,
           cantidad: d.cantidad,
-          precio: d.precio
+          precio: d.precio,
+          observaciones: d.observaciones
         }))
     }));
 
@@ -390,13 +390,12 @@ app.get('/api/compras', async (req, res) => {
         dc.compra_id, 
         dc.cantidad, 
         dc.precio_unitario as precio, 
-        pr.nombre, 
-        pr.proveedor_id,
-        prov.nombre as proveedor,
+        pr.nombre,
+        m.nombre as marca,
         dc.observaciones
       FROM detalle_compras dc
       JOIN productos pr ON dc.producto_id = pr.id
-      LEFT JOIN proveedores prov ON pr.proveedor_id = prov.id
+      LEFT JOIN marcas m ON pr.marca_id = m.id
     `);
 
     const comprasConDetalles = compras.map(compra => ({

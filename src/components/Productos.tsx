@@ -76,6 +76,7 @@ const Productos: React.FC = () => {
       .then(data => setProductos(data));
   }, [seccion, mostrarInactivos]);
 
+  // Cargar TODAS las marcas (sin filtrar)
   useEffect(() => {
     fetch("http://localhost:3001/api/marcas")
       .then(res => res.json())
@@ -132,7 +133,7 @@ const Productos: React.FC = () => {
       descripcion,
       tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
       proveedor,
-      activo: editId !== null ? 1 : 0 
+      activo: 1
     };
 
     if (editId !== null) {
@@ -162,18 +163,13 @@ const Productos: React.FC = () => {
     setProductos(productos.map(p => p.id === id ? { ...p, activo: 0 } : p));
   };
 
-  // Editar producto
+  // Editar producto (SIMPLIFICADO - sin validaciones de marca)
   const handleEditar = (producto: Producto) => {
     setEditId(producto.id);
     setNombre(producto.nombre ?? "");
     setPrecio(String(producto.precio ?? ""));      
-    setCantidad(String(producto.cantidad ?? ""));  
-    // Si es accesorio o repuesto, fuerza la marca si no es válida
-    if (seccion !== "motos" && !["Primera marca", "Segunda marca"].includes(producto.marca)) {
-      setMarca("Primera marca");
-    } else {
-      setMarca(producto.marca ?? "");
-    }
+    setCantidad(String(producto.cantidad ?? ""));
+    setMarca(producto.marca ?? "");
     setDescripcion(producto.descripcion ?? "");
     setProveedor(producto.proveedor ?? "");
     setMensajeValidacion(null);
@@ -186,7 +182,7 @@ const Productos: React.FC = () => {
     setShowVerModal(true);
   };
 
-  // Renderiza el modal de agregar/editar
+  // Renderiza el modal de agregar/editar (SIMPLIFICADO)
   const renderModal = () => (
     <div className="modal-backdrop">
       <div className="modal">
@@ -210,19 +206,12 @@ const Productos: React.FC = () => {
           Marca:
           <select value={marca || ""} onChange={e => setMarca(e.target.value)}>
             {editId === null && <option value="">Seleccionar marca</option>}
-            {seccion === "motos"
-              ? marcas.map(m => (
-                  <option key={m.id} value={m.nombre}>{m.nombre}</option>
-                ))
-              : ["Primera marca", "Segunda marca"].map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))
-            }
-            {seccion !== "motos" && marca && !["Primera marca", "Segunda marca"].includes(marca) && (
-              <option value={marca}>{marca}</option>
-            )}
-            {seccion === "motos" && marca && !marcas.some(m => m.nombre === marca) && (
-              <option value={marca}>{marca}</option>
+            {marcas.map(m => (
+              <option key={m.id} value={m.nombre}>{m.nombre}</option>
+            ))}
+            {/* Mantener marca actual si no está en la lista (por si fue eliminada) */}
+            {marca && !marcas.some(m => m.nombre === marca) && (
+              <option value={marca}>{marca} (marca eliminada)</option>
             )}
           </select>
         </label>
@@ -418,7 +407,6 @@ const Productos: React.FC = () => {
             </span>
           </button>
           <div style={{ flex: 1 }} />
-          {}
           <button
             className="motos-bar-btn activo-btn"
             style={{
@@ -436,7 +424,6 @@ const Productos: React.FC = () => {
             }}
             title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
           >
-            {}
             {mostrarInactivos ? (
               <svg width="22" height="22" viewBox="0 0 22 22">
                 <circle cx="11" cy="11" r="11" fill="#a32020"/>
@@ -507,7 +494,7 @@ const Productos: React.FC = () => {
               </div>
             )}
           </div>
-          {/* Botón Marcas */}
+          {/* Botón Marcas (SIMPLIFICADO - siempre usa todas las marcas) */}
           <div style={{ position: "relative" }}>
             <button
               className="motos-bar-btn marcas-btn"
@@ -544,43 +531,24 @@ const Productos: React.FC = () => {
                 >
                   Todas
                 </button>
-                {seccion === "motos"
-                  ? marcas.map(m => (
-                      <button
-                        key={m.id}
-                        style={{
-                          background: filtroMarca === m.nombre ? "#a32020" : "#353535",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 6,
-                          padding: "6px 12px",
-                          marginBottom: 4,
-                          width: "100%",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setFiltroMarca(m.nombre)}
-                      >
-                        {m.nombre}
-                      </button>
-                    ))
-                  : ["Primera marca", "Segunda marca"].map(m => (
-                      <button
-                        key={m}
-                        style={{
-                          background: filtroMarca === m ? "#a32020" : "#353535",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 6,
-                          padding: "6px 12px",
-                          marginBottom: 4,
-                          width: "100%",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setFiltroMarca(m)}
-                      >
-                        {m}
-                      </button>
-                    ))}
+                {marcas.map(m => (
+                  <button
+                    key={m.id}
+                    style={{
+                      background: filtroMarca === m.nombre ? "#a32020" : "#353535",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "6px 12px",
+                      marginBottom: 4,
+                      width: "100%",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setFiltroMarca(m.nombre)}
+                  >
+                    {m.nombre}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -659,25 +627,19 @@ const Productos: React.FC = () => {
                 )}
               </span>
               <div className="producto-actions">
-                {}
                 <button className="ver-btn motos-bar-btn" onClick={() => handleVerDetalle(producto)} title="Ver">
-                  {}
                   <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
                 </button>
                 {producto.activo !== 0 ? (
                   <>
-                    {}
                     <button className="modificar-btn motos-bar-btn" onClick={() => handleEditar(producto)} title="Editar">
-                      {}
                       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                     </button>
-                    {}
                     <button
                       className="eliminar-btn motos-bar-btn"
                       onClick={() => setProductoAEliminar(producto)}
                       title="Inactivar"
                     >
-                      {}
                       <svg width="18" height="18" viewBox="0 0 22 22">
                         <circle cx="11" cy="11" r="11" fill="#a32020"/>
                         <path d="M7 7l8 8M15 7l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
@@ -691,7 +653,6 @@ const Productos: React.FC = () => {
                     onClick={() => setProductoAReactivar(producto)}
                     title="Reactivar"
                   >
-                    {}
                     <svg width="18" height="18" viewBox="0 0 22 22">
                       <circle cx="11" cy="11" r="11" fill="#80c481ff"/>
                       <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -718,7 +679,7 @@ const Productos: React.FC = () => {
                   onClick={async () => {
                     await handleEliminar(productoAEliminar.id);
                     setProductoAEliminar(null);
-                    recargarProductos(); // <-- recarga la lista
+                    recargarProductos();
                   }}
                 >
                   Eliminar
@@ -769,7 +730,6 @@ const Productos: React.FC = () => {
             </div>
           </div>
         )}
-        {}
         {totalPaginas > 1 && (
           <PaginacionUnificada
             pagina={paginaActual}

@@ -39,9 +39,9 @@ const Ventas: React.FC = () => {
   const [mensajeExito, setMensajeExito] = useState<string>("");
   const [cargando, setCargando] = useState(false);
 
-  // Cargar productos según tipo seleccionado y término de búsqueda
+  // Cargar productos según tipo seleccionado (SOLO ACTIVOS)
   useEffect(() => {
-    let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}`;
+    let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}&inactivos=0`;
     if (searchTerm) {
       url += `&search=${encodeURIComponent(searchTerm)}`;
     }
@@ -91,7 +91,6 @@ const Ventas: React.FC = () => {
       const otros = productosEnVenta.filter(p => p.tipo !== "moto");
       setProductosEnVenta([ ...otros, { ...producto, cantidad: 1 } ]);
     } else {
-      // Para accesorios/repuestos, permite varios y suma cantidad si ya está
       const existe = productosEnVenta.find(p => p.id === producto.id);
       if (existe) {
         setProductosEnVenta(productosEnVenta.map(p =>
@@ -103,8 +102,15 @@ const Ventas: React.FC = () => {
     }
   };
 
-  // Cambiar cantidad de producto en venta
+  // Cambiar cantidad de producto en venta (CORREGIDO)
   const cambiarCantidad = (id: number, cantidad: number) => {
+    // Si la cantidad es 0 o vacía, eliminar el producto del carrito
+    if (cantidad <= 0) {
+      eliminarProductoDeVenta(id);
+      setMensajeError("");
+      return;
+    }
+    
     const producto = productos.find(p => p.id === id);
     if (producto && cantidad > producto.cantidad) {
       setMensajeError(`No hay suficiente stock disponible para "${producto.nombre}".`);
@@ -136,6 +142,7 @@ const Ventas: React.FC = () => {
 
     const incluyeMoto = productosEnVenta.some(p => p.tipo === "moto");
 
+    // Validaciones para ventas de motos
     if (incluyeMoto) {
       if (!clienteSeleccionado) {
         setMensajeError("Debe seleccionar un cliente para ventas de motos.");
@@ -145,11 +152,16 @@ const Ventas: React.FC = () => {
         setMensajeError("Ingrese un nombre válido.");
         return;
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(clienteSeleccionado.correo)) {
-        setMensajeError("Ingrese un correo válido.");
-        return;
+      
+      // Email OPCIONAL, pero si existe debe ser válido
+      if (clienteSeleccionado.correo && clienteSeleccionado.correo.trim() !== "") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(clienteSeleccionado.correo)) {
+          setMensajeError("El formato del correo es inválido.");
+          return;
+        }
       }
+      
       const telRegex = /^[0-9]{8,}$/;
       if (!telRegex.test(clienteSeleccionado.telefono)) {
         setMensajeError("Ingrese un teléfono válido (solo números, mínimo 8 dígitos).");
@@ -157,10 +169,6 @@ const Ventas: React.FC = () => {
       }
     }
 
-    if (incluyeMoto && !clienteSeleccionado) {
-      setMensajeError("Debe seleccionar un cliente para ventas de motos.");
-      return;
-    }
     const cliente_id = incluyeMoto && clienteSeleccionado ? clienteSeleccionado.id : null;
 
     const payload = {
@@ -175,7 +183,7 @@ const Ventas: React.FC = () => {
       }))
     };
 
-    setCargando(true); // Mostrar indicador
+    setCargando(true);
 
     try {
       const res = await fetch("http://localhost:3001/api/ventas", {
@@ -185,9 +193,13 @@ const Ventas: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setMensajeExito(data.mailEnviado
-          ? "¡Venta registrada y comprobante enviado al cliente!"
-          : "¡Venta registrada! No se pudo enviar el comprobante por email.");
+        if (data.mailEnviado) {
+          setMensajeExito("¡Venta registrada y comprobante enviado al cliente!");
+        } else if (clienteSeleccionado && !clienteSeleccionado.correo) {
+          setMensajeExito("¡Venta registrada! El cliente no tiene email configurado.");
+        } else {
+          setMensajeExito("¡Venta registrada! No se pudo enviar el comprobante por email.");
+        }
         setProductosEnVenta([]);
         setClienteSeleccionado(null);
         setMetodoPago("efectivo");
@@ -195,8 +207,8 @@ const Ventas: React.FC = () => {
         setBusquedaCliente("");
         setClientesSugeridos([]);
 
-        // Recargar productos para actualizar el stock visual
-        let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}`;
+        // Recargar productos para actualizar el stock visual (SOLO ACTIVOS)
+        let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}&inactivos=0`;
         if (searchTerm) {
           url += `&search=${encodeURIComponent(searchTerm)}`;
         }
@@ -219,7 +231,7 @@ const Ventas: React.FC = () => {
     } catch (err) {
       setMensajeError("Error de conexión al registrar la venta.");
     } finally {
-      setCargando(false); // Ocultar indicador
+      setCargando(false);
     }
   };
 
@@ -238,6 +250,11 @@ const Ventas: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [mensajeError]);
+
+  // Limpiar error al cambiar de tipo de producto
+  useEffect(() => {
+    setMensajeError("");
+  }, [tipoSeleccionado]);
 
   return (
     <div className="ventas-container">
@@ -267,7 +284,7 @@ const Ventas: React.FC = () => {
       {cargando && <IndicadorCarga mensaje="Registrando venta..." />}
       <form className="venta-form" onSubmit={e => { e.preventDefault(); registrarVenta(); }}>
         
-        {}
+        {/* Productos */}
         <section className="productos-venta">
           <h2>PRODUCTOS</h2>
           <div className="tipo-selector">
@@ -371,7 +388,14 @@ const Ventas: React.FC = () => {
                 value={porcentajeTarjeta === 0 ? "" : porcentajeTarjeta}
                 onChange={e => {
                   const val = e.target.value;
-                  setPorcentajeTarjeta(val === "" ? 0 : Number(val));
+                  const num = val === "" ? 0 : Number(val);
+                  // Validar rango 0-30%
+                  if (num < 0 || num > 30) {
+                    setMensajeError("El porcentaje debe estar entre 0% y 30%");
+                    return;
+                  }
+                  setMensajeError("");
+                  setPorcentajeTarjeta(num);
                 }}
                 style={{ width: 60, marginLeft: 8 }}
               />
@@ -465,7 +489,6 @@ const Ventas: React.FC = () => {
                   <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-              {}
               {busquedaCliente.length > 1 && clientesSugeridos.length > 0 && (
                 <div
                   className="sugerencias-clientes"
@@ -528,14 +551,13 @@ const Ventas: React.FC = () => {
                   )}
                 </div>
               )}
-
             </div>
           )}
         </div>
 
         {incluyeMoto && clienteSeleccionado && (
           <div style={{ marginTop: 8, color: "#fff" }}>
-            <div><b>Correo:</b> {clienteSeleccionado.correo}</div>
+            <div><b>Correo:</b> {clienteSeleccionado.correo || "(Sin correo - no se enviará PDF)"}</div>
             <div><b>Teléfono:</b> {clienteSeleccionado.telefono}</div>
           </div>
         )}
