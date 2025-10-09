@@ -123,7 +123,6 @@ const Productos: React.FC = () => {
       return;
     }
 
-    const cantidadNum = Number(cantidad);
     const nuevoProducto: Producto = {
       id: editId ?? 0,
       nombre,
@@ -132,10 +131,8 @@ const Productos: React.FC = () => {
       marca,
       descripcion,
       tipo: seccion === "motos" ? "moto" : seccion === "accesorios" ? "accesorio" : "repuesto",
-      ...(seccion === "repuestos" ? { proveedor } : {}),
-      activo: editId !== null
-        ? (Number(cantidad) > 0 ? 1 : 0)
-        : 0
+      proveedor,
+      activo: editId !== null ? 1 : 0 
     };
 
     if (editId !== null) {
@@ -241,20 +238,15 @@ const Productos: React.FC = () => {
             {descripcion.length}/32 caracteres
           </div>
         </label>
-        {seccion === "repuestos" && (
-          <label>
-            Proveedor:
-            <select value={proveedor} onChange={e => setProveedor(e.target.value)}>
-              {editId === null && <option value="">Seleccionar proveedor</option>}
-              {proveedores.map(p => (
-                <option key={p.id} value={p.nombre}>{p.nombre}</option>
-              ))}
-              {proveedor && !proveedores.some(p => p.nombre === proveedor) && (
-                <option value={proveedor}>{proveedor}</option>
-              )}
-            </select>
-          </label>
-        )}
+        <label>
+          Proveedor:
+          <select value={proveedor || ""} onChange={e => setProveedor(e.target.value)}>
+            {editId === null && <option value="">Seleccionar proveedor</option>}
+            {proveedores.map(p => (
+              <option key={p.id} value={p.nombre}>{p.nombre}</option>
+            ))}
+          </select>
+        </label>
         <label>
           Stock actual:
           <span style={{ fontWeight: 600, color: "#ffd700", marginLeft: 8 }}>
@@ -270,12 +262,6 @@ const Productos: React.FC = () => {
           <button
             className="motos-bar-btn agregar-btn"
             onClick={handleGuardar}
-            disabled={
-              !nombre.trim() ||
-              !precio.trim() ||
-              !marca.trim() ||
-              (seccion === "repuestos" && !proveedor.trim())
-            }
           >
             {editId !== null ? "Modificar" : "Agregar"}
           </button>
@@ -308,13 +294,11 @@ const Productos: React.FC = () => {
           <strong>Cantidad:</strong> {productoSeleccionado?.cantidad}
         </div>
         <div>
-          <strong>Proveedor:</strong> {productoSeleccionado?.proveedor}
+          <strong>Proveedor:</strong> {productoSeleccionado?.proveedor || 'Sin proveedor'}
         </div>
-        {seccion === "motos" && (
-          <div>
-            <strong>Precio:</strong> ${productoSeleccionado?.precio}
-          </div>
-        )}
+        <div>
+          <strong>Precio:</strong> ${productoSeleccionado?.precio}
+        </div>
         <button
           className="motos-bar-btn"
           style={{marginTop: 18, background: "#353535"}}
@@ -332,7 +316,7 @@ const Productos: React.FC = () => {
       !busqueda ||
       producto.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const coincideProveedor =
-      seccion !== "repuestos" || !filtroProveedor || producto.proveedor === filtroProveedor;
+      !filtroProveedor || producto.proveedor === filtroProveedor;
     return coincideMarca && coincideBusqueda && coincideProveedor;
   });
 
@@ -465,20 +449,15 @@ const Productos: React.FC = () => {
               </svg>
             )}
           </button>
-          {/* Botón Proveedor (solo habilitado en repuestos) */}
-          <div style={{ position: "relative", display: "inline-block" }}>
+          {/* Botón Proveedor */}
+          <div style={{ position: "relative" }}>
             <button
               className="motos-bar-btn proveedor-btn"
-              disabled={seccion !== "repuestos"}
-              style={{
-                opacity: seccion === "repuestos" ? 1 : 0.5,
-                cursor: seccion === "repuestos" ? "pointer" : "not-allowed"
-              }}
               onClick={() => setMostrarFiltroProveedor(p => !p)}
             >
               Proveedor
             </button>
-            {mostrarFiltroProveedor && seccion === "repuestos" && (
+            {mostrarFiltroProveedor && (
               <div
                 style={{
                   position: "absolute",
@@ -489,7 +468,7 @@ const Productos: React.FC = () => {
                   borderRadius: 8,
                   zIndex: 10,
                   padding: 8,
-                  minWidth: 120,
+                  minWidth: 160,
                 }}
               >
                 <button

@@ -425,7 +425,11 @@ body {
 .proveedor-btn {
   background: #353535;
   color: #fff;
-  margin-right: 8px;
+  margin-right: 0;
+}
+
+.proveedor-btn:hover {
+  background: linear-gradient(90deg, #d32f2f 60%, #a32020 100%);
 }
 
 .inicio-btn {

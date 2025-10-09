@@ -127,7 +127,6 @@ app.delete('/api/productos/:id', (req, res) => {
 // Editar producto
 app.put('/api/productos/:id', (req, res) => {
   const { nombre, descripcion, precio, cantidad, marca, proveedor, tipo } = req.body;
-  const activo = Number(cantidad) > 0 ? 1 : 0;
 
   db.query('SELECT id FROM marcas WHERE nombre = ?', [marca], (err, marcaRows) => {
     if (err || marcaRows.length === 0) return res.status(400).json({ error: 'Marca no encontrada' });
@@ -137,8 +136,8 @@ app.put('/api/productos/:id', (req, res) => {
       if (err2 || provRows.length === 0) return res.status(400).json({ error: 'Proveedor no encontrado' });
       const proveedor_id = provRows[0].id;
       db.query(
-        'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=?, tipo=?, activo=? WHERE id=?',
-        [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo, activo, req.params.id],
+        'UPDATE productos SET nombre=?, descripcion=?, precio=?, cantidad=?, marca_id=?, proveedor_id=?, tipo=? WHERE id=?',
+        [nombre, descripcion, precio, cantidad, marca_id, proveedor_id, tipo, req.params.id],
         (err3) => {
           if (err3) return res.status(500).json({ error: 'Error al editar producto' });
           res.json({ success: true });
