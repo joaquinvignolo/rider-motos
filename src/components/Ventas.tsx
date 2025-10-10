@@ -353,10 +353,12 @@ const Ventas: React.FC = () => {
                   <input
                     type="number"
                     min={1}
+                    step={1}  
                     value={item.cantidad === 0 ? "" : item.cantidad}
                     onChange={e => {
                       const val = e.target.value;
-                      cambiarCantidad(item.id, val === "" ? 0 : Number(val));
+                      const num = val === "" ? 0 : Math.floor(Number(val));
+                      cambiarCantidad(item.id, num);
                     }}
                     style={{ width: 60, marginLeft: 8 }}
                   />
@@ -385,11 +387,17 @@ const Ventas: React.FC = () => {
                 type="number"
                 min={0}
                 max={30}
+                step={0.5}  
                 value={porcentajeTarjeta === 0 ? "" : porcentajeTarjeta}
                 onChange={e => {
                   const val = e.target.value;
                   const num = val === "" ? 0 : Number(val);
-                  // Validar rango 0-30%
+                  
+                  if (num % 0.5 !== 0) {
+                    setMensajeError("Solo se permiten valores como 10, 10.5, 11, etc.");
+                    return;
+                  }
+                  
                   if (num < 0 || num > 30) {
                     setMensajeError("El porcentaje debe estar entre 0% y 30%");
                     return;
