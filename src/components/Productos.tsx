@@ -163,7 +163,7 @@ const Productos: React.FC = () => {
     setProductos(productos.map(p => p.id === id ? { ...p, activo: 0 } : p));
   };
 
-  // Editar producto (SIMPLIFICADO - sin validaciones de marca)
+  // Editar producto
   const handleEditar = (producto: Producto) => {
     setEditId(producto.id);
     setNombre(producto.nombre ?? "");
@@ -182,7 +182,7 @@ const Productos: React.FC = () => {
     setShowVerModal(true);
   };
 
-  // Renderiza el modal de agregar/editar (SIMPLIFICADO)
+  // Renderiza el modal de agregar/editar
   const renderModal = () => (
     <div className="modal-backdrop">
       <div className="modal">

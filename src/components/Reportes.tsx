@@ -2,22 +2,15 @@ import React, { useEffect, useState } from "react";
 import "./Reportes.css";
 import jsPDF from "jspdf";
 import PaginacionUnificada from "./PaginacionUnificada";
+import IndicadorCarga from "./IndicadorCarga"; 
 
-// ✅ MEJORAR función para manejar diferentes formatos de fecha
 function formatearFecha(fecha: string): string {
-  if (!fecha) {
-    console.warn('formatearFecha: fecha es null o undefined');
-    return "";
-  }
+  if (!fecha) return "";
   
-  // Convertir a string por si acaso
   const fechaStr = String(fecha);
-  
-  console.log('formatearFecha recibió:', fechaStr);
   
   // Si ya está en formato DD/MM/YYYY, devolver directamente
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(fechaStr)) {
-    console.log('Fecha ya está formateada:', fechaStr);
     return fechaStr;
   }
   
@@ -25,16 +18,14 @@ function formatearFecha(fecha: string): string {
   let d: Date;
   
   if (fechaStr.includes('T') || fechaStr.includes(' ')) {
-    // Ya tiene hora: "2025-10-09 14:30:00" o "2025-10-09T14:30:00"
     d = new Date(fechaStr.replace(' ', 'T'));
   } else {
-    // Solo fecha: "2025-10-09"
     d = new Date(fechaStr + 'T00:00:00');
   }
   
-  // Verificar que la fecha sea válida
+  // Verificar validez
   if (isNaN(d.getTime())) {
-    console.error('Fecha inválida después de conversión:', fechaStr);
+    console.error('Fecha inválida:', fechaStr);
     return "";
   }
   
@@ -42,9 +33,7 @@ function formatearFecha(fecha: string): string {
   const mes = (d.getMonth() + 1).toString().padStart(2, '0');
   const anio = d.getFullYear();
   
-  const resultado = `${dia}/${mes}/${anio}`;
-  console.log('formatearFecha resultado:', resultado);
-  return resultado;
+  return `${dia}/${mes}/${anio}`;
 }
 
 type Venta = {
@@ -121,23 +110,27 @@ const Reportes: React.FC = () => {
   const [pagina, setPagina] = useState(1);
   const [tipo, setTipo] = useState<"ventas" | "compras">("ventas");
   const [busqueda, setBusqueda] = useState<string>("");
+  const [cargando, setCargando] = useState(true);
+  const [generandoPDF, setGenerandoPDF] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/ventas")
-      .then(res => res.json())
-      .then(data => setVentas(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("Error cargando ventas:", err);
-        setVentas([]);
-      });
-      
-    fetch("http://localhost:3001/api/compras")
-      .then(res => res.json())
-      .then (data => setCompras(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("Error cargando compras:", err);
-        setCompras([]);
-      });
+    setCargando(true); 
+    
+    Promise.all([
+      fetch("http://localhost:3001/api/ventas").then(res => res.json()),
+      fetch("http://localhost:3001/api/compras").then(res => res.json())
+    ])
+    .then(([ventasData, comprasData]) => {
+      setVentas(Array.isArray(ventasData) ? ventasData : []);
+      setCompras(Array.isArray(comprasData) ? comprasData : []);
+      setCargando(false);
+    })
+    .catch(err => {
+      console.error("Error cargando datos:", err);
+      setVentas([]);
+      setCompras([]);
+      setCargando(false); 
+    });
   }, []);
 
   const handleTipo = () => {
@@ -151,7 +144,6 @@ const Reportes: React.FC = () => {
 
   const registros = tipo === "ventas" ? ventas : compras;
   const filtrados = registros.filter(r => {
-    // ✅ CORREGIR: Agregar zona horaria para evitar problemas de fecha
     const fecha = tipo === "compras" 
       ? new Date((r.fecha_emision || r.fecha) + "T00:00:00")
       : new Date(r.fecha + "T00:00:00");
@@ -182,7 +174,7 @@ const Reportes: React.FC = () => {
   });
 
   const agrupadas = filtrados.reduce((acc: any, r: any) => {
-    // ✅ Validar que la fecha exista antes de formatear
+    //  Validar que la fecha exista antes de formatear
     let fechaOriginal: string;
     if (tipo === "compras") {
       fechaOriginal = r.fecha_emision || r.fecha;
@@ -253,15 +245,15 @@ const Reportes: React.FC = () => {
     window.location.href = "/menu";
   };
 
-  // ✅ FUNCIÓN PARA CALCULAR MÉTODOS DE PAGO (movida fuera del return)
   const calcularMetodosPago = (ventas: Venta[]) => {
     const productos = ventas.flatMap(v => v.detalles || []);
-    const tieneEfectivo = productos.some(p => p.metodo_pago === "efectivo");
+    
+    const tieneEfectivo = productos.some(p => !p.metodo_pago || p.metodo_pago === "efectivo");
     const tieneTarjeta = productos.some(p => p.metodo_pago === "tarjeta");
     const tieneTransferencia = productos.some(p => p.metodo_pago === "transferencia");
     
     const totalEfectivo = productos
-      .filter(p => p.metodo_pago === "efectivo")
+      .filter(p => !p.metodo_pago || p.metodo_pago === "efectivo")  
       .reduce((acc, p) => acc + Number(p.precio || 0) * Number(p.cantidad || 0), 0);
     
     const totalTarjetaTransf = productos
@@ -277,6 +269,22 @@ const Reportes: React.FC = () => {
       totalTarjetaTransf,
       totalGeneral: totalEfectivo + totalTarjetaTransf
     };
+  };
+
+  const handleExportarPDF = async () => {
+    setGenerandoPDF(true);  
+    
+    try {
+      if (tipo === "compras" && detalleDia) {
+        await exportarDetalleCompraAPDF(detalleDia);
+      } else if (detalleDia) {
+        await exportarDetalleAPDF(detalleDia);
+      }
+    } catch (error) {
+      console.error("Error generando PDF:", error);
+    } finally {
+      setGenerandoPDF(false); 
+    }
   };
 
   return (
@@ -372,7 +380,9 @@ const Reportes: React.FC = () => {
           </div>
         </div>
         
-        {fechasPagina.length === 0 ? (
+        {cargando ? (
+          <IndicadorCarga mensaje="Cargando reportes..." />
+        ) : fechasPagina.length === 0 ? (
           <div className="reportes-vacio">
             <span role="img" aria-label="historial" style={{ fontSize: 40, marginBottom: 12 }}>📄</span>
             <div>
@@ -432,7 +442,8 @@ const Reportes: React.FC = () => {
                             fontWeight: 600,
                             marginBottom: 8
                           }}>
-                            {metodosAccesorios.tieneEfectivo ? "💰 Efectivo" : "💳 Tarjeta/Transf"}
+                            {metodosAccesorios.tieneEfectivo ? "💰 Efectivo" : 
+                             metodosAccesorios.tieneTarjeta ? "💳 Tarjeta" : "🔄 Transferencia"}
                           </div>
                         )}
                         
@@ -532,7 +543,7 @@ const Reportes: React.FC = () => {
                                   }))
                                 );
                                 setDetalleDia({ 
-                                  fecha: ventasCliente[0]?.fecha,  // ✅ Esto está bien - viene de la BD
+                                  fecha: ventasCliente[0]?.fecha, 
                                   productos, 
                                   cliente 
                                 });
@@ -653,15 +664,11 @@ const Reportes: React.FC = () => {
         )}
       </div>
       
+      {generandoPDF && <IndicadorCarga mensaje="Generando PDF..." />}  {/* ✅ AGREGAR */}
+      
       {detalleDia && (
         <div className="reporte-modal">
-          <div className="reporte-modal-content"
-            style={{
-              maxWidth: 480,
-              minWidth: 320,
-              width: "100%",
-            }}
-          >
+          <div className="reporte-modal-content" style={{ maxWidth: 480, minWidth: 320, width: "100%" }}>
             <div style={{
               position: "relative",
               marginTop: 18,
@@ -890,12 +897,10 @@ const Reportes: React.FC = () => {
             }}>
               <button
                 className="exportar-pdf-btn"
-                onClick={() => tipo === "compras"
-                  ? exportarDetalleCompraAPDF(detalleDia)
-                  : exportarDetalleAPDF(detalleDia)
-                }
+                onClick={handleExportarPDF}  
+                disabled={generandoPDF} 
               >
-                Exportar a PDF
+                {generandoPDF ? "Generando..." : "Exportar a PDF"}
               </button>
               <button
                 className="cerrar-modal-btn"
@@ -911,188 +916,191 @@ const Reportes: React.FC = () => {
   );
 };
 
-function exportarDetalleAPDF(detalle: any) {
-  const doc = new jsPDF();
-  let y = 18;
+async function exportarDetalleAPDF(detalle: any) {
+  return new Promise<void>((resolve) => {
+    const doc = new jsPDF();
+    let y = 18;
 
-  doc.setFontSize(20);
-  doc.setTextColor(163, 32, 32);
-  doc.text("Detalle de Venta", 105, y, { align: "center" });
+    doc.setFontSize(20);
+    doc.setTextColor(163, 32, 32);
+    doc.text("Detalle de Venta", 105, y, { align: "center" });
 
-  y += 10;
-  doc.setFontSize(13);
-  doc.setTextColor(80, 80, 80);
-  doc.text(
-    // ✅ USAR función de formateo
-    `Fecha: ${detalle.fecha ? formatearFecha(detalle.fecha) : ""}`,
-    105,
-    y,
-    { align: "center" }
-  );
+    y += 10;
+    doc.setFontSize(13);
+    doc.setTextColor(80, 80, 80);
+    doc.text(
+      `Fecha: ${detalle.fecha ? formatearFecha(detalle.fecha) : ""}`,
+      105,
+      y,
+      { align: "center" }
+    );
 
-  y += 12;
+    y += 12;
 
-  doc.setFontSize(13);
-  doc.setTextColor(0, 0, 0);
-  
-  if (detalle.productos && Array.isArray(detalle.productos)) {
-    detalle.productos.forEach((d: any) => {
-      doc.text(`Producto: ${d.nombre}`, 20, y);
-      y += 7;
-      if (d.marca) {
-        doc.text(`Marca: ${d.marca}`, 20, y);
+    doc.setFontSize(13);
+    doc.setTextColor(0, 0, 0);
+    
+    if (detalle.productos && Array.isArray(detalle.productos)) {
+      detalle.productos.forEach((d: any) => {
+        doc.text(`Producto: ${d.nombre}`, 20, y);
         y += 7;
-      }
-      doc.text(`Precio unitario: $${Number(d.precio || 0).toFixed(2)}`, 20, y);
-      y += 7;
-      doc.text(`Cantidad: ${d.cantidad}`, 20, y);
-      y += 7;
-      doc.text(`Método de pago: ${d.metodo_pago || "efectivo"}`, 20, y);
-      y += 7;
+        if (d.marca) {
+          doc.text(`Marca: ${d.marca}`, 20, y);
+          y += 7;
+        }
+        doc.text(`Precio unitario: $${Number(d.precio || 0).toFixed(2)}`, 20, y);
+        y += 7;
+        doc.text(`Cantidad: ${d.cantidad}`, 20, y);
+        y += 7;
+        doc.text(`Método de pago: ${d.metodo_pago || "efectivo"}`, 20, y);
+        y += 7;
+        doc.text(
+          `Subtotal: $${(Number(d.precio || 0) * Number(d.cantidad || 0)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
+          20,
+          y
+        );
+        y += 10;
+        if (y > 230) {
+          doc.addPage();
+          y = 18;
+        }
+      });
+
+      const total = detalle.productos
+        .reduce((acc: number, d: any) => acc + Number(d.precio || 0) * Number(d.cantidad || 0), 0);
+
+      y += 4;
+      doc.setDrawColor(163, 32, 32);
+      doc.line(15, y, 195, y);
+
+      y += 10;
+
+      doc.setFontSize(15);
+      doc.setTextColor(163, 32, 32);
       doc.text(
-        `Subtotal: $${(Number(d.precio || 0) * Number(d.cantidad || 0)).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
+        `Total vendido: $${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
         20,
         y
       );
-      y += 10;
-      if (y > 230) {
-        doc.addPage();
-        y = 18;
-      }
-    });
 
-    const total = detalle.productos
-      .reduce((acc: number, d: any) => acc + Number(d.precio || 0) * Number(d.cantidad || 0), 0);
+      const cliente = detalle.productos[0];
+      if (
+        cliente?.cliente_nombre ||
+        cliente?.cliente_apellido ||
+        cliente?.cliente_telefono ||
+        cliente?.cliente_correo
+      ) {
+        let datos = "";
+        if (cliente.cliente_nombre || cliente.cliente_apellido)
+          datos += `${cliente.cliente_nombre || ""} ${cliente.cliente_apellido || ""}\n`;
+        if (cliente.cliente_telefono)
+          datos += `${cliente.cliente_telefono}\n`;
+        if (cliente.cliente_correo)
+          datos += `${cliente.cliente_correo}\n`;
+
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(datos.trim(), 150, y);
+      }
+    }
+
+    doc.save("detalle-venta.pdf");
+    resolve();
+  });
+}
+
+async function exportarDetalleCompraAPDF(detalle: any) {
+  return new Promise<void>((resolve) => {
+    const doc = new jsPDF();
+    let y = 18;
+
+    doc.setFontSize(20);
+    doc.setTextColor(163, 32, 32);
+    doc.text("Detalle de Compra", 105, y, { align: "center" });
+
+    y += 10;
+    doc.setFontSize(13);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Fecha: ${formatearFecha(detalle.fecha)}`, 105, y, { align: "center" });
+
+    if (detalle.comprobante) {
+      y += 8;
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Comprobante: ${detalle.comprobante.tipo}`, 20, y);
+      if (detalle.comprobante.numero) {
+        y += 6;
+        doc.text(`Nº: ${detalle.comprobante.numero}`, 20, y);
+      }
+      if (detalle.comprobante.fecha_emision) {
+        y += 6;
+        doc.text(
+          `Emisión: ${formatearFecha(detalle.comprobante.fecha_emision)}`,
+          20,
+          y
+        );
+      }
+    }
+
+    y += 12;
+    doc.setFontSize(13);
+    doc.setTextColor(0, 0, 0);
+
+    let totalGeneral = 0;
+
+    if (detalle.detalles && Array.isArray(detalle.detalles)) {
+      detalle.detalles.forEach((d: any) => {
+        doc.text(`Producto: ${d.nombre}`, 20, y);
+        y += 7;
+        doc.text(`Marca: ${d.marca || "Sin marca"}`, 20, y);
+        y += 7;
+        doc.text(`Cantidad: ${d.cantidad}`, 20, y);
+        y += 7;
+        
+        if (d.precio && d.precio > 0) {
+          doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
+          y += 7;
+          const subtotal = Number(d.precio) * Number(d.cantidad);
+          doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, y);
+          totalGeneral += subtotal;
+          y += 7;
+        } else {
+          doc.setTextColor(128, 128, 128);
+          doc.text('Sin precio registrado', 20, y);
+          doc.setTextColor(0, 0, 0);
+          y += 7;
+        }
+        
+        if (d.observaciones && d.observaciones.trim() !== "") {
+          doc.text(`Obs: ${d.observaciones}`, 20, y);
+          y += 7;
+        }
+        y += 3;
+        if (y > 230) {
+          doc.addPage();
+          y = 18;
+        }
+      });
+    }
 
     y += 4;
     doc.setDrawColor(163, 32, 32);
     doc.line(15, y, 195, y);
 
     y += 10;
-
     doc.setFontSize(15);
     doc.setTextColor(163, 32, 32);
-    doc.text(
-      `Total vendido: $${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
-      20,
-      y
-    );
-
-    const cliente = detalle.productos[0];
-    if (
-      cliente?.cliente_nombre ||
-      cliente?.cliente_apellido ||
-      cliente?.cliente_telefono ||
-      cliente?.cliente_correo
-    ) {
-      let datos = "";
-      if (cliente.cliente_nombre || cliente.cliente_apellido)
-        datos += `${cliente.cliente_nombre || ""} ${cliente.cliente_apellido || ""}\n`;
-      if (cliente.cliente_telefono)
-        datos += `${cliente.cliente_telefono}\n`;
-      if (cliente.cliente_correo)
-        datos += `${cliente.cliente_correo}\n`;
-
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text(datos.trim(), 150, y);
+    
+    if (totalGeneral > 0) {
+      doc.text(`Total compra: $${totalGeneral.toFixed(2)}`, 20, y);
+    } else {
+      doc.setTextColor(128, 128, 128);
+      doc.text('Sin precio total', 20, y);
     }
-  }
 
-  doc.save("detalle-venta.pdf");
-}
-
-function exportarDetalleCompraAPDF(detalle: any) {
-  const doc = new jsPDF();
-  let y = 18;
-
-  doc.setFontSize(20);
-  doc.setTextColor(163, 32, 32);
-  doc.text("Detalle de Compra", 105, y, { align: "center" });
-
-  y += 10;
-  doc.setFontSize(13);
-  doc.setTextColor(80, 80, 80);
-  // ✅ CORREGIR: Ahora viene fecha original, formatear
-  doc.text(`Fecha: ${formatearFecha(detalle.fecha)}`, 105, y, { align: "center" });
-
-  if (detalle.comprobante) {
-    y += 8;
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Comprobante: ${detalle.comprobante.tipo}`, 20, y);
-    if (detalle.comprobante.numero) {
-      y += 6;
-      doc.text(`Nº: ${detalle.comprobante.numero}`, 20, y);
-    }
-    if (detalle.comprobante.fecha_emision) {
-      y += 6;
-      doc.text(
-        // ✅ USAR función de formateo
-        `Emisión: ${formatearFecha(detalle.comprobante.fecha_emision)}`,
-        20,
-        y
-      );
-    }
-  }
-
-  y += 12;
-  doc.setFontSize(13);
-  doc.setTextColor(0, 0, 0);
-
-  let totalGeneral = 0;
-
-  if (detalle.detalles && Array.isArray(detalle.detalles)) {
-    detalle.detalles.forEach((d: any) => {
-      doc.text(`Producto: ${d.nombre}`, 20, y);
-      y += 7;
-      doc.text(`Marca: ${d.marca || "Sin marca"}`, 20, y);
-      y += 7;
-      doc.text(`Cantidad: ${d.cantidad}`, 20, y);
-      y += 7;
-      
-      if (d.precio && d.precio > 0) {
-        doc.text(`Precio unitario: $${Number(d.precio).toFixed(2)}`, 20, y);
-        y += 7;
-        const subtotal = Number(d.precio) * Number(d.cantidad);
-        doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 20, y);
-        totalGeneral += subtotal;
-        y += 7;
-      } else {
-        doc.setTextColor(128, 128, 128);
-        doc.text('Sin precio registrado', 20, y);
-        doc.setTextColor(0, 0, 0);
-        y += 7;
-      }
-      
-      if (d.observaciones && d.observaciones.trim() !== "") {
-        doc.text(`Obs: ${d.observaciones}`, 20, y);
-        y += 7;
-      }
-      y += 3;
-      if (y > 230) {
-        doc.addPage();
-        y = 18;
-      }
-    });
-  }
-
-  y += 4;
-  doc.setDrawColor(163, 32, 32);
-  doc.line(15, y, 195, y);
-
-  y += 10;
-  doc.setFontSize(15);
-  doc.setTextColor(163, 32, 32);
-  
-  if (totalGeneral > 0) {
-    doc.text(`Total compra: $${totalGeneral.toFixed(2)}`, 20, y);
-  } else {
-    doc.setTextColor(128, 128, 128);
-    doc.text('Sin precio total', 20, y);
-  }
-
-  doc.save("detalle-compra.pdf");
+    doc.save("detalle-compra.pdf");
+    resolve();
+  });
 }
 
 export default Reportes;

@@ -307,21 +307,19 @@
   background: #181818;
   border: 2px solid #353535;
   border-radius: 12px;
-  /* ✅ CAMBIAR altura fija por dinámica */
-  min-height: 170px;
-  max-height: 240px;
   height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between; /* ✅ Distribuir espacio */
+  justify-content: space-between;
   box-shadow: 0 2px 8px #0007;
-  padding: 12px 10px 10px 10px; /* ✅ Padding más equilibrado */
+  padding: 16px 12px;
   position: relative;
   margin-bottom: 8px;
   max-width: 220px;
   min-width: 180px;
   width: 100%;
+  gap: 8px; 
 }
 
 .reporte-cuadro-fecha {
@@ -341,15 +339,13 @@
   color: #fff;
   word-break: break-word;
   text-align: center;
-  /* ✅ ELIMINAR margin-bottom y padding-bottom */
-  margin: 8px 0; /* ✅ Espacio vertical equilibrado */
-  padding: 0 8px; /* ✅ Solo padding lateral */
-  max-height: 60px; /* ✅ Limitar altura */
+  margin: 8px 0; 
+  padding: 0 8px; 
+  max-height: 60px;
   overflow: hidden;
-  flex-grow: 0; /* ✅ No crecer */
+  flex-grow: 0;
 }
 
-/* ✅ AGREGAR clase para información de productos */
 .info-productos {
   font-size: 11px;
   color: #bdbdbd;
@@ -359,7 +355,7 @@
   padding: 0 6px;
   max-height: 55px;
   overflow: hidden;
-  flex-shrink: 0; /* ✅ No encoger */
+  flex-shrink: 0;
 }
 
 .info-comprobante {
@@ -371,18 +367,17 @@
   padding: 0 6px;
   max-height: 42px;
   overflow: hidden;
-  flex-shrink: 0; /* ✅ No encoger */
+  flex-shrink: 0; 
 }
 
 .reporte-cuadro-botones {
   display: flex;
   gap: 10px;
-  /* ✅ CAMBIAR de absolute a flex */
-  margin-top: auto; /* ✅ Empujar al final */
+  margin-top: auto; 
   padding-top: 8px;
   width: 100%;
   justify-content: center;
-  flex-shrink: 0; /* ✅ No encoger */
+  flex-shrink: 0; 
 }
 
 .ver-btn {
@@ -398,7 +393,7 @@
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
   flex-shrink: 0;
-  z-index: 5; /* ✅ Por encima del contenido */
+  z-index: 5; 
 }
 
 .ver-btn:hover {
@@ -429,4 +424,16 @@
 .imprimir-btn:hover {
   background: #ffd700;
   color: #232526;
+}
+
+.reportes-container .indicador-carga {
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+  color: #ffd700;
+  font-size: 18px;
+  font-weight: 600;
 }

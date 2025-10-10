@@ -239,13 +239,12 @@ app.post('/api/ventas', (req, res) => {
       }
       const venta_id = result.insertId;
       
-      // ✅ AGREGAR metodo_pago a cada producto
       const detalles = productos.map(p => [
         venta_id, 
         p.id, 
         p.cantidad, 
         p.precio,
-        p.metodo_pago || metodo_pago  // ← AGREGAR
+        p.metodo_pago || metodo_pago  
       ]);
       
       db.query(
@@ -274,7 +273,8 @@ app.post('/api/ventas', (req, res) => {
               // Buscar datos del cliente
               if (clienteIdFinal) {
                 db.query('SELECT * FROM clientes WHERE id = ?', [clienteIdFinal], async (err, clientes) => {
-                  if (!err && clientes.length && clientes[0].correo) {
+                  // VALIDAR que exista correo
+                  if (!err && clientes.length && clientes[0].correo && clientes[0].correo.trim() !== '') {
                     // Traer detalles de la venta
                     db.query(
                       'SELECT dv.cantidad, dv.precio_unitario as precio, pr.nombre, pr.descripcion, m.nombre as marca FROM detalle_ventas dv JOIN productos pr ON dv.producto_id = pr.id LEFT JOIN marcas m ON pr.marca_id = m.id WHERE dv.venta_id = ?',
@@ -331,45 +331,69 @@ app.post('/api/ventas', (req, res) => {
   );
 });
 
-// Obtener todas las ventas
+// Obtener todas las ventas CON DETALLES en una sola consulta
 app.get('/api/ventas', async (req, res) => {
   try {
-    const [ventas] = await db.promise().query(`
-      SELECT v.id, v.fecha, v.total, v.tipo_venta, v.metodo_pago,
-             IFNULL(c.nombre, 'Consumidor final') as cliente,
-             c.nombre AS cliente_nombre,
-             c.apellido AS cliente_apellido,
-             c.telefono AS cliente_telefono,
-             c.correo AS cliente_correo
+    const [rows] = await db.promise().query(`
+      SELECT 
+        v.id as venta_id,
+        v.fecha, 
+        v.total, 
+        v.tipo_venta, 
+        v.metodo_pago as venta_metodo_pago,
+        IFNULL(c.nombre, 'Consumidor final') as cliente,
+        c.nombre AS cliente_nombre,
+        c.apellido AS cliente_apellido,
+        c.telefono AS cliente_telefono,
+        c.correo AS cliente_correo,
+        dv.cantidad,
+        dv.precio_unitario as precio,
+        dv.metodo_pago,
+        pr.nombre as producto_nombre,
+        pr.descripcion,
+        pr.tipo,
+        m.nombre as marca
       FROM ventas v
       LEFT JOIN clientes c ON v.cliente_id = c.id
+      LEFT JOIN detalle_ventas dv ON v.id = dv.venta_id
+      LEFT JOIN productos pr ON dv.producto_id = pr.id
+      LEFT JOIN marcas m ON pr.marca_id = m.id
       ORDER BY v.fecha DESC
     `);
 
-    // ✅ AGREGAR metodo_pago en la consulta de detalles
-    const [detalles] = await db.promise().query(`
-      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario as precio, dv.metodo_pago,
-             pr.nombre, pr.descripcion, pr.tipo, m.nombre as marca
-      FROM detalle_ventas dv
-      JOIN productos pr ON dv.producto_id = pr.id
-      LEFT JOIN marcas m ON pr.marca_id = m.id
-    `);
+    // Agrupar por venta_id
+    const ventasMap = new Map();
+    
+    rows.forEach(row => {
+      if (!ventasMap.has(row.venta_id)) {
+        ventasMap.set(row.venta_id, {
+          id: row.venta_id,
+          fecha: row.fecha,
+          total: row.total,
+          tipo_venta: row.tipo_venta,
+          metodo_pago: row.venta_metodo_pago,
+          cliente: row.cliente,
+          cliente_nombre: row.cliente_nombre,
+          cliente_apellido: row.cliente_apellido,
+          cliente_telefono: row.cliente_telefono,
+          cliente_correo: row.cliente_correo,
+          detalles: []
+        });
+      }
+      
+      if (row.producto_nombre) {
+        ventasMap.get(row.venta_id).detalles.push({
+          nombre: row.producto_nombre,
+          marca: row.marca,
+          tipo: row.tipo,
+          cantidad: row.cantidad,
+          precio: row.precio,
+          metodo_pago: row.metodo_pago
+        });
+      }
+    });
 
-    const ventasConDetalles = ventas.map(venta => ({
-      ...venta,
-      detalles: detalles
-        .filter(d => d.venta_id === venta.id)
-        .map(d => ({
-          nombre: d.nombre,
-          marca: d.marca,
-          tipo: d.tipo,
-          cantidad: d.cantidad,
-          precio: d.precio,
-          metodo_pago: d.metodo_pago  // ← AGREGAR
-        }))
-    }));
-
-    res.json(ventasConDetalles);
+    res.json(Array.from(ventasMap.values()));
   } catch (err) {
     console.error("Error en /api/ventas:", err);
     res.status(500).json({ error: 'Error al obtener ventas' });
@@ -414,7 +438,7 @@ app.get('/api/compras', async (req, res) => {
         .filter(d => d.compra_id === compra.id)
         .map(d => ({
           nombre: d.nombre,
-          tipo: d.tipo,  // ← AGREGAR
+          tipo: d.tipo, 
           marca: d.marca,
           cantidad: d.cantidad,
           precio: d.precio,
@@ -492,7 +516,6 @@ app.post('/api/compras', (req, res) => {
       return res.status(400).json({ error: 'Debe agregar al menos un producto' });
     }
     
-    // LÍNEA 520 - ✅ AGREGAR validación de total
     if (!total || total <= 0) {
       return res.status(400).json({ error: 'El total debe ser mayor a $0' });
     }

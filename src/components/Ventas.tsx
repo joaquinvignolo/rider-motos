@@ -102,7 +102,7 @@ const Ventas: React.FC = () => {
     }
   };
 
-  // Cambiar cantidad de producto en venta (CORREGIDO)
+  // Cambiar cantidad de producto en venta
   const cambiarCantidad = (id: number, cantidad: number) => {
     // Si la cantidad es 0 o vacía, eliminar el producto del carrito
     if (cantidad <= 0) {
