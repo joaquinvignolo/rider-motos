@@ -228,7 +228,7 @@ app.patch('/api/clientes/:id/activo', (req, res) => {
 app.post('/api/ventas', (req, res) => {
   const { cliente_id, total, tipo_venta, metodo_pago, productos } = req.body;
   const clienteIdFinal = typeof cliente_id === "undefined" ? null : cliente_id;
-  //console.log("Datos recibidos en /api/ventas:", req.body);
+  
   db.query(
     'INSERT INTO ventas (cliente_id, fecha, total, tipo_venta, metodo_pago) VALUES (?, NOW(), ?, ?, ?)',
     [clienteIdFinal, total, tipo_venta, metodo_pago],
@@ -238,9 +238,18 @@ app.post('/api/ventas', (req, res) => {
         return res.status(500).json({ error: 'Error al registrar venta' });
       }
       const venta_id = result.insertId;
-      const detalles = productos.map(p => [venta_id, p.id, p.cantidad, p.precio]);
+      
+      // ✅ AGREGAR metodo_pago a cada producto
+      const detalles = productos.map(p => [
+        venta_id, 
+        p.id, 
+        p.cantidad, 
+        p.precio,
+        p.metodo_pago || metodo_pago  // ← AGREGAR
+      ]);
+      
       db.query(
-        'INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario) VALUES ?',
+        'INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario, metodo_pago) VALUES ?',
         [detalles],
         (err2) => {
           if (err2) {
@@ -325,7 +334,6 @@ app.post('/api/ventas', (req, res) => {
 // Obtener todas las ventas
 app.get('/api/ventas', async (req, res) => {
   try {
-    // 1. Traer todas las ventas con datos completos del cliente
     const [ventas] = await db.promise().query(`
       SELECT v.id, v.fecha, v.total, v.tipo_venta, v.metodo_pago,
              IFNULL(c.nombre, 'Consumidor final') as cliente,
@@ -338,16 +346,15 @@ app.get('/api/ventas', async (req, res) => {
       ORDER BY v.fecha DESC
     `);
 
-    // 2. Traer detalles de todas las ventas CON TIPO Y MARCA
+    // ✅ AGREGAR metodo_pago en la consulta de detalles
     const [detalles] = await db.promise().query(`
-      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario as precio, 
+      SELECT dv.venta_id, dv.cantidad, dv.precio_unitario as precio, dv.metodo_pago,
              pr.nombre, pr.descripcion, pr.tipo, m.nombre as marca
       FROM detalle_ventas dv
       JOIN productos pr ON dv.producto_id = pr.id
       LEFT JOIN marcas m ON pr.marca_id = m.id
     `);
 
-    // 3. Asociar detalles a cada venta
     const ventasConDetalles = ventas.map(venta => ({
       ...venta,
       detalles: detalles
@@ -355,9 +362,10 @@ app.get('/api/ventas', async (req, res) => {
         .map(d => ({
           nombre: d.nombre,
           marca: d.marca,
-          tipo: d.tipo,  // ← AGREGAR
+          tipo: d.tipo,
           cantidad: d.cantidad,
-          precio: d.precio
+          precio: d.precio,
+          metodo_pago: d.metodo_pago  // ← AGREGAR
         }))
     }));
 

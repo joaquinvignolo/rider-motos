@@ -161,19 +161,30 @@
   margin-bottom: 8px;
   font-size: 1.08rem;
 }
+.exportar-pdf-btn,
 .cerrar-modal-btn {
-  margin-top: 18px;
   background: #a32020;
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 8px 24px;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
-  font-weight: bold;
-  font-size: 1.08rem;
-  align-self: flex-end;
+  min-height: 44px;
+  flex: 1;
   transition: background 0.18s;
 }
+
+.exportar-pdf-btn {
+  max-width: 180px;
+}
+
+.cerrar-modal-btn {
+  max-width: 120px;
+}
+
+.exportar-pdf-btn:hover,
 .cerrar-modal-btn:hover {
   background: #d32f2f;
 }
