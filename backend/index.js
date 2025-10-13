@@ -594,6 +594,153 @@ app.post('/api/compras', (req, res) => {
   });
 });
 
+// Obtener ventas de motos disponibles para patentamiento (sin trámite iniciado)
+app.get('/api/ventas-disponibles-patentamiento', async (req, res) => {
+  try {
+    const [ventas] = await db.promise().query(`
+      SELECT 
+        v.id,
+        v.fecha,
+        c.nombre as cliente_nombre,
+        c.apellido as cliente_apellido,
+        pr.nombre as moto_nombre,
+        m.nombre as marca
+      FROM ventas v
+      INNER JOIN clientes c ON v.cliente_id = c.id
+      INNER JOIN detalle_ventas dv ON v.id = dv.venta_id
+      INNER JOIN productos pr ON dv.producto_id = pr.id
+      INNER JOIN marcas m ON pr.marca_id = m.id
+      WHERE v.tipo_venta = 'moto'
+        AND pr.tipo = 'moto'
+        AND NOT EXISTS (
+          SELECT 1 FROM patentamientos p WHERE p.venta_id = v.id
+        )
+      ORDER BY v.fecha DESC
+    `);
+    res.json(ventas);
+  } catch (err) {
+    console.error("Error en /api/ventas-disponibles-patentamiento:", err);
+    res.status(500).json({ error: 'Error al obtener ventas disponibles' });
+  }
+});
+
+// Obtener todos los trámites de patentamiento
+app.get('/api/patentamientos', async (req, res) => {
+  try {
+    const [tramites] = await db.promise().query(`
+      SELECT 
+        p.id,
+        p.venta_id,
+        p.estado,
+        p.fecha_solicitud as fechaSolicitud,
+        p.fecha_finalizacion as fechaFinalizacion,
+        p.observaciones,
+        CONCAT(c.nombre, ' ', c.apellido) as cliente,
+        CONCAT(m.nombre, ' ', pr.nombre) as moto
+      FROM patentamientos p
+      INNER JOIN ventas v ON p.venta_id = v.id
+      INNER JOIN clientes c ON v.cliente_id = c.id
+      INNER JOIN detalle_ventas dv ON v.id = dv.venta_id
+      INNER JOIN productos pr ON dv.producto_id = pr.id
+      INNER JOIN marcas m ON pr.marca_id = m.id
+      WHERE pr.tipo = 'moto'
+      ORDER BY p.fecha_solicitud DESC
+    `);
+    res.json(tramites);
+  } catch (err) {
+    console.error("Error en /api/patentamientos:", err);
+    res.status(500).json({ error: 'Error al obtener patentamientos' });
+  }
+});
+
+// Crear nuevo trámite de patentamiento
+app.post('/api/patentamientos', async (req, res) => {
+  const { venta_id, observaciones, numero_chasis, numero_motor, numero_certificado } = req.body;
+  
+  try {
+    // Verificar que la venta exista y sea de tipo moto
+    const [ventas] = await db.promise().query(
+      'SELECT id FROM ventas WHERE id = ? AND tipo_venta = "moto"',
+      [venta_id]
+    );
+    
+    if (ventas.length === 0) {
+      return res.status(400).json({ error: 'Venta no válida o no es de tipo moto' });
+    }
+    
+    // Verificar que no exista ya un trámite para esta venta
+    const [tramitesExistentes] = await db.promise().query(
+      'SELECT id FROM patentamientos WHERE venta_id = ?',
+      [venta_id]
+    );
+    
+    if (tramitesExistentes.length > 0) {
+      return res.status(400).json({ error: 'Ya existe un trámite para esta venta' });
+    }
+    
+    // Insertar trámite
+    const [result] = await db.promise().query(
+      `INSERT INTO patentamientos 
+        (venta_id, estado, fecha_solicitud, observaciones) 
+       VALUES (?, 'Pendiente', NOW(), ?)`,
+      [venta_id, observaciones || null]
+    );
+    
+    const patentamiento_id = result.insertId;
+    
+    await db.promise().query(
+      `INSERT INTO motos_entregadas 
+        (patentamiento_id, numero_chasis, numero_motor, numero_certificado) 
+       VALUES (?, ?, ?, ?)`,
+      [patentamiento_id, numero_chasis, numero_motor, numero_certificado]
+    );
+    
+    res.json({ success: true, patentamiento_id });
+  } catch (err) {
+    console.error("Error al crear patentamiento:", err);
+    res.status(500).json({ error: 'Error al crear patentamiento: ' + err.message });
+  }
+});
+
+// Actualizar estado de patentamiento
+app.patch('/api/patentamientos/:id', async (req, res) => {
+  const { estado } = req.body;
+  const { id } = req.params;
+  
+  try {
+    const fechaFinalizacion = estado === 'Completado' ? new Date() : null;
+    
+    await db.promise().query(
+      'UPDATE patentamientos SET estado = ?, fecha_finalizacion = ? WHERE id = ?',
+      [estado, fechaFinalizacion, id]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error al actualizar estado:", err);
+    res.status(500).json({ error: 'Error al actualizar estado' });
+  }
+});
+
+// Obtener datos únicos de la moto para un trámite
+app.get('/api/motos-entregadas/:tramite_id', async (req, res) => {
+  try {
+    const [datos] = await db.promise().query(
+      'SELECT numero_chasis, numero_motor, numero_certificado FROM motos_entregadas WHERE patentamiento_id = ?',
+      [req.params.tramite_id]
+    );
+    
+    if (datos.length === 0) {
+      return res.status(404).json({ error: 'No se encontraron datos' });
+    }
+    
+    res.json(datos[0]);
+  } catch (err) {
+    console.error("Error al obtener datos de moto:", err);
+    res.status(500).json({ error: 'Error al obtener datos' });
+  }
+});
+
 app.listen(3001, () => {
   console.log('Servidor corriendo en http://localhost:3001');
 });
