@@ -624,6 +624,92 @@ app.get('/api/ventas-disponibles-patentamiento', async (req, res) => {
   }
 });
 
+// Actualizar estado de patentamiento
+app.patch('/api/patentamientos/:id', async (req, res) => {
+  const { estado } = req.body;
+  const { id } = req.params;
+  
+  try {
+    // Validar estados permitidos
+    const estadosPermitidos = ['Pendiente', 'En Proceso', 'Completado', 'Entregado'];
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({ error: 'Estado inválido' });
+    }
+    
+    // Si cambia a "Completado", registrar fecha de finalización
+    const fechaFinalizacion = estado === 'Completado' ? new Date() : null;
+    
+    // Si cambia a "Entregado", registrar fecha de entrega
+    const fechaEntrega = estado === 'Entregado' ? new Date() : null;
+    
+    // Actualizar sin sobrescribir fecha_finalizacion si ya existe
+    await db.promise().query(
+      `UPDATE patentamientos 
+       SET estado = ?, 
+           fecha_finalizacion = COALESCE(?, fecha_finalizacion),
+           fecha_entrega = ? 
+       WHERE id = ?`,
+      [estado, fechaFinalizacion, fechaEntrega, id]
+    );
+    
+    // Enviar email solo cuando cambia a "Completado"
+    if (estado === 'Completado') {
+      // Obtener datos del cliente
+      const [tramite] = await db.promise().query(`
+        SELECT 
+          c.nombre, c.apellido, c.correo, c.telefono,
+          CONCAT(m.nombre, ' ', pr.nombre) as moto
+        FROM patentamientos p
+        INNER JOIN ventas v ON p.venta_id = v.id
+        INNER JOIN clientes c ON v.cliente_id = c.id
+        INNER JOIN detalle_ventas dv ON v.id = dv.venta_id
+        INNER JOIN productos pr ON dv.producto_id = pr.id
+        LEFT JOIN marcas m ON pr.marca_id = m.id
+        WHERE p.id = ? AND pr.tipo = 'moto'
+        LIMIT 1
+      `, [id]);
+      
+      if (tramite.length > 0 && tramite[0].correo && tramite[0].correo.trim() !== '') {
+        const cliente = tramite[0];
+        
+        // Enviar email de notificación
+        transporter.sendMail({
+          from: '"Rider Motos" <ridermotos@gmail.com>',
+          to: cliente.correo,
+          subject: '🎉 Tu moto está lista para retirar - Rider Motos',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #a32020;">¡Buenas noticias, ${cliente.nombre}!</h2>
+              <p>Tu <strong>${cliente.moto}</strong> ya tiene la patente y está lista para ser retirada.</p>
+              <p><strong>Próximos pasos:</strong></p>
+              <ul>
+                <li>Coordina el retiro contactándonos</li>
+                <li>Traé tu DNI original</li>
+                <li>Verificaremos la documentación</li>
+              </ul>
+              <p style="margin-top: 20px;">¡Te esperamos!</p>
+              <p style="color: #666; font-size: 0.9em; margin-top: 30px;">
+                <em>Rider Motos - Tu concesionaria de confianza</em>
+              </p>
+            </div>
+          `
+        }, (errMail) => {
+          if (errMail) {
+            console.error('❌ Error enviando mail:', errMail);
+          } else {
+            console.log('✅ Email de notificación enviado a:', cliente.correo);
+          }
+        });
+      }
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error al actualizar estado:", err);
+    res.status(500).json({ error: 'Error al actualizar estado' });
+  }
+});
+
 // Obtener todos los trámites de patentamiento
 app.get('/api/patentamientos', async (req, res) => {
   try {
@@ -634,6 +720,7 @@ app.get('/api/patentamientos', async (req, res) => {
         p.estado,
         p.fecha_solicitud as fechaSolicitud,
         p.fecha_finalizacion as fechaFinalizacion,
+        p.fecha_entrega as fechaEntrega,
         p.observaciones,
         CONCAT(c.nombre, ' ', c.apellido) as cliente,
         CONCAT(m.nombre, ' ', pr.nombre) as moto
@@ -699,26 +786,6 @@ app.post('/api/patentamientos', async (req, res) => {
   } catch (err) {
     console.error("Error al crear patentamiento:", err);
     res.status(500).json({ error: 'Error al crear patentamiento: ' + err.message });
-  }
-});
-
-// Actualizar estado de patentamiento
-app.patch('/api/patentamientos/:id', async (req, res) => {
-  const { estado } = req.body;
-  const { id } = req.params;
-  
-  try {
-    const fechaFinalizacion = estado === 'Completado' ? new Date() : null;
-    
-    await db.promise().query(
-      'UPDATE patentamientos SET estado = ?, fecha_finalizacion = ? WHERE id = ?',
-      [estado, fechaFinalizacion, id]
-    );
-    
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Error al actualizar estado:", err);
-    res.status(500).json({ error: 'Error al actualizar estado' });
   }
 });
 

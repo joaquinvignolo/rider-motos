@@ -4,7 +4,8 @@ import "./Patentamiento.css";
 import PaginacionUnificada from "./PaginacionUnificada";
 import IndicadorCarga from "./IndicadorCarga";
 
-const estados = ["Todos los estados", "Pendiente", "En Proceso", "Completado"];
+// ✅ AGREGAR "Entregado" a los estados
+const estados = ["Todos los estados", "Pendiente", "En Proceso", "Completado", "Entregado"];
 
 const Patentamiento: React.FC = () => {
   const navigate = useNavigate();
@@ -116,9 +117,9 @@ const Patentamiento: React.FC = () => {
         body: JSON.stringify({
           venta_id: Number(ventaSeleccionada),
           observaciones,
-          numero_chasis: numeroChasis.trim(),
-          numero_motor: numeroMotor.trim(),
-          numero_certificado: numeroCertificado.trim()
+          numero_chasis: numeroChasis.trim().toUpperCase(),
+          numero_motor: numeroMotor.trim().toUpperCase(),
+          numero_certificado: numeroCertificado.trim().toUpperCase()
         })
       });
       const data = await res.json();
@@ -144,26 +145,6 @@ const Patentamiento: React.FC = () => {
       }
     } catch {
       setMensaje("Error de conexión con el servidor.");
-      setTipoMensaje("error");
-    }
-  };
-
-  const actualizarEstado = async (id: number) => {
-    try {
-      const res = await fetch(`http://localhost:3001/api/patentamientos/${id}/estado`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: "Completado" }) 
-      });
-      const data = await res.json();
-      if (data.success) {
-        await actualizarTramitesConDatos();
-      } else {
-        setMensaje("No se pudo actualizar el estado.");
-        setTipoMensaje("error");
-      }
-    } catch {
-      setMensaje("Error de conexión al actualizar.");
       setTipoMensaje("error");
     }
   };
@@ -224,6 +205,7 @@ const Patentamiento: React.FC = () => {
       >
         INICIO
       </button>
+
       {/* Título */}
       <h1 style={{
         color: "#fff",
@@ -235,6 +217,7 @@ const Patentamiento: React.FC = () => {
       }}>
         Patentamiento
       </h1>
+
       <div
         className="patentamiento-main-card"
         style={{
@@ -275,11 +258,13 @@ const Patentamiento: React.FC = () => {
           }}>
             Nuevo Trámite
           </h2>
+
           {mensaje && (
             <div className={`alert ${tipoMensaje === "error" ? "alert-error" : "alert-success"}`}>
               {mensaje}
             </div>
           )}
+
           <form className="patentamiento-form" autoComplete="off" style={{ display: "flex", flexDirection: "column", gap: "18px" }} onSubmit={handleSubmit}>
             <div style={{ display: "flex", gap: "18px" }}>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -320,6 +305,7 @@ const Patentamiento: React.FC = () => {
                 />
               </div>
             </div>
+
             <div style={{ display: "flex", gap: "18px" }}>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ color: "#fff", fontWeight: 600 }}>Cliente</label>
@@ -354,6 +340,7 @@ const Patentamiento: React.FC = () => {
                 />
               </div>
             </div>
+
             <div style={{ display: "flex", gap: "18px" }}>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
                 <label style={{ color: "#fff", fontWeight: 600 }}>N° Chasis</label>
@@ -390,6 +377,7 @@ const Patentamiento: React.FC = () => {
                 />
               </div>
             </div>
+
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ color: "#fff", fontWeight: 600 }}>N° Certificado</label>
               <input
@@ -407,6 +395,7 @@ const Patentamiento: React.FC = () => {
                 }}
               />
             </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <label style={{ color: "#fff", fontWeight: 600 }}>Observaciones</label>
               <textarea
@@ -426,6 +415,7 @@ const Patentamiento: React.FC = () => {
                 maxLength={32}
               />
             </div>
+
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
               <button
                 className="btn-agencia"
@@ -437,7 +427,8 @@ const Patentamiento: React.FC = () => {
                   fontSize: "1.1em",
                   fontWeight: 700,
                   boxShadow: "0 2px 8px #0003",
-                  border: "none"
+                  border: "none",
+                  cursor: "pointer"
                 }}
               >
                 Iniciar Trámite
@@ -460,6 +451,7 @@ const Patentamiento: React.FC = () => {
           <div className="patentamiento-list-header" style={{ marginBottom: 10 }}>
             <h3 className="patentamiento-subtitulo" style={{ color: "#a32020", fontWeight: 700, fontSize: "1.3rem" }}>Trámites de Patentamiento</h3>
           </div>
+
           {/* Filtros de trámites */}
           <div className="patentamiento-list-filtros" style={{ marginBottom: 14, display: "flex", gap: "18px" }}>
             <select
@@ -495,13 +487,14 @@ const Patentamiento: React.FC = () => {
               }}
             />
           </div>
+
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table
               className="patentamiento-table"
               style={{
                 background: "#232526",
                 color: "#fff",
-                minWidth: 1200, 
+                minWidth: 1200,
                 tableLayout: "fixed"
               }}
             >
@@ -510,7 +503,10 @@ const Patentamiento: React.FC = () => {
                   <th style={{ maxWidth: 140 }}>Cliente</th>
                   <th style={{ maxWidth: 140 }}>Moto</th>
                   <th style={{ maxWidth: 110 }}>Fecha Solicitud</th>
-                  <th style={{ maxWidth: 130 }}>Fecha Finalización</th>
+                  {/* ✅ AGREGAR COLUMNA "Fecha Completado" */}
+                  <th style={{ maxWidth: 130 }}>Fecha Completado</th>
+                  {/* ✅ AGREGAR COLUMNA "Fecha Entrega" */}
+                  <th style={{ maxWidth: 130 }}>Fecha Entrega</th>
                   <th style={{ maxWidth: 100 }}>Estado</th>
                   <th style={{ maxWidth: 200 }}>Observaciones</th>
                   <th style={{ maxWidth: 160 }}>Chasis</th>
@@ -520,71 +516,91 @@ const Patentamiento: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {tramitesPagina.map((t, i) => (
-                  <tr key={t.id}>
-                    <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.cliente}>{t.cliente}</td>
-                    <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.moto}>{t.moto}</td>
-                    <td>{t.fechaSolicitud?.slice(0, 10)}</td>
-                    <td>{t.estado === "Completado" && t.fechaFinalizacion ? t.fechaFinalizacion.slice(0, 10) : "-"}</td>
-                    <td>
-                      <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
-                    </td>
-                    <td
-                      style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                      title={t.observaciones || "-"}
-                    >
-                      {t.observaciones
-                        ? t.observaciones.length > 30
-                          ? t.observaciones.slice(0, 30) + "..."
-                          : t.observaciones
-                        : <span style={{ color: "#888" }}>-</span>}
-                    </td>
-                    <td
-                      style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                      title={t.datosMoto?.numero_chasis || "-"}
-                    >
-                      {t.datosMoto
-                        ? t.datosMoto.numero_chasis.length > 20
-                          ? t.datosMoto.numero_chasis.slice(0, 20) + "..."
-                          : t.datosMoto.numero_chasis
-                        : <span style={{ color: "#888" }}>-</span>}
-                    </td>
-                    <td
-                      style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                      title={t.datosMoto?.numero_motor || "-"}
-                    >
-                      {t.datosMoto
-                        ? t.datosMoto.numero_motor.length > 20
-                          ? t.datosMoto.numero_motor.slice(0, 20) + "..."
-                          : t.datosMoto.numero_motor
-                        : <span style={{ color: "#888" }}>-</span>}
-                    </td>
-                    <td
-                      style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                      title={t.datosMoto?.numero_certificado || "-"}
-                    >
-                      {t.datosMoto
-                        ? t.datosMoto.numero_certificado.length > 20
-                          ? t.datosMoto.numero_certificado.slice(0, 20) + "..."
-                          : t.datosMoto.numero_certificado
-                        : <span style={{ color: "#888" }}>-</span>}
-                    </td>
-                    <td>
-                      <button
-                        className="btn-agencia btn-accion"
-                        onClick={() => {
-                          setTramiteEdit(t);
-                          setNuevoEstado(t.estado);
-                        }}
-                      >
-                        Actualizar
-                      </button>
+                {tramitesPagina.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} style={{ textAlign: "center", color: "#888", padding: "20px" }}>
+                      No hay trámites para mostrar
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  tramitesPagina.map((t) => (
+                    <tr key={t.id}>
+                      <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.cliente}>{t.cliente}</td>
+                      <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.moto}>{t.moto}</td>
+                      <td>{t.fechaSolicitud?.slice(0, 10)}</td>
+                      {/* ✅ MOSTRAR fecha_finalizacion cuando está "Completado" o "Entregado" */}
+                      <td>
+                        {(t.estado === "Completado" || t.estado === "Entregado") && t.fechaFinalizacion
+                          ? t.fechaFinalizacion.slice(0, 10)
+                          : <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      {/* ✅ MOSTRAR fecha_entrega solo cuando está "Entregado" */}
+                      <td>
+                        {t.estado === "Entregado" && t.fechaEntrega
+                          ? t.fechaEntrega.slice(0, 10)
+                          : <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      <td>
+                        <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
+                      </td>
+                      <td
+                        style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        title={t.observaciones || "-"}
+                      >
+                        {t.observaciones
+                          ? t.observaciones.length > 30
+                            ? t.observaciones.slice(0, 30) + "..."
+                            : t.observaciones
+                          : <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      <td
+                        style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        title={t.datosMoto?.numero_chasis || "-"}
+                      >
+                        {t.datosMoto
+                          ? t.datosMoto.numero_chasis.length > 20
+                            ? t.datosMoto.numero_chasis.slice(0, 20) + "..."
+                            : t.datosMoto.numero_chasis
+                          : <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      <td
+                        style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        title={t.datosMoto?.numero_motor || "-"}
+                      >
+                        {t.datosMoto
+                          ? t.datosMoto.numero_motor.length > 20
+                            ? t.datosMoto.numero_motor.slice(0, 20) + "..."
+                            : t.datosMoto.numero_motor
+                          : <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      <td
+                        style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        title={t.datosMoto?.numero_certificado || "-"}
+                      >
+                        {t.datosMoto
+                          ? t.datosMoto.numero_certificado.length > 20
+                            ? t.datosMoto.numero_certificado.slice(0, 20) + "..."
+                            : t.datosMoto.numero_certificado
+                          : <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      <td>
+                        <button
+                          className="btn-agencia btn-accion"
+                          onClick={() => {
+                            setTramiteEdit(t);
+                            setNuevoEstado(t.estado);
+                          }}
+                        >
+                          Actualizar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
+
           <div className="patentamiento-paginacion" style={{ marginTop: 18, display: "flex", gap: 8, alignItems: "center" }}>
             <PaginacionUnificada
               pagina={paginaActual}
@@ -633,9 +649,11 @@ const Patentamiento: React.FC = () => {
                 <IndicadorCarga mensaje="Actualizando estado..." />
               </div>
             )}
+
             <h3 style={{ color: "#a32020", fontWeight: 700, marginBottom: 18 }}>
               Actualizar estado de trámite
             </h3>
+
             <div style={{ marginBottom: 18 }}>
               <label style={{ color: "#fff", fontWeight: 600, marginRight: 12 }}>
                 Estado:
@@ -652,11 +670,13 @@ const Patentamiento: React.FC = () => {
                   fontSize: "1em"
                 }}
               >
+                {/* ✅ INCLUIR TODOS LOS ESTADOS (excepto "Todos los estados") */}
                 {estados.filter(e => e !== "Todos los estados").map(e => (
                   <option key={e} value={e}>{e}</option>
                 ))}
               </select>
             </div>
+
             <div
               style={{
                 overflowY: "auto",
@@ -688,6 +708,7 @@ const Patentamiento: React.FC = () => {
                 </div>
               )}
             </div>
+
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
               <button
                 className="btn-agencia"
@@ -697,7 +718,8 @@ const Patentamiento: React.FC = () => {
                   borderRadius: "8px",
                   padding: "8px 24px",
                   fontWeight: 700,
-                  border: "none"
+                  border: "none",
+                  cursor: "pointer"
                 }}
                 onClick={async () => {
                   setCargandoEstado(true);
@@ -709,10 +731,9 @@ const Patentamiento: React.FC = () => {
                     });
                     const data = await res.json();
                     if (data.success) {
-                      setMensaje("Estado actualizado correctamente.");
+                      setMensaje(`Estado actualizado a "${nuevoEstado}" correctamente.`);
                       setTipoMensaje("success");
                       setTramiteEdit(null);
-                      // Refrescar trámites con datos únicos
                       await actualizarTramitesConDatos();
                     } else {
                       setMensaje(data.error || "No se pudo actualizar el estado.");
@@ -736,7 +757,8 @@ const Patentamiento: React.FC = () => {
                   borderRadius: "8px",
                   padding: "8px 24px",
                   fontWeight: 700,
-                  border: "none"
+                  border: "none",
+                  cursor: "pointer"
                 }}
                 onClick={() => setTramiteEdit(null)}
               >
