@@ -295,8 +295,6 @@ const Compras = () => {
                             <option value="Factura B">Factura B</option>
                             <option value="Factura C">Factura C</option>
                             <option value="Remito">Remito</option>
-                            <option value="Presupuesto">Presupuesto</option>
-                            <option value="Ticket">Ticket</option>
                         </select>
                     </div>
 

@@ -482,7 +482,7 @@ app.post('/api/compras', (req, res) => {
     }
     
     // 4. Validar tipo de comprobante permitido
-    const tiposPermitidos = ['Factura A', 'Factura B', 'Factura C', 'Remito', 'Presupuesto', 'Ticket'];
+    const tiposPermitidos = ['Factura A', 'Factura B', 'Factura C', 'Remito'];
     if (!tiposPermitidos.includes(tipo_comprobante)) {
       return res.status(400).json({ error: 'Tipo de comprobante inválido' });
     }
