@@ -4,7 +4,6 @@ import "./Patentamiento.css";
 import PaginacionUnificada from "./PaginacionUnificada";
 import IndicadorCarga from "./IndicadorCarga";
 
-// ✅ AGREGAR "Entregado" a los estados
 const estados = ["Todos los estados", "Pendiente", "En Proceso", "Completado", "Entregado"];
 
 const Patentamiento: React.FC = () => {
@@ -18,6 +17,8 @@ const Patentamiento: React.FC = () => {
   const [observaciones, setObservaciones] = useState<string>("");
   const [mensaje, setMensaje] = useState<string>("");
   const [tipoMensaje, setTipoMensaje] = useState<"error" | "success">("success");
+  const [mensajeModal, setMensajeModal] = useState<string>("");
+  const [tipoMensajeModal, setTipoMensajeModal] = useState<"error" | "success">("success");
   const [tramites, setTramites] = useState<any[]>([]);
   const [tramiteEdit, setTramiteEdit] = useState<any | null>(null);
   const [nuevoEstado, setNuevoEstado] = useState<string>("Pendiente");
@@ -25,9 +26,18 @@ const Patentamiento: React.FC = () => {
   const [cargandoEstado, setCargandoEstado] = useState(false);
   const [numeroChasis, setNumeroChasis] = useState("");
   const [numeroMotor, setNumeroMotor] = useState("");
-  const [numeroCertificado, setNumeroCertificado] = useState("");
+  const [certificadoOrigen, setCertificadoOrigen] = useState("");
+  const [numeroExpediente, setNumeroExpediente] = useState("");
   const [datosMoto, setDatosMoto] = useState<any | null>(null);
   const tramitesPorPagina = 10;
+
+  // Auto-ocultar mensaje del modal
+  useEffect(() => {
+    if (mensajeModal) {
+      const timer = setTimeout(() => setMensajeModal(""), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [mensajeModal]);
 
   // Función para traer trámites con datos únicos
   const actualizarTramitesConDatos = async () => {
@@ -78,31 +88,35 @@ const Patentamiento: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensaje("");
+    
     if (!ventaSeleccionada) {
       setMensaje("Debe seleccionar una venta para iniciar el trámite.");
       setTipoMensaje("error");
       return;
     }
+    
     if (
       !numeroChasis.trim() ||
       !numeroMotor.trim() ||
-      !numeroCertificado.trim()
+      !certificadoOrigen.trim()
     ) {
-      setMensaje("Debe ingresar chasis, motor y certificado.");
+      setMensaje("Debe ingresar chasis, motor y certificado de origen.");
       setTipoMensaje("error");
       return;
     }
 
     const validarCampo = (valor: string, nombre: string, min: number, max: number) => {
       if (!valor.trim()) return `El campo ${nombre} es obligatorio.`;
-      if (valor.length < min || valor.length > max) return `${nombre} debe tener entre ${min} y ${max} caracteres.`;
-      if (!/^[A-Za-z0-9\-\.]+$/.test(valor)) return `${nombre} solo puede contener letras, números, guiones o puntos.`;
+      if (valor.length < min || valor.length > max) 
+        return `${nombre} debe tener entre ${min} y ${max} caracteres.`;
+      if (!/^[A-Za-z0-9\-\.]+$/.test(valor)) 
+        return `${nombre} solo puede contener letras, números, guiones o puntos.`;
       return null;
     };
 
     const errorChasis = validarCampo(numeroChasis, "Chasis", 10, 20);
     const errorMotor = validarCampo(numeroMotor, "Motor", 5, 20);
-    const errorCertificado = validarCampo(numeroCertificado, "Certificado", 5, 30);
+    const errorCertificado = validarCampo(certificadoOrigen, "Certificado de Origen", 5, 30);
 
     if (errorChasis || errorMotor || errorCertificado) {
       setMensaje(errorChasis || errorMotor || errorCertificado);
@@ -119,10 +133,12 @@ const Patentamiento: React.FC = () => {
           observaciones,
           numero_chasis: numeroChasis.trim().toUpperCase(),
           numero_motor: numeroMotor.trim().toUpperCase(),
-          numero_certificado: numeroCertificado.trim().toUpperCase()
+          certificado_origen: certificadoOrigen.trim().toUpperCase()
         })
       });
+      
       const data = await res.json();
+      
       if (data.success) {
         setMensaje("Trámite iniciado correctamente.");
         setTipoMensaje("success");
@@ -132,9 +148,10 @@ const Patentamiento: React.FC = () => {
         setObservaciones("");
         setNumeroChasis("");
         setNumeroMotor("");
-        setNumeroCertificado("");
+        setCertificadoOrigen("");
         // Actualizar lista de trámites con datos únicos
         await actualizarTramitesConDatos();
+        
         // Actualizar ventas disponibles
         fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
           .then(res => res.json())
@@ -177,6 +194,7 @@ const Patentamiento: React.FC = () => {
         .catch(() => setDatosMoto(null));
     } else {
       setDatosMoto(null);
+      setMensajeModal("");
     }
   }, [tramiteEdit]);
 
@@ -378,13 +396,17 @@ const Patentamiento: React.FC = () => {
               </div>
             </div>
 
+            {/* ACTUALIZAR el campo en el formulario */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ color: "#fff", fontWeight: 600 }}>N° Certificado</label>
+              <label style={{ color: "#fff", fontWeight: 600 }}>
+                Certificado de Origen
+              </label>
               <input
                 type="text"
-                value={numeroCertificado}
-                onChange={e => setNumeroCertificado(e.target.value)}
+                value={certificadoOrigen}
+                onChange={e => setCertificadoOrigen(e.target.value)}
                 required
+                placeholder="Ej: COF-2024-001234"
                 style={{
                   background: "#181818",
                   color: "#fff",
@@ -394,6 +416,9 @@ const Patentamiento: React.FC = () => {
                   fontSize: "1em"
                 }}
               />
+              <small style={{ color: "#888", fontSize: "0.82rem", marginTop: "2px" }}>
+                Número que viene de fábrica con la moto
+              </small>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -510,14 +535,17 @@ const Patentamiento: React.FC = () => {
                   <th style={{ minWidth: 150, padding: "12px 8px" }}>Observaciones</th>
                   <th style={{ minWidth: 140, padding: "12px 8px" }}>Chasis</th>
                   <th style={{ minWidth: 140, padding: "12px 8px" }}>Motor</th>
-                  <th style={{ minWidth: 140, padding: "12px 8px" }}>Certificado</th>
+                  <th style={{ minWidth: 140, padding: "12px 8px" }}>Certificado Origen</th>
+                  {/* ✅ NUEVA COLUMNA */}
+                  <th style={{ minWidth: 140, padding: "12px 8px" }}>N° Expediente</th>
                   <th style={{ minWidth: 90, padding: "12px 8px" }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {tramitesPagina.length === 0 ? (
                   <tr>
-                    <td colSpan={11} style={{ textAlign: "center", color: "#888", padding: "20px" }}>
+                    <td colSpan={12} style={{ textAlign: "center", color: "#888", padding: "20px" }}>
+                      {/**/}
                       No hay trámites para mostrar
                     </td>
                   </tr>
@@ -613,9 +641,25 @@ const Patentamiento: React.FC = () => {
                           maxWidth: 160,
                           fontSize: "0.9em"
                         }}
-                        title={t.datosMoto?.numero_certificado || "-"}
+                        title={t.datosMoto?.certificado_origen || "-"}
                       >
-                        {t.datosMoto?.numero_certificado || <span style={{ color: "#888" }}>-</span>}
+                        {t.datosMoto?.certificado_origen || <span style={{ color: "#888" }}>-</span>}
+                      </td>
+                      {/*CELDA PARA N° EXPEDIENTE */}
+                      <td
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 160,
+                          fontSize: "0.9em",
+                          color: t.datosMoto?.numero_expediente ? "#7ed481" : "#888",
+                          fontStyle: t.datosMoto?.numero_expediente ? "normal" : "italic"
+                        }}
+                        title={t.datosMoto?.numero_expediente || "Pendiente de asignación"}
+                      >
+                        {t.datosMoto?.numero_expediente || "Pendiente"}
                       </td>
                       <td style={{ padding: "10px 8px" }}>
                         <button
@@ -655,22 +699,22 @@ const Patentamiento: React.FC = () => {
       {tramiteEdit && (
         <div
           className="patentamiento-modal-backdrop"
-          onClick={() => setTramiteEdit(null)}
+          onClick={() => {
+            setTramiteEdit(null);
+            setNumeroExpediente("");
+            setMensajeModal("");
+          }}
         >
           <div
             style={{
               background: "#232526",
               border: "2px solid #a32020",
               borderRadius: "16px",
-              padding: "32px 36px",
-              minWidth: "340px",
-              maxWidth: "95vw",
-              maxHeight: "90vh",
+              padding: "28px 32px",
+              minWidth: "420px",
+              maxWidth: "500px",
               boxShadow: "0 4px 24px #0008",
-              position: "relative",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column"
+              position: "relative"
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -683,104 +727,221 @@ const Patentamiento: React.FC = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                zIndex: 10
+                zIndex: 10,
+                borderRadius: "16px"
               }}>
                 <IndicadorCarga mensaje="Actualizando estado..." />
               </div>
             )}
 
-            <h3 style={{ color: "#a32020", fontWeight: 700, marginBottom: 18 }}>
-              Actualizar estado de trámite
+            <h3 style={{ color: "#a32020", fontWeight: 700, marginBottom: 16, fontSize: "1.3rem" }}>
+              Actualizar Trámite
             </h3>
 
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ color: "#fff", fontWeight: 600, marginRight: 12 }}>
+            {/* MENSAJE DE ERROR/ÉXITO EN EL MODAL */}
+            {mensajeModal && (
+              <div style={{
+                marginBottom: 16,
+                padding: "12px 16px",
+                background: tipoMensajeModal === "error" ? "rgba(220, 53, 69, 0.15)" : "rgba(40, 167, 69, 0.15)",
+                border: `1px solid ${tipoMensajeModal === "error" ? "#dc3545" : "#28a745"}`,
+                borderRadius: 8,
+                color: tipoMensajeModal === "error" ? "#ff6b6b" : "#7ed481",
+                fontSize: "0.9rem",
+                fontWeight: 500
+              }}>
+                {mensajeModal}
+              </div>
+            )}
+
+            {/* Selector de Estado */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ color: "#fff", fontWeight: 600, display: "block", marginBottom: 6 }}>
                 Estado:
               </label>
               <select
                 value={nuevoEstado}
                 onChange={e => setNuevoEstado(e.target.value)}
                 style={{
+                  width: "100%",
                   background: "#181818",
                   color: "#fff",
                   border: "1.5px solid #a32020",
                   borderRadius: "8px",
-                  padding: "8px 12px",
+                  padding: "10px 12px",
                   fontSize: "1em"
                 }}
               >
-                {/* ✅ INCLUIR TODOS LOS ESTADOS (excepto "Todos los estados") */}
                 {estados.filter(e => e !== "Todos los estados").map(e => (
                   <option key={e} value={e}>{e}</option>
                 ))}
               </select>
             </div>
 
-            <div
-              style={{
-                overflowY: "auto",
-                flex: 1,
-                minHeight: 0
-              }}
-            >
-              {datosMoto && (
-                <div
-                  style={{
-                    margin: "18px 0 0 0",
-                    padding: "12px",
-                    background: "#181818",
-                    borderRadius: 8,
-                    wordBreak: "break-all",
-                    whiteSpace: "pre-wrap",
-                    maxHeight: 200,
-                    overflowY: "auto"
-                  }}
-                >
-                  <div><b>Chasis:</b> {datosMoto.numero_chasis}</div>
-                  <div><b>Motor:</b> {datosMoto.numero_motor}</div>
-                  <div><b>Certificado:</b> {datosMoto.numero_certificado}</div>
-                  {tramiteEdit?.observaciones && (
-                    <div style={{ marginTop: 8 }}>
-                      <b>Observaciones:</b> {tramiteEdit.observaciones}
-                    </div>
-                  )}
+            {/* Datos de la Moto */}
+            {datosMoto && (
+              <div
+                style={{
+                  marginBottom: 16,
+                  padding: "12px 14px",
+                  background: "#181818",
+                  borderRadius: 8,
+                  fontSize: "0.9rem"
+                }}
+              >
+                <div style={{ marginBottom: 6 }}><b>Chasis:</b> {datosMoto.numero_chasis}</div>
+                <div style={{ marginBottom: 6 }}><b>Motor:</b> {datosMoto.numero_motor}</div>
+                <div style={{ marginBottom: 6 }}><b>Certificado:</b> {datosMoto.certificado_origen}</div>
+                <div style={{
+                  color: datosMoto.numero_expediente ? "#7ed481" : "#888",
+                  fontWeight: datosMoto.numero_expediente ? "600" : "normal"
+                }}>
+                  <b>Expediente:</b> {datosMoto.numero_expediente || "No asignado"}
                 </div>
-              )}
-            </div>
+                {tramiteEdit?.observaciones && (
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #333" }}>
+                    <b>Obs:</b> {tramiteEdit.observaciones}
+                  </div>
+                )}
+              </div>
+            )}
 
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+            {/* CAMPO DE EXPEDIENTE (solo si estado es "En Proceso" y no está asignado) */}
+            {nuevoEstado === "En Proceso" && !datosMoto?.numero_expediente && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{
+                  color: "#ffd700",
+                  fontWeight: 600,
+                  display: "block",
+                  marginBottom: 6,
+                  fontSize: "0.95rem"
+                }}>
+                  📋 Número de Expediente
+                </label>
+                <input
+                  type="text"
+                  value={numeroExpediente}
+                  onChange={e => setNumeroExpediente(e.target.value)}
+                  placeholder="Ej: EXP-2024-12345-A"
+                  maxLength={32}
+                  style={{
+                    width: "100%",
+                    background: "#181818",
+                    color: "#fff",
+                    border: "1.5px solid #a32020",
+                    borderRadius: "8px",
+                    padding: "10px 12px",
+                    fontSize: "1em"
+                  }}
+                />
+                <small style={{ color: "#aaa", fontSize: "0.82rem", display: "block", marginTop: 6 }}>
+                  Asignado por el Registro del Automotor (máx. 32 caracteres)
+                </small>
+              </div>
+            )}
+
+            {/* MENSAJE SI YA TIENE EXPEDIENTE */}
+            {nuevoEstado === "En Proceso" && datosMoto?.numero_expediente && (
+              <div style={{
+                marginBottom: 16,
+                padding: "10px 14px",
+                background: "rgba(126, 212, 129, 0.12)",
+                borderRadius: 6,
+                border: "1px solid #7ed481"
+              }}>
+                <p style={{ color: "#7ed481", fontSize: "0.88rem", margin: 0 }}>
+                  Expediente: <b>{datosMoto.numero_expediente}</b>
+                </p>
+              </div>
+            )}
+
+            {/* Botones */}
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
               <button
                 className="btn-agencia"
                 style={{
                   background: "#a32020",
                   color: "#fff",
                   borderRadius: "8px",
-                  padding: "8px 24px",
+                  padding: "9px 24px",
                   fontWeight: 700,
                   border: "none",
                   cursor: "pointer"
                 }}
                 onClick={async () => {
+                  setMensajeModal(""); 
+
+                  // VALIDAR EXPEDIENTE SI EL ESTADO ES "En Proceso"
+                  if (nuevoEstado === "En Proceso" && !datosMoto?.numero_expediente) {
+                    if (!numeroExpediente.trim()) {
+                      setMensajeModal("Debe ingresar el número de expediente para cambiar a 'En Proceso'");
+                      setTipoMensajeModal("error");
+                      return;
+                    }
+                    
+                    // CAMBIAR: Validar mínimo de caracteres solamente
+                    if (numeroExpediente.trim().length < 5) {
+                      setMensajeModal("El número de expediente debe tener al menos 5 caracteres");
+                      setTipoMensajeModal("error");
+                      return;
+                    }
+
+                    // Validar formato alfanumérico
+                    if (!/^[A-Za-z0-9\-]+$/.test(numeroExpediente.trim())) {
+                      setMensajeModal("El expediente solo puede contener letras, números y guiones");
+                      setTipoMensajeModal("error");
+                      return;
+                    }
+                  }
+
                   setCargandoEstado(true);
                   try {
+                    // Actualizar el estado a "En Proceso"
                     const res = await fetch(`http://localhost:3001/api/patentamientos/${tramiteEdit.id}`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ estado: nuevoEstado })
                     });
                     const data = await res.json();
-                    if (data.success) {
-                      setMensaje(`Estado actualizado a "${nuevoEstado}" correctamente.`);
-                      setTipoMensaje("success");
-                      setTramiteEdit(null);
-                      await actualizarTramitesConDatos();
-                    } else {
-                      setMensaje(data.error || "No se pudo actualizar el estado.");
-                      setTipoMensaje("error");
+                    
+                    if (!data.success) {
+                      setMensajeModal("❌ " + (data.error || "No se pudo actualizar el estado"));
+                      setTipoMensajeModal("error");
+                      setCargandoEstado(false);
+                      return;
                     }
-                  } catch {
-                    setMensaje("Error de conexión con el servidor.");
-                    setTipoMensaje("error");
+
+                    // Guardar expediente si es necesario
+                    if (nuevoEstado === "En Proceso" && numeroExpediente.trim() && !datosMoto?.numero_expediente) {
+                      const resExp = await fetch(
+                        `http://localhost:3001/api/patentamientos/${tramiteEdit.id}/expediente`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ numero_expediente: numeroExpediente.trim() })
+                        }
+                      );
+                      
+                      const dataExp = await resExp.json();
+                      
+                      if (!dataExp.success) {
+                        setMensajeModal("Estado actualizado pero no se pudo guardar el expediente: " + (dataExp.error || "Error desconocido"));
+                        setTipoMensajeModal("error");
+                        setCargandoEstado(false);
+                        return;
+                      }
+                    }
+
+                    // Mostrar mensaje y cerrar modal
+                    setMensaje(`Estado actualizado a "${nuevoEstado}" correctamente`);
+                    setTipoMensaje("success");
+                    setNumeroExpediente("");
+                    setTramiteEdit(null);
+                    await actualizarTramitesConDatos(); 
+                  } catch (error) {
+                    console.error("Error:", error);
+                    setMensajeModal("Error de conexión con el servidor");
+                    setTipoMensajeModal("error");
                   } finally {
                     setCargandoEstado(false);
                   }
@@ -794,12 +955,16 @@ const Patentamiento: React.FC = () => {
                   background: "#555",
                   color: "#fff",
                   borderRadius: "8px",
-                  padding: "8px 24px",
+                  padding: "9px 24px",
                   fontWeight: 700,
                   border: "none",
                   cursor: "pointer"
                 }}
-                onClick={() => setTramiteEdit(null)}
+                onClick={() => {
+                  setTramiteEdit(null);
+                  setNumeroExpediente("");
+                  setMensajeModal("");
+                }}
               >
                 Cancelar
               </button>

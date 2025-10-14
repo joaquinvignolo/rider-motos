@@ -695,9 +695,9 @@ app.patch('/api/patentamientos/:id', async (req, res) => {
           `
         }, (errMail) => {
           if (errMail) {
-            console.error('❌ Error enviando mail:', errMail);
+            console.error('Error enviando mail:', errMail);
           } else {
-            console.log('✅ Email de notificación enviado a:', cliente.correo);
+            console.log('Email de notificación enviado a:', cliente.correo);
           }
         });
       }
@@ -742,7 +742,7 @@ app.get('/api/patentamientos', async (req, res) => {
 
 // Crear nuevo trámite de patentamiento
 app.post('/api/patentamientos', async (req, res) => {
-  const { venta_id, observaciones, numero_chasis, numero_motor, numero_certificado } = req.body;
+  const { venta_id, observaciones, numero_chasis, numero_motor, certificado_origen } = req.body; // ✅ CAMBIAR nombre
   
   try {
     // Verificar que la venta exista y sea de tipo moto
@@ -765,6 +765,11 @@ app.post('/api/patentamientos', async (req, res) => {
       return res.status(400).json({ error: 'Ya existe un trámite para esta venta' });
     }
     
+    // Validar certificado de origen
+    if (!certificado_origen || certificado_origen.trim().length < 5) {
+      return res.status(400).json({ error: 'El certificado de origen es obligatorio (mínimo 5 caracteres)' });
+    }
+    
     // Insertar trámite
     const [result] = await db.promise().query(
       `INSERT INTO patentamientos 
@@ -775,11 +780,12 @@ app.post('/api/patentamientos', async (req, res) => {
     
     const patentamiento_id = result.insertId;
     
+    // Insertar con certificado_origen (sin expediente)
     await db.promise().query(
       `INSERT INTO motos_entregadas 
-        (patentamiento_id, numero_chasis, numero_motor, numero_certificado) 
+        (patentamiento_id, numero_chasis, numero_motor, certificado_origen) 
        VALUES (?, ?, ?, ?)`,
-      [patentamiento_id, numero_chasis, numero_motor, numero_certificado]
+      [patentamiento_id, numero_chasis, numero_motor, certificado_origen.trim().toUpperCase()]
     );
     
     res.json({ success: true, patentamiento_id });
@@ -793,7 +799,7 @@ app.post('/api/patentamientos', async (req, res) => {
 app.get('/api/motos-entregadas/:tramite_id', async (req, res) => {
   try {
     const [datos] = await db.promise().query(
-      'SELECT numero_chasis, numero_motor, numero_certificado FROM motos_entregadas WHERE patentamiento_id = ?',
+      'SELECT numero_chasis, numero_motor, certificado_origen, numero_expediente FROM motos_entregadas WHERE patentamiento_id = ?',
       [req.params.tramite_id]
     );
     
@@ -805,6 +811,73 @@ app.get('/api/motos-entregadas/:tramite_id', async (req, res) => {
   } catch (err) {
     console.error("Error al obtener datos de moto:", err);
     res.status(500).json({ error: 'Error al obtener datos' });
+  }
+});
+
+// Actualizar número de expediente
+app.patch('/api/patentamientos/:id/expediente', async (req, res) => {
+  const { numero_expediente } = req.body;
+  const { id } = req.params;
+  
+  try {
+    // 1. Validar que el trámite exista
+    const [tramite] = await db.promise().query(
+      'SELECT estado FROM patentamientos WHERE id = ?',
+      [id]
+    );
+    
+    if (tramite.length === 0) {
+      return res.status(404).json({ error: 'Trámite no encontrado' });
+    }
+
+    // 2. Validar formato del expediente
+    if (!numero_expediente || numero_expediente.trim().length < 5) {
+      return res.status(400).json({ 
+        error: 'El número de expediente debe tener al menos 5 caracteres' 
+      });
+    }
+    
+    if (numero_expediente.length > 32) {
+      return res.status(400).json({ 
+        error: 'El número de expediente no puede superar 32 caracteres' 
+      });
+    }
+
+    // 3. Validar formato alfanumérico
+    if (!/^[A-Za-z0-9\-]+$/.test(numero_expediente.trim())) {
+      return res.status(400).json({
+        error: 'El expediente solo puede contener letras, números y guiones'
+      });
+    }
+
+    // 4. Verificar que no exista ya un expediente asignado
+    const [motoExistente] = await db.promise().query(
+      'SELECT numero_expediente FROM motos_entregadas WHERE patentamiento_id = ?',
+      [id]
+    );
+
+    if (motoExistente.length > 0 && motoExistente[0].numero_expediente) {
+      return res.status(400).json({
+        error: 'Este trámite ya tiene un número de expediente asignado'
+      });
+    }
+    
+    // 5. Actualizar el expediente
+    const [result] = await db.promise().query(
+      'UPDATE motos_entregadas SET numero_expediente = ? WHERE patentamiento_id = ?',
+      [numero_expediente.trim().toUpperCase(), id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        error: 'No se encontraron datos de la moto para este trámite'
+      });
+    }
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error al actualizar expediente:", err);
+    res.status(500).json({ error: 'Error al actualizar expediente: ' + err.message });
   }
 });
 
