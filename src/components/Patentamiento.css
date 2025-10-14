@@ -229,7 +229,7 @@
   -webkit-backdrop-filter: blur(2px);
 }
 .estado-badge.estado-entregado {
-  background: #28a745;
-  color: #fff;
+  background: #f87878;
+  color: #000000;
   font-weight: 600;
 }

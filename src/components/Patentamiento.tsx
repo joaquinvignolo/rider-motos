@@ -494,25 +494,24 @@ const Patentamiento: React.FC = () => {
               style={{
                 background: "#232526",
                 color: "#fff",
-                minWidth: 1200,
-                tableLayout: "fixed"
+                minWidth: 1400,
+                tableLayout: "auto", 
+                borderCollapse: "collapse"
               }}
             >
               <thead>
                 <tr>
-                  <th style={{ maxWidth: 140 }}>Cliente</th>
-                  <th style={{ maxWidth: 140 }}>Moto</th>
-                  <th style={{ maxWidth: 110 }}>Fecha Solicitud</th>
-                  {/* ✅ AGREGAR COLUMNA "Fecha Completado" */}
-                  <th style={{ maxWidth: 130 }}>Fecha Completado</th>
-                  {/* ✅ AGREGAR COLUMNA "Fecha Entrega" */}
-                  <th style={{ maxWidth: 130 }}>Fecha Entrega</th>
-                  <th style={{ maxWidth: 100 }}>Estado</th>
-                  <th style={{ maxWidth: 200 }}>Observaciones</th>
-                  <th style={{ maxWidth: 160 }}>Chasis</th>
-                  <th style={{ maxWidth: 160 }}>Motor</th>
-                  <th style={{ maxWidth: 160 }}>Certificado</th>
-                  <th style={{ maxWidth: 110 }}>Acciones</th>
+                  <th style={{ minWidth: 120, padding: "12px 8px" }}>Cliente</th>
+                  <th style={{ minWidth: 120, padding: "12px 8px" }}>Moto</th>
+                  <th style={{ minWidth: 100, padding: "12px 8px" }}>Fecha Solicitud</th>
+                  <th style={{ minWidth: 110, padding: "12px 8px" }}>Fecha Completado</th>
+                  <th style={{ minWidth: 110, padding: "12px 8px" }}>Fecha Entrega</th>
+                  <th style={{ minWidth: 90, padding: "12px 8px" }}>Estado</th>
+                  <th style={{ minWidth: 150, padding: "12px 8px" }}>Observaciones</th>
+                  <th style={{ minWidth: 140, padding: "12px 8px" }}>Chasis</th>
+                  <th style={{ minWidth: 140, padding: "12px 8px" }}>Motor</th>
+                  <th style={{ minWidth: 140, padding: "12px 8px" }}>Certificado</th>
+                  <th style={{ minWidth: 90, padding: "12px 8px" }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -525,70 +524,110 @@ const Patentamiento: React.FC = () => {
                 ) : (
                   tramitesPagina.map((t) => (
                     <tr key={t.id}>
-                      <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.cliente}>{t.cliente}</td>
-                      <td style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={t.moto}>{t.moto}</td>
-                      <td>{t.fechaSolicitud?.slice(0, 10)}</td>
-                      {/* ✅ MOSTRAR fecha_finalizacion cuando está "Completado" o "Entregado" */}
-                      <td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 150
+                        }} 
+                        title={t.cliente}
+                      >
+                        {t.cliente}
+                      </td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 150
+                        }} 
+                        title={t.moto}
+                      >
+                        {t.moto}
+                      </td>
+                      <td style={{ padding: "10px 8px" }}>
+                        {t.fechaSolicitud?.slice(0, 10)}
+                      </td>
+                      <td style={{ padding: "10px 8px" }}>
                         {(t.estado === "Completado" || t.estado === "Entregado") && t.fechaFinalizacion
                           ? t.fechaFinalizacion.slice(0, 10)
                           : <span style={{ color: "#888" }}>-</span>}
                       </td>
-                      {/* ✅ MOSTRAR fecha_entrega solo cuando está "Entregado" */}
-                      <td>
+                      <td style={{ padding: "10px 8px" }}>
                         {t.estado === "Entregado" && t.fechaEntrega
                           ? t.fechaEntrega.slice(0, 10)
                           : <span style={{ color: "#888" }}>-</span>}
                       </td>
-                      <td>
-                        <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>{t.estado}</span>
+                      <td style={{ padding: "10px 8px" }}>
+                        <span className={`estado-badge estado-${t.estado.toLowerCase().replace(/\s/g, "-")}`}>
+                          {t.estado}
+                        </span>
                       </td>
                       <td
-                        style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 180
+                        }}
                         title={t.observaciones || "-"}
                       >
-                        {t.observaciones
-                          ? t.observaciones.length > 30
-                            ? t.observaciones.slice(0, 30) + "..."
-                            : t.observaciones
-                          : <span style={{ color: "#888" }}>-</span>}
+                        {t.observaciones || <span style={{ color: "#888" }}>-</span>}
                       </td>
                       <td
-                        style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 160,
+                          fontSize: "0.9em"
+                        }}
                         title={t.datosMoto?.numero_chasis || "-"}
                       >
-                        {t.datosMoto
-                          ? t.datosMoto.numero_chasis.length > 20
-                            ? t.datosMoto.numero_chasis.slice(0, 20) + "..."
-                            : t.datosMoto.numero_chasis
-                          : <span style={{ color: "#888" }}>-</span>}
+                        {t.datosMoto?.numero_chasis || <span style={{ color: "#888" }}>-</span>}
                       </td>
                       <td
-                        style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 160,
+                          fontSize: "0.9em"
+                        }}
                         title={t.datosMoto?.numero_motor || "-"}
                       >
-                        {t.datosMoto
-                          ? t.datosMoto.numero_motor.length > 20
-                            ? t.datosMoto.numero_motor.slice(0, 20) + "..."
-                            : t.datosMoto.numero_motor
-                          : <span style={{ color: "#888" }}>-</span>}
+                        {t.datosMoto?.numero_motor || <span style={{ color: "#888" }}>-</span>}
                       </td>
                       <td
-                        style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                        style={{ 
+                          padding: "10px 8px", 
+                          overflow: "hidden", 
+                          textOverflow: "ellipsis", 
+                          whiteSpace: "nowrap",
+                          maxWidth: 160,
+                          fontSize: "0.9em"
+                        }}
                         title={t.datosMoto?.numero_certificado || "-"}
                       >
-                        {t.datosMoto
-                          ? t.datosMoto.numero_certificado.length > 20
-                            ? t.datosMoto.numero_certificado.slice(0, 20) + "..."
-                            : t.datosMoto.numero_certificado
-                          : <span style={{ color: "#888" }}>-</span>}
+                        {t.datosMoto?.numero_certificado || <span style={{ color: "#888" }}>-</span>}
                       </td>
-                      <td>
+                      <td style={{ padding: "10px 8px" }}>
                         <button
                           className="btn-agencia btn-accion"
                           onClick={() => {
                             setTramiteEdit(t);
                             setNuevoEstado(t.estado);
+                          }}
+                          style={{
+                            padding: "6px 12px",
+                            fontSize: "0.85em",
+                            whiteSpace: "nowrap"
                           }}
                         >
                           Actualizar
