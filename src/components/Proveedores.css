@@ -1,0 +1,264 @@
+.proveedores-container {
+  background: #181818;
+  color: #fff;
+  min-height: 100vh;
+  padding: 32px;
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.proveedores-titulo {
+  font-size: 2rem;
+  color: #a32020;
+  margin-bottom: 24px;
+}
+
+.proveedores-card {
+  background: #232526;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.proveedores-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.proveedores-subtitulo {
+  color: #a32020;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.proveedores-busqueda {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.input-busqueda {
+  flex: 1;
+  background: #181818;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
+.input-busqueda:focus {
+  outline: none;
+  border-color: #a32020;
+}
+
+.btn-buscar {
+  background: #a32020;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-buscar:hover {
+  background: #d32f2f;
+}
+
+.proveedores-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #232526;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.proveedores-table th,
+.proveedores-table td {
+  border-bottom: 1px solid #444;
+  padding: 12px 8px;
+  text-align: left;
+}
+
+.proveedores-table th {
+  background: #181818;
+  font-weight: 600;
+  color: #a32020;
+}
+
+.proveedores-table tbody tr:hover {
+  background: #2a2a2a;
+}
+
+.fila-inactiva {
+  opacity: 0.5;
+  background: #1a1a1a !important;
+}
+
+.btn-agencia {
+  background: #a32020;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-agencia:hover {
+  background: #d32f2f;
+}
+
+.btn-accion {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin: 0 4px;
+  transition: transform 0.2s;
+}
+
+.btn-accion:hover {
+  transform: scale(1.2);
+}
+
+.btn-editar:hover {
+  filter: brightness(1.3);
+}
+
+.btn-desactivar:hover {
+  filter: brightness(1.3);
+}
+
+.btn-activar:hover {
+  filter: brightness(1.3);
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #232526;
+  border-radius: 12px;
+  padding: 28px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-titulo {
+  color: #a32020;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select {
+  background: #181818;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.95rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #a32020;
+}
+
+.modal-botones {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.btn-cancelar {
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancelar:hover {
+  background: #555;
+}
+
+/* Mensaje flotante */
+.mensaje-flotante {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  z-index: 2000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.mensaje-flotante.success {
+  background: #4caf50;
+  color: #fff;
+}
+
+.mensaje-flotante.error {
+  background: #f44336;
+  color: #fff;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

@@ -9,6 +9,7 @@ import Reportes from './components/Reportes';
 import RutaPrivada from './components/RutaPrivada'; 
 import Compras from './components/Compras';
 import Patentamiento from './components/Patentamiento';
+import Proveedores from './components/Proveedores';
 
 
 function App() {
@@ -50,6 +51,11 @@ function App() {
         <Route path="/patentamientos" element={
           <RutaPrivada>
             <Patentamiento />
+          </RutaPrivada>
+        } />
+        <Route path="/proveedores" element={
+          <RutaPrivada>
+            <Proveedores />
           </RutaPrivada>
         } />
       </Routes>
