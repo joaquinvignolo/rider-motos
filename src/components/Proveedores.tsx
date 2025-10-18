@@ -24,6 +24,7 @@ const Proveedores: React.FC = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [proveedorEdit, setProveedorEdit] = useState<Proveedor | null>(null);
+  const [mostrarInactivos, setMostrarInactivos] = useState(false); 
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -61,11 +62,18 @@ const Proveedores: React.FC = () => {
   };
 
   // Filtrar proveedores
-  const proveedoresFiltrados = proveedores.filter((p) =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    (p.cuit_cuil && p.cuit_cuil.includes(busqueda)) ||
-    (p.persona_contacto && p.persona_contacto.toLowerCase().includes(busqueda.toLowerCase()))
-  );
+  const proveedoresFiltrados = proveedores.filter((p) => {
+    // Filtro por estado activo/inactivo
+    const matchEstado = mostrarInactivos ? p.activo === 0 : p.activo === 1;
+    
+    // Filtro por búsqueda
+    const matchBusqueda = 
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      (p.cuit_cuil && p.cuit_cuil.includes(busqueda)) ||
+      (p.persona_contacto && p.persona_contacto.toLowerCase().includes(busqueda.toLowerCase()));
+    
+    return matchEstado && matchBusqueda;
+  });
 
   // Paginación
   const totalPaginas = Math.ceil(proveedoresFiltrados.length / proveedoresPorPagina);
@@ -283,7 +291,7 @@ const Proveedores: React.FC = () => {
         {/* Header con botón */}
         <div className="proveedores-header" style={{ marginBottom: 24 }}>
           <h2 style={{ color: "#a32020", fontWeight: 700, fontSize: "2rem", margin: 0 }}>
-            Proveedores
+            Proveedores {mostrarInactivos ? "(Inactivos)" : "(Activos)"}
           </h2>
           <button 
             className="btn-agencia"
@@ -304,8 +312,15 @@ const Proveedores: React.FC = () => {
           </button>
         </div>
 
-        {/* Búsqueda */}
-        <div style={{ marginBottom: 24 }}>
+        {/* Filtros*/}
+        <div style={{ 
+          display: "flex", 
+          gap: "16px", 
+          marginBottom: 24, 
+          alignItems: "center",
+          flexWrap: "wrap"
+        }}>
+          {/* Búsqueda */}
           <input
             type="text"
             placeholder="Buscar proveedor..."
@@ -315,8 +330,8 @@ const Proveedores: React.FC = () => {
               setPaginaActual(1);
             }}
             style={{
-              width: "100%",
-              maxWidth: 400,
+              flex: 1,
+              minWidth: "300px",
               background: "#181818",
               color: "#fff",
               border: "1.5px solid #a32020",
@@ -325,12 +340,36 @@ const Proveedores: React.FC = () => {
               fontSize: "0.95rem"
             }}
           />
-          {busqueda && (
-            <p style={{ color: "#888", fontSize: "0.9rem", marginTop: "8px" }}>
-              {proveedoresFiltrados.length} resultado(s) encontrado(s)
-            </p>
-          )}
+
+          {/* Activos/Inactivos */}
+          <button
+            onClick={() => {
+              setMostrarInactivos(!mostrarInactivos);
+              setPaginaActual(1);
+              setBusqueda("");
+            }}
+            style={{
+              background: mostrarInactivos ? "#555" : "#a32020",
+              color: "#fff",
+              borderRadius: "8px",
+              padding: "10px 20px",
+              fontSize: "0.95rem",
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              transition: "background 0.2s"
+            }}
+          >
+            {mostrarInactivos ? "Ver Activos" : "Ver Inactivos"}
+          </button>
         </div>
+
+        {/* Contador de resultados */}
+        {busqueda && (
+          <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "16px" }}>
+            {proveedoresFiltrados.length} resultado(s) encontrado(s)
+          </p>
+        )}
 
         {/* Tabla */}
         <div style={{ overflowX: "auto", width: "100%" }}>
@@ -359,7 +398,9 @@ const Proveedores: React.FC = () => {
               {proveedoresPaginados.length === 0 ? (
                 <tr>
                   <td colSpan={8} style={{ textAlign: "center", padding: "24px", color: "#888" }}>
-                    No hay proveedores registrados
+                    {mostrarInactivos 
+                      ? "No hay proveedores inactivos" 
+                      : "No hay proveedores registrados"}
                   </td>
                 </tr>
               ) : (

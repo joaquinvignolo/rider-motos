@@ -60,20 +60,351 @@ app.get('/api/marcas', (req, res) => {
   });
 });
 
-// Obtener todos los proveedores
+// ============================================
+// ENDPOINTS DE PROVEEDORES
+// ============================================
+
+// Obtener todos los proveedores (activos e inactivos)
 app.get('/api/proveedores', (req, res) => {
-  db.query('SELECT * FROM proveedores', (err, results) => {
-    if (err) return res.status(500).json({ error: 'Error en el servidor' });
+  db.query('SELECT * FROM proveedores ORDER BY nombre ASC', (err, results) => {
+    if (err) {
+      console.error("Error al obtener proveedores:", err);
+      return res.status(500).json({ error: 'Error al obtener proveedores' });
+    }
     res.json(results);
   });
+});
+
+// Obtener solo proveedores activos (para selects en otros módulos)
+app.get('/api/proveedores/activos', (req, res) => {
+  db.query(
+    'SELECT id, nombre FROM proveedores WHERE activo = 1 ORDER BY nombre ASC', 
+    (err, results) => {
+      if (err) {
+        console.error("Error al obtener proveedores activos:", err);
+        return res.status(500).json({ error: 'Error al obtener proveedores' });
+      }
+      res.json(results);
+    }
+  );
+});
+
+// Obtener un proveedor por ID
+app.get('/api/proveedores/:id', (req, res) => {
+  db.query('SELECT * FROM proveedores WHERE id = ?', [req.params.id], (err, results) => {
+    if (err) {
+      console.error("Error al obtener proveedor:", err);
+      return res.status(500).json({ error: 'Error al obtener proveedor' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Proveedor no encontrado' });
+    }
+    res.json(results[0]);
+  });
+});
+
+// Crear nuevo proveedor
+app.post('/api/proveedores', (req, res) => {
+  const { nombre, cuit_cuil, persona_contacto, direccion, telefono, email } = req.body;
+
+  // Validaciones
+  if (!nombre || nombre.trim().length < 2) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El nombre del proveedor es obligatorio (mínimo 2 caracteres)' 
+    });
+  }
+
+  // Validar CUIT/CUIL si se proporciona
+  if (cuit_cuil) {
+    const cuitLimpio = cuit_cuil.replace(/[-\s]/g, "");
+    if (!/^\d{11}$/.test(cuitLimpio)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El CUIT/CUIL debe tener 11 dígitos' 
+      });
+    }
+  }
+
+  // Validar email si se proporciona
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El email ingresado no es válido' 
+    });
+  }
+
+  // Validar teléfono si se proporciona
+  if (telefono && !/^[\d\s\-\(\)\+]+$/.test(telefono)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
+    });
+  }
+
+  // Verificar si ya existe un proveedor con el mismo nombre
+  db.query(
+    'SELECT id FROM proveedores WHERE LOWER(nombre) = LOWER(?)',
+    [nombre.trim()],
+    (err, existing) => {
+      if (err) {
+        console.error("Error al verificar proveedor:", err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error al verificar proveedor existente' 
+        });
+      }
+
+      if (existing.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Ya existe un proveedor con ese nombre' 
+        });
+      }
+
+      // Insertar proveedor
+      db.query(
+        `INSERT INTO proveedores 
+          (nombre, cuit_cuil, persona_contacto, direccion, telefono, email, activo) 
+         VALUES (?, ?, ?, ?, ?, ?, 1)`,
+        [
+          nombre.trim(),
+          cuit_cuil ? cuit_cuil.trim() : null,
+          persona_contacto ? persona_contacto.trim() : null,
+          direccion ? direccion.trim() : null,
+          telefono ? telefono.trim() : null,
+          email ? email.trim().toLowerCase() : null
+        ],
+        (err2, result) => {
+          if (err2) {
+            console.error("Error al crear proveedor:", err2);
+            return res.status(500).json({ 
+              success: false, 
+              message: 'Error al crear proveedor: ' + err2.message 
+            });
+          }
+          res.json({ success: true, id: result.insertId });
+        }
+      );
+    }
+  );
+});
+
+// Actualizar proveedor
+app.put('/api/proveedores/:id', (req, res) => {
+  const { nombre, cuit_cuil, persona_contacto, direccion, telefono, email } = req.body;
+  const { id } = req.params;
+
+  // Validaciones
+  if (!nombre || nombre.trim().length < 2) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El nombre del proveedor es obligatorio (mínimo 2 caracteres)' 
+    });
+  }
+
+  // Validar CUIT/CUIL si se proporciona
+  if (cuit_cuil) {
+    const cuitLimpio = cuit_cuil.replace(/[-\s]/g, "");
+    if (!/^\d{11}$/.test(cuitLimpio)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El CUIT/CUIL debe tener 11 dígitos' 
+      });
+    }
+  }
+
+  // Validar email si se proporciona
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El email ingresado no es válido' 
+    });
+  }
+
+  // Validar teléfono si se proporciona
+  if (telefono && !/^[\d\s\-\(\)\+]+$/.test(telefono)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
+    });
+  }
+
+  // Verificar que el proveedor exista
+  db.query('SELECT id FROM proveedores WHERE id = ?', [id], (err, existing) => {
+    if (err) {
+      console.error("Error al verificar proveedor:", err);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error al verificar proveedor' 
+      });
+    }
+
+    if (existing.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Proveedor no encontrado' 
+      });
+    }
+
+    // Verificar si otro proveedor ya tiene ese nombre
+    db.query(
+      'SELECT id FROM proveedores WHERE LOWER(nombre) = LOWER(?) AND id != ?',
+      [nombre.trim(), id],
+      (err2, duplicate) => {
+        if (err2) {
+          console.error("Error al verificar nombre duplicado:", err2);
+          return res.status(500).json({ 
+            success: false, 
+            message: 'Error al verificar nombre duplicado' 
+          });
+        }
+
+        if (duplicate.length > 0) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Ya existe otro proveedor con ese nombre' 
+          });
+        }
+
+        // Actualizar proveedor
+        db.query(
+          `UPDATE proveedores 
+           SET nombre = ?, 
+               cuit_cuil = ?, 
+               persona_contacto = ?, 
+               direccion = ?, 
+               telefono = ?, 
+               email = ?
+           WHERE id = ?`,
+          [
+            nombre.trim(),
+            cuit_cuil ? cuit_cuil.trim() : null,
+            persona_contacto ? persona_contacto.trim() : null,
+            direccion ? direccion.trim() : null,
+            telefono ? telefono.trim() : null,
+            email ? email.trim().toLowerCase() : null,
+            id
+          ],
+          (err3) => {
+            if (err3) {
+              console.error("Error al actualizar proveedor:", err3);
+              return res.status(500).json({ 
+                success: false, 
+                message: 'Error al actualizar proveedor: ' + err3.message 
+              });
+            }
+            res.json({ success: true });
+          }
+        );
+      }
+    );
+  });
+});
+
+// Activar/Desactivar proveedor (toggle)
+app.put('/api/proveedores/:id/toggle', (req, res) => {
+  const { id } = req.params;
+
+  // Primero verificar el estado actual y si existe
+  db.query(
+    'SELECT id, activo, nombre FROM proveedores WHERE id = ?',
+    [id],
+    (err, results) => {
+      if (err) {
+        console.error("Error al verificar proveedor:", err);
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Error al verificar proveedor' 
+        });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Proveedor no encontrado' 
+        });
+      }
+
+      const nuevoEstado = results[0].activo === 1 ? 0 : 1;
+
+      // Si se intenta desactivar, verificar que NO tenga productos (activos NI inactivos)
+      if (nuevoEstado === 0) {
+        db.query(
+          'SELECT COUNT(*) as count FROM productos WHERE proveedor_id = ?',
+          [id],
+          (err2, productos) => {
+            if (err2) {
+              console.error("Error al verificar productos:", err2);
+              return res.status(500).json({ 
+                success: false, 
+                message: 'Error al verificar productos asociados' 
+              });
+            }
+
+            if (productos[0].count > 0) {
+              return res.status(400).json({ 
+                success: false, 
+                message: `No se puede desactivar. Tiene ${productos[0].count} producto(s) asociado(s). Primero debe eliminar o reasignar los productos.` 
+              });
+            }
+
+            // Desactivar proveedor (solo si NO tiene productos)
+            db.query(
+              'UPDATE proveedores SET activo = ? WHERE id = ?',
+              [nuevoEstado, id],
+              (err3) => {
+                if (err3) {
+                  console.error("Error al cambiar estado:", err3);
+                  return res.status(500).json({ 
+                    success: false, 
+                    message: 'Error al cambiar estado del proveedor' 
+                  });
+                }
+                res.json({ success: true, message: 'Proveedor desactivado correctamente' });
+              }
+            );
+          }
+        );
+      } else {
+        // Activar proveedor (sin validaciones adicionales)
+        db.query(
+          'UPDATE proveedores SET activo = ? WHERE id = ?',
+          [nuevoEstado, id],
+          (err3) => {
+            if (err3) {
+              console.error("Error al cambiar estado:", err3);
+              return res.status(500).json({ 
+                success: false, 
+                message: 'Error al cambiar estado del proveedor' 
+              });
+            }
+            res.json({ success: true, message: 'Proveedor activado correctamente' });
+          }
+        );
+      }
+    }
+  );
 });
 
 // Obtener productos por tipo
 app.get('/api/productos', (req, res) => {
   const { tipo, inactivos } = req.query;
-  let sql = 'SELECT p.id, p.nombre, p.descripcion, p.precio, p.cantidad, m.nombre as marca, pr.nombre as proveedor, p.tipo, p.activo FROM productos p LEFT JOIN marcas m ON p.marca_id = m.id LEFT JOIN proveedores pr ON p.proveedor_id = pr.id';
+  let sql = `SELECT 
+    p.id, p.nombre, p.descripcion, p.precio, p.cantidad, 
+    m.nombre as marca, 
+    pr.nombre as proveedor, 
+    p.tipo, p.activo 
+    FROM productos p 
+    LEFT JOIN marcas m ON p.marca_id = m.id 
+    LEFT JOIN proveedores pr ON p.proveedor_id = pr.id`;
+  
   const params = [];
   let where = [];
+  
+  // Solo mostrar productos de proveedores activos
+  where.push('(pr.activo = 1 OR pr.id IS NULL)');
+  
   if (tipo) {
     where.push('p.tipo = ?');
     params.push(tipo);
