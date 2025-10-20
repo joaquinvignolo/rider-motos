@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PaginacionUnificada from "./PaginacionUnificada";
+import Navbar from "./Navbar"; // ← ✅ IMPORTAR
 import "./Proveedores.css";
 
 interface Proveedor {
@@ -280,8 +281,11 @@ const Proveedores: React.FC = () => {
 
   return (
     <div className="proveedores-container">
-      {/* Botón Inicio */}
-      <button
+      {/* ✅ AGREGAR NAVBAR */}
+      <Navbar />
+
+      {/* ❌ ELIMINAR ESTE BLOQUE */}
+      {/* <button
         className="inicio-btn"
         style={{
           position: "fixed",
@@ -302,267 +306,269 @@ const Proveedores: React.FC = () => {
         onClick={() => navigate("/menu")}
       >
         INICIO
-      </button>
+      </button> */}
 
-      {/* Título */}
-      <h1 style={{
-        color: "#fff",
-        fontWeight: 700,
-        fontSize: "2.5rem",
-        marginBottom: "32px",
-        letterSpacing: "2px",
-        textAlign: "center"
-      }}>
-        Gestión de Proveedores
-      </h1>
-
-      {/* Mensaje flotante */}
-      {mensaje && (
-        <div className={`mensaje-flotante ${tipoMensaje}`}>
-          {mensaje}
-        </div>
-      )}
-
-      <div
-        className="proveedores-main-card"
-        style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          background: "#232526",
-          border: "2px solid #a32020",
-          borderRadius: "24px",
-          boxShadow: "0 6px 32px rgba(0,0,0,0.28)",
-          padding: "48px 56px 40px 56px"
-        }}
-      >
-        {/* Header con botón */}
-        <div className="proveedores-header" style={{ marginBottom: 24 }}>
-          <h2 style={{ color: "#a32020", fontWeight: 700, fontSize: "2rem", margin: 0 }}>
-            Proveedores {mostrarInactivos ? "(Inactivos)" : "(Activos)"}
-          </h2>
-          <button 
-            className="btn-agencia"
-            onClick={abrirModalNuevo}
-            style={{
-              background: "#a32020",
-              color: "#fff",
-              borderRadius: "8px",
-              padding: "10px 24px",
-              fontSize: "1.1em",
-              fontWeight: 700,
-              boxShadow: "0 2px 8px #0003",
-              border: "none",
-              cursor: "pointer"
-            }}
-          >
-            + Agregar Proveedor
-          </button>
-        </div>
-
-        {/* Filtros */}
-        <div style={{ 
-          display: "flex", 
-          gap: "16px", 
-          marginBottom: 24, 
-          alignItems: "center",
-          flexWrap: "wrap"
+      {/* ✅ AGREGAR WRAPPER CON PADDING */}
+      <div style={{ paddingTop: "84px" }}>
+        {/* Título */}
+        <h1 style={{
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: "2.5rem",
+          marginBottom: "32px",
+          letterSpacing: "2px",
+          textAlign: "center"
         }}>
-          {/* Búsqueda */}
-          <input
-            type="text"
-            placeholder="Buscar proveedor..."
-            value={busqueda}
-            onChange={(e) => {
-              setBusqueda(e.target.value);
-              setPaginaActual(1);
-            }}
-            style={{
-              flex: 1,
-              minWidth: "300px",
-              background: "#181818",
-              color: "#fff",
-              border: "1.5px solid #a32020",
-              borderRadius: "8px",
-              padding: "10px 14px",
-              fontSize: "0.95rem"
-            }}
-          />
+          Gestión de Proveedores
+        </h1>
 
-          {/* Toggle Activos/Inactivos */}
-          <button
-            onClick={() => {
-              setMostrarInactivos(!mostrarInactivos);
-              setPaginaActual(1);
-              setBusqueda("");
-            }}
-            style={{
-              background: mostrarInactivos ? "#555" : "#a32020",
-              color: "#fff",
-              borderRadius: "8px",
-              padding: "10px 20px",
-              fontSize: "0.95rem",
-              fontWeight: 600,
-              border: "none",
-              cursor: "pointer",
-              transition: "background 0.2s"
-            }}
-          >
-            {mostrarInactivos ? "Ver Activos" : "Ver Inactivos"}
-          </button>
-        </div>
-
-        {/* Contador de resultados */}
-        {busqueda && (
-          <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "16px" }}>
-            {proveedoresFiltrados.length} resultado(s) encontrado(s)
-          </p>
+        {/* Mensaje flotante */}
+        {mensaje && (
+          <div className={`mensaje-flotante ${tipoMensaje}`}>
+            {mensaje}
+          </div>
         )}
 
-        {/* Tabla */}
-        <div style={{ overflowX: "auto", width: "100%" }}>
-          <table
-            className="proveedores-table"
-            style={{
-              width: "100%",
-              background: "#232526",
-              color: "#fff",
-              borderCollapse: "collapse",
-              minWidth: "1200px" 
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "60px" }}>ID</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "150px" }}>Nombre</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "150px" }}>Persona de contacto</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "130px" }}>Teléfono</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "180px" }}>Correo</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "200px" }}>Dirección</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "130px" }}>CUIT</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "120px" }}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proveedoresPaginados.length === 0 ? (
+        <div
+          className="proveedores-main-card"
+          style={{
+            maxWidth: 1400,
+            margin: "0 auto",
+            background: "#232526",
+            border: "2px solid #a32020",
+            borderRadius: "24px",
+            boxShadow: "0 6px 32px rgba(0,0,0,0.28)",
+            padding: "48px 56px 40px 56px"
+          }}
+        >
+          {/* Header con botón */}
+          <div className="proveedores-header" style={{ marginBottom: 24 }}>
+            <h2 style={{ color: "#a32020", fontWeight: 700, fontSize: "2rem", margin: 0 }}>
+              Proveedores {mostrarInactivos ? "(Inactivos)" : "(Activos)"}
+            </h2>
+            <button 
+              className="btn-agencia"
+              onClick={abrirModalNuevo}
+              style={{
+                background: "#a32020",
+                color: "#fff",
+                borderRadius: "8px",
+                padding: "10px 24px",
+                fontSize: "1.1em",
+                fontWeight: 700,
+                boxShadow: "0 2px 8px #0003",
+                border: "none",
+                cursor: "pointer"
+              }}
+            >
+              + Agregar Proveedor
+            </button>
+          </div>
+
+          {/* Filtros */}
+          <div style={{ 
+            display: "flex", 
+            gap: "16px", 
+            marginBottom: 24, 
+            alignItems: "center",
+            flexWrap: "wrap"
+          }}>
+            {/* Búsqueda */}
+            <input
+              type="text"
+              placeholder="Buscar proveedor..."
+              value={busqueda}
+              onChange={(e) => {
+                setBusqueda(e.target.value);
+                setPaginaActual(1);
+              }}
+              style={{
+                flex: 1,
+                minWidth: "300px",
+                background: "#181818",
+                color: "#fff",
+                border: "1.5px solid #a32020",
+                borderRadius: "8px",
+                padding: "10px 14px",
+                fontSize: "0.95rem"
+              }}
+            />
+
+            {/* Toggle Activos/Inactivos */}
+            <button
+              onClick={() => {
+                setMostrarInactivos(!mostrarInactivos);
+                setPaginaActual(1);
+                setBusqueda("");
+              }}
+              style={{
+                background: mostrarInactivos ? "#555" : "#a32020",
+                color: "#fff",
+                borderRadius: "8px",
+                padding: "10px 20px",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                transition: "background 0.2s"
+              }}
+            >
+              {mostrarInactivos ? "Ver Activos" : "Ver Inactivos"}
+            </button>
+          </div>
+
+          {/* Contador de resultados */}
+          {busqueda && (
+            <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "16px" }}>
+              {proveedoresFiltrados.length} resultado(s) encontrado(s)
+            </p>
+          )}
+
+          {/* Tabla */}
+          <div style={{ overflowX: "auto", width: "100%" }}>
+            <table
+              className="proveedores-table"
+              style={{
+                width: "100%",
+                background: "#232526",
+                color: "#fff",
+                borderCollapse: "collapse",
+                minWidth: "1200px" 
+              }}
+            >
+              <thead>
                 <tr>
-                  <td colSpan={8} style={{ textAlign: "center", padding: "24px", color: "#888" }}>
-                    {mostrarInactivos 
-                      ? "No hay proveedores inactivos" 
-                      : "No hay proveedores registrados"}
-                  </td>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "60px" }}>ID</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "150px" }}>Nombre</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "150px" }}>Persona de contacto</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "130px" }}>Teléfono</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "180px" }}>Correo</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "200px" }}>Dirección</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "130px" }}>CUIT</th>
+                  <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "120px" }}>Acciones</th>
                 </tr>
-              ) : (
-                proveedoresPaginados.map((proveedor) => (
-                  <tr 
-                    key={proveedor.id} 
-                    className={proveedor.activo === 0 ? "fila-inactiva" : ""}
-                    style={{ borderBottom: "1px solid #444" }}
-                  >
-                    <td style={{ padding: "10px 8px" }}>{proveedor.id}</td>
-                    <td 
-                      style={{ 
-                        padding: "10px 8px",
-                        maxWidth: "180px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}
-                      title={proveedor.nombre}
-                    >
-                      {proveedor.nombre}
+              </thead>
+              <tbody>
+                {proveedoresPaginados.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: "center", padding: "24px", color: "#888" }}>
+                      {mostrarInactivos 
+                        ? "No hay proveedores inactivos" 
+                        : "No hay proveedores registrados"}
                     </td>
-                    <td 
-                      style={{ 
-                        padding: "10px 8px",
-                        maxWidth: "180px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}
-                      title={proveedor.persona_contacto || "-"}
+                  </tr>
+                ) : (
+                  proveedoresPaginados.map((proveedor) => (
+                    <tr 
+                      key={proveedor.id} 
+                      className={proveedor.activo === 0 ? "fila-inactiva" : ""}
+                      style={{ borderBottom: "1px solid #444" }}
                     >
-                      {proveedor.persona_contacto || "-"}
-                    </td>
-                    <td 
-                      style={{ 
-                        padding: "10px 8px",
-                        maxWidth: "150px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}
-                      title={proveedor.telefono || "-"}
-                    >
-                      {proveedor.telefono || "-"}
-                    </td>
-                    <td 
-                      style={{ 
-                        padding: "10px 8px",
-                        maxWidth: "200px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}
-                      title={proveedor.email || "-"}
-                    >
-                      {proveedor.email || "-"}
-                    </td>
-                    <td 
-                      style={{ 
-                        padding: "10px 8px",
-                        maxWidth: "250px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}
-                      title={proveedor.direccion || "-"}
-                    >
-                      {proveedor.direccion || "-"}
-                    </td>
-                    <td 
-                      style={{ 
-                        padding: "10px 8px",
-                        maxWidth: "150px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
-                      }}
-                      title={proveedor.cuit_cuil || "-"}
-                    >
-                      {proveedor.cuit_cuil || "-"}
-                    </td>
-                    <td style={{ padding: "10px 8px" }}>
-                      <button
-                        className="btn-accion"
-                        onClick={() => abrirModalEditar(proveedor)}
-                        title="Editar"
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          fontSize: "1.3rem",
-                          cursor: "pointer",
-                          margin: "0 6px",
-                          color: "#4CAF50"
+                      <td style={{ padding: "10px 8px" }}>{proveedor.id}</td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px",
+                          maxWidth: "180px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
                         }}
+                        title={proveedor.nombre}
                       >
-                        ✎
-                      </button>
-                      <button
-                        className="btn-accion"
-                        onClick={() => toggleActivo(proveedor)}
-                        title={proveedor.activo === 1 ? "Desactivar" : "Activar"}
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          fontSize: "1.3rem",
-                          cursor: "pointer",
-                          margin: "0 6px",
-                          color: proveedor.activo === 1 ? "#f44336" : "#4CAF50"
+                        {proveedor.nombre}
+                      </td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px",
+                          maxWidth: "180px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
                         }}
+                        title={proveedor.persona_contacto || "-"}
                       >
-                        {proveedor.activo === 1 ? "✖" : "✔"}
-                      </button>
-                    </td>
+                        {proveedor.persona_contacto || "-"}
+                      </td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px",
+                          maxWidth: "150px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
+                        }}
+                        title={proveedor.telefono || "-"}
+                      >
+                        {proveedor.telefono || "-"}
+                      </td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px",
+                          maxWidth: "200px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
+                        }}
+                        title={proveedor.email || "-"}
+                      >
+                        {proveedor.email || "-"}
+                      </td>
+                      <td 
+                        style={{ 
+                          padding: "10px 8px",
+                          maxWidth: "250px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
+                        }}
+                        title={proveedor.direccion || "-"}
+                      >
+                        {proveedor.direccion || "-"}
+                      </td>
+                                            <td 
+                        style={{ 
+                          padding: "10px 8px",
+                          maxWidth: "150px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
+                        }}
+                        title={proveedor.cuit_cuil || "-"}
+                      >
+                        {proveedor.cuit_cuil || "-"}
+                      </td>
+                      <td style={{ padding: "10px 8px" }}>
+                        <button
+                          className="btn-accion"
+                          onClick={() => abrirModalEditar(proveedor)}
+                          title="Editar"
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            fontSize: "1.3rem",
+                            cursor: "pointer",
+                            margin: "0 6px",
+                            color: "#4CAF50"
+                          }}
+                        >
+                          ✎
+                        </button>
+                        <button
+                          className="btn-accion"
+                          onClick={() => toggleActivo(proveedor)}
+                          title={proveedor.activo === 1 ? "Desactivar" : "Activar"}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            fontSize: "1.3rem",
+                            cursor: "pointer",
+                            margin: "0 6px",
+                            color: proveedor.activo === 1 ? "#f44336" : "#4CAF50"
+                          }}
+                        >
+                          {proveedor.activo === 1 ? "✖" : "✔"}
+                        </button>
+                      </td>
                   </tr>
                 ))
               )}

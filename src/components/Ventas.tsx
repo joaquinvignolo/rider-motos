@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Ventas.css";
 import IndicadorCarga from "./IndicadorCarga";
+import Navbar from "./Navbar";
 
 type ProductoVenta = {
   id: number;
@@ -258,202 +259,151 @@ const Ventas: React.FC = () => {
 
   return (
     <div className="ventas-container">
-      <button
-        className="inicio-btn"
-        style={{
-          position: "fixed",
-          top: 32,
-          left: 32,
-          zIndex: 100,
-          fontSize: "1.18rem",
-          padding: "10px 28px",
-          borderRadius: 8,
-          fontWeight: 700,
-          background: "#a32020",
-          color: "#fff",
-          border: "none",
-          boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
-          cursor: "pointer",
-          transition: "background 0.18s, box-shadow 0.18s"
-        }}
-        onClick={() => navigate("/menu")}
-      >
-        INICIO
-      </button>
-      <h1>REGISTRAR VENTA</h1>
-      {cargando && <IndicadorCarga mensaje="Registrando venta..." />}
-      <form className="venta-form" onSubmit={e => { e.preventDefault(); registrarVenta(); }}>
-        
-        {/* Productos */}
-        <section className="productos-venta">
-          <h2>PRODUCTOS</h2>
-          <div className="tipo-selector">
-            <button
-              type="button"
-              className={tipoSeleccionado === "moto" ? "tipo-btn activo" : "tipo-btn"}
-              onClick={() => {
-                setTipoSeleccionado("moto");
-                setSearchTerm("");
-              }}
-            >
-              MOTO
-            </button>
-            <button
-              type="button"
-              className={tipoSeleccionado === "accesorio" ? "tipo-btn activo" : "tipo-btn"}
-              onClick={() => {
-                setTipoSeleccionado("accesorio");
-                setSearchTerm("");
-              }}
-            >
-              ACCESORIO
-            </button>
-            <button
-              type="button"
-              className={tipoSeleccionado === "repuesto" ? "tipo-btn activo" : "tipo-btn"}
-              onClick={() => {
-                setTipoSeleccionado("repuesto");
-                setSearchTerm("");
-              }}
-            >
-              REPUESTO
-            </button>
-            <input
-              type="text"
-              placeholder="Buscar productos..."
-              className="buscador-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <ul className="productos-lista-venta">
-            {productos.map(prod => (
-              <li key={prod.id} className="producto-venta-item">
-                <span>{prod.nombre.toUpperCase()}</span>
-                <span className="producto-venta-preview">
-                  MARCA: {prod.marca.toUpperCase()} | STOCK: {prod.cantidad} | PRECIO: ${prod.precio}
-                </span>
-                <button type="button" className="agregar-btn" onClick={() => agregarProductoAVenta(prod)}>
-                  AGREGAR
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {/* NAVBAR */}
+      <Navbar />
 
-        {/* Resumen de la venta */}
-        <section className="resumen-venta">
-          <h2>RESUMEN</h2>
-          <ul>
-            {productosEnVenta.map(item => (
-              <li key={item.id} className="resumen-item">
-                <span>{item.nombre.toUpperCase()}</span>
-                <span> x {item.cantidad} = ${item.precio * item.cantidad}</span>
-                {tipoSeleccionado !== "moto" && (
-                  <input
-                    type="number"
-                    min={1}
-                    step={1}  
-                    value={item.cantidad === 0 ? "" : item.cantidad}
-                    onChange={e => {
-                      const val = e.target.value;
-                      const num = val === "" ? 0 : Math.floor(Number(val));
-                      cambiarCantidad(item.id, num);
-                    }}
-                    style={{ width: 60, marginLeft: 8 }}
-                  />
-                )}
-                <button type="button" className="eliminar-btn" onClick={() => eliminarProductoDeVenta(item.id)}>
-                  ELIMINAR
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className="total-venta">
-            TOTAL: ${totalFinal.toFixed(2)}
-          </div>
-          <label>
-            MÉTODO DE PAGO:
-            <select value={metodoPago} onChange={e => setMetodoPago(e.target.value as any)}>
-              <option value="efectivo">EFECTIVO</option>
-              <option value="tarjeta">TARJETA DE CRÉDITO</option>
-              <option value="transferencia">TRANSFERENCIA</option>
-            </select>
-          </label>
-          {metodoPago === "tarjeta" && (
-            <label>
-              % EXTRA POR TARJETA:
-              <input
-                type="number"
-                min={0}
-                max={30}
-                step={0.5}  
-                value={porcentajeTarjeta === 0 ? "" : porcentajeTarjeta}
-                onChange={e => {
-                  const val = e.target.value;
-                  const num = val === "" ? 0 : Number(val);
-                  
-                  if (num % 0.5 !== 0) {
-                    setMensajeError("Solo se permiten valores como 10, 10.5, 11, etc.");
-                    return;
-                  }
-                  
-                  if (num < 0 || num > 30) {
-                    setMensajeError("El porcentaje debe estar entre 0% y 30%");
-                    return;
-                  }
-                  setMensajeError("");
-                  setPorcentajeTarjeta(num);
-                }}
-                style={{ width: 60, marginLeft: 8 }}
-              />
-            </label>
-          )}
-        </section>
-
-        <div style={{
-          marginBottom: 24,
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start"
-        }}>
-          {!incluyeMoto ? (
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 18,
-              background: "#181818",
-              borderRadius: 10,
-              padding: "14px 24px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-              fontWeight: 700,
-              fontSize: "1.1rem",
-              color: "#ffd700"
-            }}>
-              Cliente: <span style={{ color: "#fff" }}>Consumidor Final</span>
+      {/*  WRAPPER CON PADDING */}
+      <div style={{ paddingTop: "84px" }}>
+        <h1>REGISTRAR VENTA</h1>
+        {cargando && <IndicadorCarga mensaje="Registrando venta..." />}
+        <form className="venta-form" onSubmit={e => { e.preventDefault(); registrarVenta(); }}>
+          
+          {/* Productos */}
+          <section className="productos-venta">
+            <h2>PRODUCTOS</h2>
+            <div className="tipo-selector">
               <button
                 type="button"
-                title="Agregar cliente"
-                onClick={() => navigate("/clientes?agregar=1")}
-                style={{
-                  background: "#2196f3",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 12px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center"
+                className={tipoSeleccionado === "moto" ? "tipo-btn activo" : "tipo-btn"}
+                onClick={() => {
+                  setTipoSeleccionado("moto");
+                  setSearchTerm("");
                 }}
               >
-                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
-                  <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                MOTO
               </button>
+              <button
+                type="button"
+                className={tipoSeleccionado === "accesorio" ? "tipo-btn activo" : "tipo-btn"}
+                onClick={() => {
+                  setTipoSeleccionado("accesorio");
+                  setSearchTerm("");
+                }}
+              >
+                ACCESORIO
+              </button>
+              <button
+                type="button"
+                className={tipoSeleccionado === "repuesto" ? "tipo-btn activo" : "tipo-btn"}
+                onClick={() => {
+                  setTipoSeleccionado("repuesto");
+                  setSearchTerm("");
+                }}
+              >
+                REPUESTO
+              </button>
+              <input
+                type="text"
+                placeholder="Buscar productos..."
+                className="buscador-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          ) : (
-            <div
-              style={{
+            <ul className="productos-lista-venta">
+              {productos.map(prod => (
+                <li key={prod.id} className="producto-venta-item">
+                  <span>{prod.nombre.toUpperCase()}</span>
+                  <span className="producto-venta-preview">
+                    MARCA: {prod.marca.toUpperCase()} | STOCK: {prod.cantidad} | PRECIO: ${prod.precio}
+                  </span>
+                  <button type="button" className="agregar-btn" onClick={() => agregarProductoAVenta(prod)}>
+                    AGREGAR
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* Resumen de la venta */}
+          <section className="resumen-venta">
+            <h2>RESUMEN</h2>
+            <ul>
+              {productosEnVenta.map(item => (
+                <li key={item.id} className="resumen-item">
+                  <span>{item.nombre.toUpperCase()}</span>
+                  <span> x {item.cantidad} = ${item.precio * item.cantidad}</span>
+                  {tipoSeleccionado !== "moto" && (
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}  
+                      value={item.cantidad === 0 ? "" : item.cantidad}
+                      onChange={e => {
+                        const val = e.target.value;
+                        const num = val === "" ? 0 : Math.floor(Number(val));
+                        cambiarCantidad(item.id, num);
+                      }}
+                      style={{ width: 60, marginLeft: 8 }}
+                    />
+                  )}
+                  <button type="button" className="eliminar-btn" onClick={() => eliminarProductoDeVenta(item.id)}>
+                    ELIMINAR
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="total-venta">
+              TOTAL: ${totalFinal.toFixed(2)}
+            </div>
+            <label>
+              MÉTODO DE PAGO:
+              <select value={metodoPago} onChange={e => setMetodoPago(e.target.value as any)}>
+                <option value="efectivo">EFECTIVO</option>
+                <option value="tarjeta">TARJETA DE CRÉDITO</option>
+                <option value="transferencia">TRANSFERENCIA</option>
+              </select>
+            </label>
+            {metodoPago === "tarjeta" && (
+              <label>
+                % EXTRA POR TARJETA:
+                <input
+                  type="number"
+                  min={0}
+                  max={30}
+                  step={0.5}  
+                  value={porcentajeTarjeta === 0 ? "" : porcentajeTarjeta}
+                  onChange={e => {
+                    const val = e.target.value;
+                    const num = val === "" ? 0 : Number(val);
+                    
+                    if (num % 0.5 !== 0) {
+                      setMensajeError("Solo se permiten valores como 10, 10.5, 11, etc.");
+                      return;
+                    }
+                    
+                    if (num < 0 || num > 30) {
+                      setMensajeError("El porcentaje debe estar entre 0% y 30%");
+                      return;
+                    }
+                    setMensajeError("");
+                    setPorcentajeTarjeta(num);
+                  }}
+                  style={{ width: 60, marginLeft: 8 }}
+                />
+              </label>
+            )}
+          </section>
+
+          <div style={{
+            marginBottom: 24,
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start"
+          }}>
+            {!incluyeMoto ? (
+              <div style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 18,
@@ -463,123 +413,158 @@ const Ventas: React.FC = () => {
                 boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
                 fontWeight: 700,
                 fontSize: "1.1rem",
-                position: "relative",
-                width: 420
-              }}
-            >
-              <input
-                type="text"
-                className="buscador-input"
-                placeholder="Buscar cliente por nombre..."
-                value={busquedaCliente}
-                onChange={e => {
-                  setBusquedaCliente(e.target.value);
-                  setClienteSeleccionado(null);
-                }}
-                style={{ width: 260, zIndex: 11 }}
-                autoComplete="off"
-              />
-              <button
-                type="button"
-                title="Agregar cliente"
-                onClick={() => navigate("/clientes?agregar=1")}
-                style={{
-                  background: "#2196f3",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "8px 12px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center"
-                }}
-              >
-                <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
-                  <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              {busquedaCliente.length > 1 && clientesSugeridos.length > 0 && (
-                <div
-                  className="sugerencias-clientes"
+                color: "#ffd700"
+              }}>
+                Cliente: <span style={{ color: "#fff" }}>Consumidor Final</span>
+                <button
+                  type="button"
+                  title="Agregar cliente"
+                  onClick={() => navigate("/clientes?agregar=1")}
                   style={{
-                    position: "absolute",
-                    top: 48,
-                    left: 0,
-                    width: 260,
-                    background: "#232526",
-                    borderRadius: 10,
-                    boxShadow: "0 4px 16px rgba(25,118,210,0.18)",
-                    zIndex: 20,
-                    marginTop: 2,
-                    padding: "4px 0",
-                    maxHeight: 320,
-                    overflowY: "auto"
+                    background: "#2196f3",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center"
                   }}
                 >
-                  {clientesSugeridos.slice(0, 8).map(c => (
-                    <div
-                      key={c.id}
-                      className="sugerencia-cliente"
-                      onClick={() => {
-                        setClienteSeleccionado(c);
-                        setBusquedaCliente(`${c.nombre} ${c.apellido}`);
-                        setClientesSugeridos([]);
-                      }}
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
-                        background: "#232526",
-                        color: "#fff",
-                        padding: "10px 18px",
-                        cursor: "pointer",
-                        borderBottom: "1px solid #353535",
-                        fontSize: "1.08rem",
-                        transition: "background 0.15s"
-                      }}
-                      onMouseOver={e => (e.currentTarget.style.background = "#353535")}
-                      onMouseOut={e => (e.currentTarget.style.background = "#232526")}
-                    >
-                      <span style={{ fontWeight: 700, color: "#80c481" }}>
-                        {c.nombre} {c.apellido}
-                      </span>
-                      <span style={{ fontSize: "0.98rem", color: "#ffd700" }}>
-                        {c.telefono} &nbsp;|&nbsp; {c.correo}
-                      </span>
-                    </div>
-                  ))}
-                  {clientesSugeridos.length > 8 && (
-                    <div style={{
-                      textAlign: "center",
-                      color: "#bbb",
-                      fontSize: "0.95rem",
-                      padding: "6px 0"
-                    }}>
-                      Mostrando los primeros 8 resultados...
-                    </div>
-                  )}
-                </div>
-              )}
+                  <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
+                    <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 18,
+                  background: "#181818",
+                  borderRadius: 10,
+                  padding: "14px 24px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                  position: "relative",
+                  width: 420
+                }}
+              >
+                <input
+                  type="text"
+                  className="buscador-input"
+                  placeholder="Buscar cliente por nombre..."
+                  value={busquedaCliente}
+                  onChange={e => {
+                    setBusquedaCliente(e.target.value);
+                    setClienteSeleccionado(null);
+                  }}
+                  style={{ width: 260, zIndex: 11 }}
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  title="Agregar cliente"
+                  onClick={() => navigate("/clientes?agregar=1")}
+                  style={{
+                    background: "#2196f3",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center"
+                  }}
+                >
+                  <svg width="20" height="20" fill="#fff" viewBox="0 0 24 24">
+                    <path d="M12 5v14m-7-7h14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {busquedaCliente.length > 1 && clientesSugeridos.length > 0 && (
+                  <div
+                    className="sugerencias-clientes"
+                    style={{
+                      position: "absolute",
+                      top: 48,
+                      left: 0,
+                      width: 260,
+                      background: "#232526",
+                      borderRadius: 10,
+                      boxShadow: "0 4px 16px rgba(25,118,210,0.18)",
+                      zIndex: 20,
+                      marginTop: 2,
+                      padding: "4px 0",
+                      maxHeight: 320,
+                      overflowY: "auto"
+                    }}
+                  >
+                    {clientesSugeridos.slice(0, 8).map(c => (
+                      <div
+                        key={c.id}
+                        className="sugerencia-cliente"
+                        onClick={() => {
+                          setClienteSeleccionado(c);
+                          setBusquedaCliente(`${c.nombre} ${c.apellido}`);
+                          setClientesSugeridos([]);
+                        }}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                          background: "#232526",
+                          color: "#fff",
+                          padding: "10px 18px",
+                          cursor: "pointer",
+                          borderBottom: "1px solid #353535",
+                          fontSize: "1.08rem",
+                          transition: "background 0.15s"
+                        }}
+                        onMouseOver={e => (e.currentTarget.style.background = "#353535")}
+                        onMouseOut={e => (e.currentTarget.style.background = "#232526")}
+                      >
+                        <span style={{ fontWeight: 700, color: "#80c481" }}>
+                          {c.nombre} {c.apellido}
+                        </span>
+                        <span style={{ fontSize: "0.98rem", color: "#ffd700" }}>
+                          {c.telefono} &nbsp;|&nbsp; {c.correo}
+                        </span>
+                      </div>
+                    ))}
+                    {clientesSugeridos.length > 8 && (
+                      <div style={{
+                        textAlign: "center",
+                        color: "#bbb",
+                        fontSize: "0.95rem",
+                        padding: "6px 0"
+                      }}>
+                        Mostrando los primeros 8 resultados...
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {incluyeMoto && clienteSeleccionado && (
+            <div style={{ marginTop: 8, color: "#fff" }}>
+              <div><b>Correo:</b> {clienteSeleccionado.correo || "(Sin correo - no se enviará PDF)"}</div>
+              <div><b>Teléfono:</b> {clienteSeleccionado.telefono}</div>
             </div>
           )}
-        </div>
+          {mensajeError && (
+            <div className="alert alert-error">{mensajeError}</div>
+          )}
+          {mensajeExito && (
+            <div className="alert alert-success">{mensajeExito}</div>
+          )}
 
-        {incluyeMoto && clienteSeleccionado && (
-          <div style={{ marginTop: 8, color: "#fff" }}>
-            <div><b>Correo:</b> {clienteSeleccionado.correo || "(Sin correo - no se enviará PDF)"}</div>
-            <div><b>Teléfono:</b> {clienteSeleccionado.telefono}</div>
-          </div>
-        )}
-        {mensajeError && (
-          <div className="alert alert-error">{mensajeError}</div>
-        )}
-        {mensajeExito && (
-          <div className="alert alert-success">{mensajeExito}</div>
-        )}
-
-        <button className="confirmar-venta-btn" type="submit" disabled={!!mensajeExito || cargando}>
-          CONFIRMAR VENTA
-        </button>
-      </form>
+          <button className="confirmar-venta-btn" type="submit" disabled={!!mensajeExito || cargando}>
+            CONFIRMAR VENTA
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
