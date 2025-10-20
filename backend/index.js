@@ -107,7 +107,7 @@ app.get('/api/proveedores/:id', (req, res) => {
 app.post('/api/proveedores', (req, res) => {
   const { nombre, cuit_cuil, persona_contacto, direccion, telefono, email } = req.body;
 
-  // Validaciones
+  // 1. Validar nombre obligatorio
   if (!nombre || nombre.trim().length < 2) {
     return res.status(400).json({ 
       success: false, 
@@ -115,34 +115,58 @@ app.post('/api/proveedores', (req, res) => {
     });
   }
 
-  // Validar CUIT/CUIL si se proporciona
-  if (cuit_cuil) {
-    const cuitLimpio = cuit_cuil.replace(/[-\s]/g, "");
-    if (!/^\d{11}$/.test(cuitLimpio)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El CUIT/CUIL debe tener 11 dígitos' 
-      });
-    }
+  // 2. CUIT/CUIL obligatorio
+  if (!cuit_cuil || cuit_cuil.trim() === '') {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El CUIT/CUIL es obligatorio' 
+    });
   }
 
-  // Validar email si se proporciona
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // 3. Validar formato de CUIT/CUIL
+  const cuitLimpio = cuit_cuil.trim().replace(/[-\s]/g, "");
+  if (!/^\d{11}$/.test(cuitLimpio)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El CUIT/CUIL debe tener 11 dígitos (formato: 20-12345678-9)' 
+    });
+  }
+
+  // 4. Al menos email O teléfono obligatorio
+  const tieneEmail = email && email.trim() !== '';
+  const tieneTelefono = telefono && telefono.trim() !== '';
+
+  if (!tieneEmail && !tieneTelefono) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Debe ingresar al menos un método de contacto (email o teléfono)' 
+    });
+  }
+
+  // 5. Validar email si se proporciona
+  if (tieneEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return res.status(400).json({ 
       success: false, 
       message: 'El email ingresado no es válido' 
     });
   }
 
-  // Validar teléfono si se proporciona
-  if (telefono && !/^[\d\s\-\(\)\+]+$/.test(telefono)) {
+  // 6. Validar teléfono si se proporciona
+  if (tieneTelefono && !/^[\d\s\-\(\)\+]+$/.test(telefono.trim())) {
     return res.status(400).json({ 
       success: false, 
       message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
     });
   }
 
-  // Verificar si ya existe un proveedor con el mismo nombre
+  // 7. Normalizar campos
+  const cuitCuilFinal = cuit_cuil.trim();
+  const personaContactoFinal = persona_contacto && persona_contacto.trim() !== '' ? persona_contacto.trim() : null;
+  const direccionFinal = direccion && direccion.trim() !== '' ? direccion.trim() : null;
+  const telefonoFinal = tieneTelefono ? telefono.trim() : null;
+  const emailFinal = tieneEmail ? email.trim().toLowerCase() : null;
+
+  // 8. Verificar proveedor duplicado
   db.query(
     'SELECT id FROM proveedores WHERE LOWER(nombre) = LOWER(?)',
     [nombre.trim()],
@@ -162,18 +186,18 @@ app.post('/api/proveedores', (req, res) => {
         });
       }
 
-      // Insertar proveedor
+      // 9. Insertar proveedor
       db.query(
         `INSERT INTO proveedores 
           (nombre, cuit_cuil, persona_contacto, direccion, telefono, email, activo) 
          VALUES (?, ?, ?, ?, ?, ?, 1)`,
         [
           nombre.trim(),
-          cuit_cuil ? cuit_cuil.trim() : null,
-          persona_contacto ? persona_contacto.trim() : null,
-          direccion ? direccion.trim() : null,
-          telefono ? telefono.trim() : null,
-          email ? email.trim().toLowerCase() : null
+          cuitCuilFinal,
+          personaContactoFinal,
+          direccionFinal,
+          telefonoFinal,
+          emailFinal
         ],
         (err2, result) => {
           if (err2) {
@@ -195,7 +219,7 @@ app.put('/api/proveedores/:id', (req, res) => {
   const { nombre, cuit_cuil, persona_contacto, direccion, telefono, email } = req.body;
   const { id } = req.params;
 
-  // Validaciones
+  // 1. Validar nombre obligatorio
   if (!nombre || nombre.trim().length < 2) {
     return res.status(400).json({ 
       success: false, 
@@ -203,34 +227,58 @@ app.put('/api/proveedores/:id', (req, res) => {
     });
   }
 
-  // Validar CUIT/CUIL si se proporciona
-  if (cuit_cuil) {
-    const cuitLimpio = cuit_cuil.replace(/[-\s]/g, "");
-    if (!/^\d{11}$/.test(cuitLimpio)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'El CUIT/CUIL debe tener 11 dígitos' 
-      });
-    }
+  // 2. CUIT/CUIL obligatorio
+  if (!cuit_cuil || cuit_cuil.trim() === '') {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El CUIT/CUIL es obligatorio' 
+    });
   }
 
-  // Validar email si se proporciona
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // 3. Validar formato de CUIT/CUIL
+  const cuitLimpio = cuit_cuil.trim().replace(/[-\s]/g, "");
+  if (!/^\d{11}$/.test(cuitLimpio)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El CUIT/CUIL debe tener 11 dígitos (formato: 20-12345678-9)' 
+    });
+  }
+
+  // 4. Al menos email O teléfono obligatorio
+  const tieneEmail = email && email.trim() !== '';
+  const tieneTelefono = telefono && telefono.trim() !== '';
+
+  if (!tieneEmail && !tieneTelefono) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Debe ingresar al menos un método de contacto (email o teléfono)' 
+    });
+  }
+
+  // 5. Validar email si se proporciona
+  if (tieneEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return res.status(400).json({ 
       success: false, 
       message: 'El email ingresado no es válido' 
     });
   }
 
-  // Validar teléfono si se proporciona
-  if (telefono && !/^[\d\s\-\(\)\+]+$/.test(telefono)) {
+  // 6. Validar teléfono si se proporciona
+  if (tieneTelefono && !/^[\d\s\-\(\)\+]+$/.test(telefono.trim())) {
     return res.status(400).json({ 
       success: false, 
       message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
     });
   }
 
-  // Verificar que el proveedor exista
+  // 7. Normalizar campos
+  const cuitCuilFinal = cuit_cuil.trim();
+  const personaContactoFinal = persona_contacto && persona_contacto.trim() !== '' ? persona_contacto.trim() : null;
+  const direccionFinal = direccion && direccion.trim() !== '' ? direccion.trim() : null;
+  const telefonoFinal = tieneTelefono ? telefono.trim() : null;
+  const emailFinal = tieneEmail ? email.trim().toLowerCase() : null;
+
+  // 8. Verificar que el proveedor exista
   db.query('SELECT id FROM proveedores WHERE id = ?', [id], (err, existing) => {
     if (err) {
       console.error("Error al verificar proveedor:", err);
@@ -247,7 +295,7 @@ app.put('/api/proveedores/:id', (req, res) => {
       });
     }
 
-    // Verificar si otro proveedor ya tiene ese nombre
+    // 9. Verificar nombre duplicado
     db.query(
       'SELECT id FROM proveedores WHERE LOWER(nombre) = LOWER(?) AND id != ?',
       [nombre.trim(), id],
@@ -267,7 +315,7 @@ app.put('/api/proveedores/:id', (req, res) => {
           });
         }
 
-        // Actualizar proveedor
+        // 10. Actualizar proveedor
         db.query(
           `UPDATE proveedores 
            SET nombre = ?, 
@@ -279,11 +327,11 @@ app.put('/api/proveedores/:id', (req, res) => {
            WHERE id = ?`,
           [
             nombre.trim(),
-            cuit_cuil ? cuit_cuil.trim() : null,
-            persona_contacto ? persona_contacto.trim() : null,
-            direccion ? direccion.trim() : null,
-            telefono ? telefono.trim() : null,
-            email ? email.trim().toLowerCase() : null,
+            cuitCuilFinal,
+            personaContactoFinal,
+            direccionFinal,
+            telefonoFinal,
+            emailFinal,
             id
           ],
           (err3) => {

@@ -84,7 +84,7 @@ const Productos: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/proveedores")
+    fetch("http://localhost:3001/api/proveedores/activos")
       .then(res => res.json())
       .then(data => setProveedores(data));
   }, []);
@@ -234,6 +234,10 @@ const Productos: React.FC = () => {
             {proveedores.map(p => (
               <option key={p.id} value={p.nombre}>{p.nombre}</option>
             ))}
+            {/* Mantener proveedor actual si está inactivo */}
+            {proveedor && !proveedores.some(p => p.nombre === proveedor) && (
+              <option value={proveedor}>{proveedor} (inactivo - cambiar)</option>
+            )}
           </select>
         </label>
         <label>

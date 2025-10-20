@@ -66,7 +66,7 @@ const Compras = () => {
             .then(res => res.json())
             .then((data: Marca[]) => setMarcas(data));
         
-        fetch('http://localhost:3001/api/proveedores')
+        fetch('http://localhost:3001/api/proveedores/activos')
             .then(res => res.json())
             .then((data: Proveedor[]) => setProveedores(data));
     }, []);

@@ -141,7 +141,7 @@ const Proveedores: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones
+    // 1. Validar nombre obligatorio
     if (!formData.nombre.trim()) {
       mostrarMensaje("El nombre del proveedor es obligatorio", "error");
       return;
@@ -152,7 +152,39 @@ const Proveedores: React.FC = () => {
       return;
     }
 
-    // Validar proveedor duplicado (solo al crear)
+    // 2. Validar CUIT/CUIL obligatorio
+    if (!formData.cuit_cuil || formData.cuit_cuil.trim() === "") {
+      mostrarMensaje("El CUIT/CUIL es obligatorio", "error");
+      return;
+    }
+
+    if (!validarCuitCuil(formData.cuit_cuil)) {
+      mostrarMensaje("El CUIT/CUIL debe tener 11 dígitos (formato: 20-12345678-9)", "error");
+      return;
+    }
+
+    // 3. ✅ NUEVO: Validar que tenga al menos email O teléfono
+    const tieneEmail = formData.email && formData.email.trim() !== "";
+    const tieneTelefono = formData.telefono && formData.telefono.trim() !== "";
+    
+    if (!tieneEmail && !tieneTelefono) {
+      mostrarMensaje("Debe ingresar al menos un método de contacto (email o teléfono)", "error");
+      return;
+    }
+
+    // 4. Validar formato de email si se ingresó
+    if (tieneEmail && !validarEmail(formData.email)) {
+      mostrarMensaje("El email ingresado no es válido", "error");
+      return;
+    }
+
+    // 5. Validar formato de teléfono si se ingresó
+    if (tieneTelefono && !validarTelefono(formData.telefono)) {
+      mostrarMensaje("El teléfono solo puede contener números, espacios, guiones y paréntesis", "error");
+      return;
+    }
+
+    // 6. Validar proveedor duplicado (solo al crear)
     if (!modoEdicion) {
       const nombreExiste = proveedores.some(
         p => p.nombre.toLowerCase() === formData.nombre.trim().toLowerCase()
@@ -161,21 +193,6 @@ const Proveedores: React.FC = () => {
         mostrarMensaje("Ya existe un proveedor con ese nombre", "error");
         return;
       }
-    }
-
-    if (formData.cuit_cuil && !validarCuitCuil(formData.cuit_cuil)) {
-      mostrarMensaje("El CUIT/CUIL debe tener 11 dígitos (formato: 20-12345678-9)", "error");
-      return;
-    }
-
-    if (formData.email && !validarEmail(formData.email)) {
-      mostrarMensaje("El email ingresado no es válido", "error");
-      return;
-    }
-
-    if (formData.telefono && !validarTelefono(formData.telefono)) {
-      mostrarMensaje("El teléfono solo puede contener números, espacios, guiones y paréntesis", "error");
-      return;
     }
 
     try {
@@ -522,7 +539,7 @@ const Proveedores: React.FC = () => {
                   />
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <label style={{ color: "#fff", fontWeight: 600 }}>CUIT/CUIL</label>
+                  <label style={{ color: "#fff", fontWeight: 600 }}>CUIT/CUIL *</label>
                   <input
                     type="text"
                     name="cuit_cuil"
@@ -530,6 +547,7 @@ const Proveedores: React.FC = () => {
                     onChange={handleInputChange}
                     placeholder="20-12345678-9"
                     maxLength={13}
+                    required
                     style={{
                       background: "#181818",
                       color: "#fff",
