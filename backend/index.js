@@ -115,6 +115,14 @@ app.post('/api/proveedores', (req, res) => {
     });
   }
 
+  // Validar longitud máxima de nombre
+  if (nombre.trim().length > 30) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El nombre no puede superar los 30 caracteres' 
+    });
+  }
+
   // 2. CUIT/CUIL obligatorio
   if (!cuit_cuil || cuit_cuil.trim() === '') {
     return res.status(400).json({ 
@@ -144,18 +152,51 @@ app.post('/api/proveedores', (req, res) => {
   }
 
   // 5. Validar email si se proporciona
-  if (tieneEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'El email ingresado no es válido' 
-    });
+  if (tieneEmail) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El email ingresado no es válido' 
+      });
+    }
+    // Validar longitud de email
+    if (email.trim().length > 50) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El email no puede superar los 50 caracteres' 
+      });
+    }
   }
 
   // 6. Validar teléfono si se proporciona
-  if (tieneTelefono && !/^[\d\s\-\(\)\+]+$/.test(telefono.trim())) {
+  if (tieneTelefono) {
+    if (!/^[\d\s\-\(\)\+]+$/.test(telefono.trim())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
+      });
+    }
+    // Validar longitud de teléfono
+    if (telefono.trim().length > 30) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El teléfono no puede superar los 30 caracteres' 
+      });
+    }
+  }
+
+  // Validar longitud de campos opcionales
+  if (persona_contacto && persona_contacto.trim().length > 30) {
     return res.status(400).json({ 
       success: false, 
-      message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
+      message: 'La persona de contacto no puede superar los 30 caracteres' 
+    });
+  }
+
+  if (direccion && direccion.trim().length > 100) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'La dirección no puede superar los 100 caracteres' 
     });
   }
 
@@ -227,6 +268,14 @@ app.put('/api/proveedores/:id', (req, res) => {
     });
   }
 
+  // Validar longitud máxima de nombre
+  if (nombre.trim().length > 100) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'El nombre no puede superar los 100 caracteres' 
+    });
+  }
+
   // 2. CUIT/CUIL obligatorio
   if (!cuit_cuil || cuit_cuil.trim() === '') {
     return res.status(400).json({ 
@@ -256,18 +305,51 @@ app.put('/api/proveedores/:id', (req, res) => {
   }
 
   // 5. Validar email si se proporciona
-  if (tieneEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'El email ingresado no es válido' 
-    });
+  if (tieneEmail) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El email ingresado no es válido' 
+      });
+    }
+    // Validar longitud de email
+    if (email.trim().length > 100) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El email no puede superar los 100 caracteres' 
+      });
+    }
   }
 
   // 6. Validar teléfono si se proporciona
-  if (tieneTelefono && !/^[\d\s\-\(\)\+]+$/.test(telefono.trim())) {
+  if (tieneTelefono) {
+    if (!/^[\d\s\-\(\)\+]+$/.test(telefono.trim())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
+      });
+    }
+    // Validar longitud de teléfono
+    if (telefono.trim().length > 30) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'El teléfono no puede superar los 30 caracteres' 
+      });
+    }
+  }
+
+  // Validar longitud de campos opcionales
+  if (persona_contacto && persona_contacto.trim().length > 100) {
     return res.status(400).json({ 
       success: false, 
-      message: 'El teléfono solo puede contener números, espacios, guiones y paréntesis' 
+      message: 'La persona de contacto no puede superar los 100 caracteres' 
+    });
+  }
+
+  if (direccion && direccion.trim().length > 200) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'La dirección no puede superar los 200 caracteres' 
     });
   }
 

@@ -239,13 +239,13 @@ const Patentamiento: React.FC = () => {
       <div
         className="patentamiento-main-card"
         style={{
-          maxWidth: 1100,
+          maxWidth: 1600, 
           margin: "0 auto",
           background: "#232526",
           border: "2px solid #a32020",
           borderRadius: "24px",
           boxShadow: "0 6px 32px rgba(0,0,0,0.28)",
-          padding: "48px 56px 40px 56px",
+          padding: "48px 56px 40px 56px", 
           display: "flex",
           gap: "32px",
           justifyContent: "space-between"
@@ -262,8 +262,8 @@ const Patentamiento: React.FC = () => {
             marginRight: "24px",
             boxShadow: "0 1px 6px rgba(193,18,31,0.08)",
             border: "2px solid #a32020",
-            minWidth: "340px",
-            maxWidth: "420px"
+            minWidth: "380px", 
+            maxWidth: "480px"  
           }}
         >
           <h2 style={{
@@ -471,14 +471,26 @@ const Patentamiento: React.FC = () => {
             padding: "24px",
             boxShadow: "0 1px 6px rgba(193,18,31,0.08)",
             border: "2px solid #a32020",
-            minWidth: "420px"
+            minWidth: "600px" 
           }}>
           <div className="patentamiento-list-header" style={{ marginBottom: 10 }}>
-            <h3 className="patentamiento-subtitulo" style={{ color: "#a32020", fontWeight: 700, fontSize: "1.3rem" }}>Trámites de Patentamiento</h3>
+            <h3 className="patentamiento-subtitulo" style={{ 
+              color: "#a32020", 
+              fontWeight: 700, 
+              fontSize: "2rem", 
+              margin: 0 
+            }}>
+              Trámites de Patentamiento
+            </h3>
           </div>
 
           {/* Filtros de trámites */}
-          <div className="patentamiento-list-filtros" style={{ marginBottom: 14, display: "flex", gap: "18px" }}>
+          <div className="patentamiento-list-filtros" style={{ 
+            marginBottom: 24, 
+            display: "flex", 
+            gap: "18px",
+            flexWrap: "wrap" 
+          }}>
             <select
               value={estadoFiltro}
               onChange={e => setEstadoFiltro(e.target.value)}
@@ -487,10 +499,10 @@ const Patentamiento: React.FC = () => {
                 color: "#fff",
                 border: "1.5px solid #a32020",
                 borderRadius: "8px",
-                padding: "8px 12px",
-                fontSize: "1em",
+                padding: "10px 14px", 
+                fontSize: "0.95rem", 
                 fontWeight: 500,
-                minWidth: "170px"
+                minWidth: "180px" 
               }}
             >
               {estados.map(e => <option key={e}>{e}</option>)}
@@ -501,14 +513,15 @@ const Patentamiento: React.FC = () => {
               value={busquedaCliente}
               onChange={e => setBusquedaCliente(e.target.value)}
               style={{
+                flex: 1, 
+                minWidth: "250px", 
                 background: "#181818",
                 color: "#fff",
                 border: "1.5px solid #a32020",
                 borderRadius: "8px",
-                padding: "8px 12px",
-                fontSize: "1em",
-                fontWeight: 500,
-                minWidth: "170px"
+                padding: "10px 14px",
+                fontSize: "0.95rem",
+                fontWeight: 500
               }}
             />
           </div>
@@ -517,6 +530,7 @@ const Patentamiento: React.FC = () => {
             <table
               className="patentamiento-table"
               style={{
+                width: "100%", 
                 background: "#232526",
                 color: "#fff",
                 minWidth: 1400,

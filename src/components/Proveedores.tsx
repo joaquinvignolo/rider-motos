@@ -426,19 +426,20 @@ const Proveedores: React.FC = () => {
               width: "100%",
               background: "#232526",
               color: "#fff",
-              borderCollapse: "collapse"
+              borderCollapse: "collapse",
+              minWidth: "1200px" 
             }}
           >
             <thead>
               <tr>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>ID</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>Nombre</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>Persona de contacto</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>Teléfono</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>Correo</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>Dirección</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>CUIT</th>
-                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600 }}>Acciones</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "60px" }}>ID</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "150px" }}>Nombre</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "150px" }}>Persona de contacto</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "130px" }}>Teléfono</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "180px" }}>Correo</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "200px" }}>Dirección</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "130px" }}>CUIT</th>
+                <th style={{ padding: "12px 8px", background: "#181818", color: "#a32020", fontWeight: 600, minWidth: "120px" }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -458,12 +459,78 @@ const Proveedores: React.FC = () => {
                     style={{ borderBottom: "1px solid #444" }}
                   >
                     <td style={{ padding: "10px 8px" }}>{proveedor.id}</td>
-                    <td style={{ padding: "10px 8px" }}>{proveedor.nombre}</td>
-                    <td style={{ padding: "10px 8px" }}>{proveedor.persona_contacto || "-"}</td>
-                    <td style={{ padding: "10px 8px" }}>{proveedor.telefono || "-"}</td>
-                    <td style={{ padding: "10px 8px" }}>{proveedor.email || "-"}</td>
-                    <td style={{ padding: "10px 8px" }}>{proveedor.direccion || "-"}</td>
-                    <td style={{ padding: "10px 8px" }}>{proveedor.cuit_cuil || "-"}</td>
+                    <td 
+                      style={{ 
+                        padding: "10px 8px",
+                        maxWidth: "180px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                      title={proveedor.nombre}
+                    >
+                      {proveedor.nombre}
+                    </td>
+                    <td 
+                      style={{ 
+                        padding: "10px 8px",
+                        maxWidth: "180px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                      title={proveedor.persona_contacto || "-"}
+                    >
+                      {proveedor.persona_contacto || "-"}
+                    </td>
+                    <td 
+                      style={{ 
+                        padding: "10px 8px",
+                        maxWidth: "150px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                      title={proveedor.telefono || "-"}
+                    >
+                      {proveedor.telefono || "-"}
+                    </td>
+                    <td 
+                      style={{ 
+                        padding: "10px 8px",
+                        maxWidth: "200px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                      title={proveedor.email || "-"}
+                    >
+                      {proveedor.email || "-"}
+                    </td>
+                    <td 
+                      style={{ 
+                        padding: "10px 8px",
+                        maxWidth: "250px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                      title={proveedor.direccion || "-"}
+                    >
+                      {proveedor.direccion || "-"}
+                    </td>
+                    <td 
+                      style={{ 
+                        padding: "10px 8px",
+                        maxWidth: "150px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                      title={proveedor.cuit_cuil || "-"}
+                    >
+                      {proveedor.cuit_cuil || "-"}
+                    </td>
                     <td style={{ padding: "10px 8px" }}>
                       <button
                         className="btn-accion"
@@ -558,6 +625,7 @@ const Proveedores: React.FC = () => {
                     value={formData.nombre}
                     onChange={handleInputChange}
                     required
+                    maxLength={30}
                     style={{
                       background: "#181818",
                       color: "#fff",
@@ -598,6 +666,7 @@ const Proveedores: React.FC = () => {
                     name="persona_contacto"
                     value={formData.persona_contacto}
                     onChange={handleInputChange}
+                    maxLength={30}
                     style={{
                       background: "#181818",
                       color: "#fff",
@@ -616,6 +685,7 @@ const Proveedores: React.FC = () => {
                     value={formData.telefono}
                     onChange={handleInputChange}
                     placeholder="+54 9 11 1234-5678"
+                    maxLength={30}
                     style={{
                       background: "#181818",
                       color: "#fff",
@@ -636,6 +706,7 @@ const Proveedores: React.FC = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="proveedor@ejemplo.com"
+                  maxLength={50}
                   style={{
                     background: "#181818",
                     color: "#fff",
@@ -654,6 +725,7 @@ const Proveedores: React.FC = () => {
                   name="direccion"
                   value={formData.direccion}
                   onChange={handleInputChange}
+                  maxLength={100}
                   style={{
                     background: "#181818",
                     color: "#fff",
