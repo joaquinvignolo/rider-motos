@@ -586,6 +586,7 @@ const Proveedores: React.FC = () => {
           />
         </div>
       </div>
+      </div>
 
       {/* Modal de formulario */}
       {mostrarModal && (

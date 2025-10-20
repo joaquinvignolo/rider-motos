@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import riderLogo from "../assets/rider-logo.png";
 import "./Productos.css";
 import PaginacionUnificada from "./PaginacionUnificada";
+import Navbar from "./Navbar";
 
 // Tipo de producto
 type Producto = {
@@ -359,15 +360,12 @@ const Productos: React.FC = () => {
 
   return (
     <div className="productos-container">
-      <aside className="productos-sidebar">
+      {/* NAVBAR */}
+      <Navbar />
+      
+      {/* Sidebar */}
+      <aside className="productos-sidebar" style={{ marginTop: "64px", height: "calc(100vh - 64px)" }}>
         <img src={riderLogo} alt="Rider Motos" className="logo-productos" />
-        <button
-          className="sidebar-btn inicio-btn"
-          style={{ fontSize: "1.5rem" }}
-          onClick={() => navigate("/menu")}
-        >
-          INICIO
-        </button>
         <button
           className={`sidebar-btn${seccion === "motos" ? " activo" : ""}`}
           onClick={() => setSeccion("motos")}
@@ -387,8 +385,11 @@ const Productos: React.FC = () => {
           REPUESTOS
         </button>
       </aside>
-      <div className="separador-vertical"></div>
-      <main className="productos-main">
+
+      <div className="separador-vertical" style={{ marginTop: "64px", height: "calc(100vh - 64px)" }}></div>
+
+      {/* Main - Ajustar margen superior y padding */}
+      <main className="productos-main" style={{ marginTop: "64px", height: "calc(100vh - 64px)", overflowY: "auto" }}>
         <h1>
           {seccion === "motos"
             ? "Motos"
