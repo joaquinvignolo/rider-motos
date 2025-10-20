@@ -209,7 +209,7 @@ const Patentamiento: React.FC = () => {
           left: 10,
           zIndex: 100,
           fontSize: "1.18rem",
-          padding: "8px 20px",
+          padding: "6px 18px",
           borderRadius: 8,
           fontWeight: 700,
           background: "#a32020",

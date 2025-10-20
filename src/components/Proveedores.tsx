@@ -24,7 +24,15 @@ const Proveedores: React.FC = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const [proveedorEdit, setProveedorEdit] = useState<Proveedor | null>(null);
-  const [mostrarInactivos, setMostrarInactivos] = useState(false); 
+  const [mostrarInactivos, setMostrarInactivos] = useState(false);
+
+  // ✅ NUEVO: Estado para modal de confirmación
+  const [modalConfirmacion, setModalConfirmacion] = useState({
+    visible: false,
+    titulo: "",
+    mensaje: "",
+    accion: () => {},
+  });
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -63,15 +71,11 @@ const Proveedores: React.FC = () => {
 
   // Filtrar proveedores
   const proveedoresFiltrados = proveedores.filter((p) => {
-    // Filtro por estado activo/inactivo
     const matchEstado = mostrarInactivos ? p.activo === 0 : p.activo === 1;
-    
-    // Filtro por búsqueda
     const matchBusqueda = 
       p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       (p.cuit_cuil && p.cuit_cuil.includes(busqueda)) ||
       (p.persona_contacto && p.persona_contacto.toLowerCase().includes(busqueda.toLowerCase()));
-    
     return matchEstado && matchBusqueda;
   });
 
@@ -85,23 +89,49 @@ const Proveedores: React.FC = () => {
     setTipoMensaje(tipo);
   };
 
-  // Validación de CUIT/CUIL (formato básico)
+  // Función para mostrar modal de confirmación
+  const mostrarModalConfirmacion = (titulo: string, mensaje: string, accion: () => void) => {
+    setModalConfirmacion({
+      visible: true,
+      titulo,
+      mensaje,
+      accion,
+    });
+  };
+
+  // Función para cerrar modal de confirmación
+  const cerrarModalConfirmacion = () => {
+    setModalConfirmacion({
+      visible: false,
+      titulo: "",
+      mensaje: "",
+      accion: () => {},
+    });
+  };
+
+  // ✅ NUEVO: Función para confirmar acción
+  const confirmarAccion = () => {
+    modalConfirmacion.accion();
+    cerrarModalConfirmacion();
+  };
+
+  // Validación de CUIT/CUIL
   const validarCuitCuil = (cuit: string): boolean => {
-    if (!cuit) return true; // Es opcional
+    if (!cuit) return true;
     const cuitLimpio = cuit.replace(/[-\s]/g, "");
     return /^\d{11}$/.test(cuitLimpio);
   };
 
   // Validación de email
   const validarEmail = (email: string): boolean => {
-    if (!email) return true; // Es opcional
+    if (!email) return true;
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
 
-  // Validación de teléfono (solo números, espacios, guiones, paréntesis y +)
+  // Validación de teléfono
   const validarTelefono = (telefono: string): boolean => {
-    if (!telefono) return true; // Es opcional
+    if (!telefono) return true;
     const regex = /^[\d\s\-\(\)\+]+$/;
     return regex.test(telefono);
   };
@@ -141,7 +171,7 @@ const Proveedores: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Validar nombre obligatorio
+    // Validaciones
     if (!formData.nombre.trim()) {
       mostrarMensaje("El nombre del proveedor es obligatorio", "error");
       return;
@@ -152,7 +182,6 @@ const Proveedores: React.FC = () => {
       return;
     }
 
-    // 2. Validar CUIT/CUIL obligatorio
     if (!formData.cuit_cuil || formData.cuit_cuil.trim() === "") {
       mostrarMensaje("El CUIT/CUIL es obligatorio", "error");
       return;
@@ -163,7 +192,6 @@ const Proveedores: React.FC = () => {
       return;
     }
 
-    // 3. ✅ NUEVO: Validar que tenga al menos email O teléfono
     const tieneEmail = formData.email && formData.email.trim() !== "";
     const tieneTelefono = formData.telefono && formData.telefono.trim() !== "";
     
@@ -172,19 +200,16 @@ const Proveedores: React.FC = () => {
       return;
     }
 
-    // 4. Validar formato de email si se ingresó
     if (tieneEmail && !validarEmail(formData.email)) {
       mostrarMensaje("El email ingresado no es válido", "error");
       return;
     }
 
-    // 5. Validar formato de teléfono si se ingresó
     if (tieneTelefono && !validarTelefono(formData.telefono)) {
       mostrarMensaje("El teléfono solo puede contener números, espacios, guiones y paréntesis", "error");
       return;
     }
 
-    // 6. Validar proveedor duplicado (solo al crear)
     if (!modoEdicion) {
       const nombreExiste = proveedores.some(
         p => p.nombre.toLowerCase() === formData.nombre.trim().toLowerCase()
@@ -224,28 +249,33 @@ const Proveedores: React.FC = () => {
     }
   };
 
-  const toggleActivo = async (proveedor: Proveedor) => {
+  // ✅ MODIFICADO: Usar modal de confirmación en lugar de window.confirm
+  const toggleActivo = (proveedor: Proveedor) => {
     const nuevoEstado = proveedor.activo === 1 ? 0 : 1;
     const accion = nuevoEstado === 0 ? "desactivar" : "activar";
 
-    if (!window.confirm(`¿Está seguro de ${accion} este proveedor?`)) return;
+    mostrarModalConfirmacion(
+      `${accion.charAt(0).toUpperCase() + accion.slice(1)} Proveedor`,
+      `¿Está seguro de ${accion} el proveedor "${proveedor.nombre}"?`,
+      async () => {
+        try {
+          const response = await fetch(`http://localhost:3001/api/proveedores/${proveedor.id}/toggle`, {
+            method: "PUT",
+          });
 
-    try {
-      const response = await fetch(`http://localhost:3001/api/proveedores/${proveedor.id}/toggle`, {
-        method: "PUT",
-      });
+          const data = await response.json();
 
-      const data = await response.json();
-
-      if (data.success) {
-        mostrarMensaje(`Proveedor ${accion === "desactivar" ? "desactivado" : "activado"} correctamente`, "success");
-        cargarProveedores();
-      } else {
-        mostrarMensaje(data.message || "Error al cambiar estado", "error");
+          if (data.success) {
+            mostrarMensaje(`Proveedor ${accion === "desactivar" ? "desactivado" : "activado"} correctamente`, "success");
+            cargarProveedores();
+          } else {
+            mostrarMensaje(data.message || "Error al cambiar estado", "error");
+          }
+        } catch (error) {
+          mostrarMensaje("Error de conexión", "error");
+        }
       }
-    } catch (error) {
-      mostrarMensaje("Error de conexión", "error");
-    }
+    );
   };
 
   return (
@@ -259,7 +289,7 @@ const Proveedores: React.FC = () => {
           left: 10,
           zIndex: 100,
           fontSize: "1.18rem",
-          padding: "8px 20px",
+          padding: "6px 18px",
           borderRadius: 8,
           fontWeight: 700,
           background: "#a32020",
@@ -329,7 +359,7 @@ const Proveedores: React.FC = () => {
           </button>
         </div>
 
-        {/* Filtros*/}
+        {/* Filtros */}
         <div style={{ 
           display: "flex", 
           gap: "16px", 
@@ -358,7 +388,7 @@ const Proveedores: React.FC = () => {
             }}
           />
 
-          {/* Activos/Inactivos */}
+          {/* Toggle Activos/Inactivos */}
           <button
             onClick={() => {
               setMostrarInactivos(!mostrarInactivos);
@@ -484,7 +514,7 @@ const Proveedores: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal de formulario */}
       {mostrarModal && (
         <div 
           className="modal-backdrop"
@@ -667,6 +697,108 @@ const Proveedores: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NUEVO: Modal de Confirmación */}
+      {modalConfirmacion.visible && (
+        <div 
+          className="modal-backdrop"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1001
+          }}
+          onClick={cerrarModalConfirmacion}
+        >
+          <div
+            style={{
+              background: "#232526",
+              border: "2px solid #a32020",
+              borderRadius: "16px",
+              padding: "32px",
+              minWidth: "400px",
+              maxWidth: "500px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+              animation: "slideIn 0.3s ease-out"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ 
+                fontSize: "3rem", 
+                color: "#ff9800",
+                marginBottom: "16px"
+              }}>
+                ⚠️
+              </div>
+              <h3 style={{ 
+                color: "#a32020", 
+                fontWeight: 700, 
+                fontSize: "1.5rem",
+                marginBottom: "12px"
+              }}>
+                {modalConfirmacion.titulo}
+              </h3>
+              <p style={{ 
+                color: "#fff", 
+                fontSize: "1rem",
+                lineHeight: "1.5"
+              }}>
+                {modalConfirmacion.mensaje}
+              </p>
+            </div>
+
+            <div style={{ 
+              display: "flex", 
+              gap: "12px", 
+              justifyContent: "center"
+            }}>
+              <button
+                onClick={confirmarAccion}
+                style={{
+                  background: "#a32020",
+                  color: "#fff",
+                  borderRadius: "8px",
+                  padding: "12px 32px",
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "#8a1a1a"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "#a32020"}
+              >
+                Confirmar
+              </button>
+              <button
+                onClick={cerrarModalConfirmacion}
+                style={{
+                  background: "#555",
+                  color: "#fff",
+                  borderRadius: "8px",
+                  padding: "12px 32px",
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "#444"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "#555"}
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
