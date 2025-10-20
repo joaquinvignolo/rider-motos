@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Compras.css';
 import IndicadorCarga from './IndicadorCarga';
+import Navbar from './Navbar';
 
 interface Marca {
     id: number;
@@ -232,143 +233,136 @@ const Compras = () => {
 
     return (
         <div className="compras-bg">
-            <button
-                onClick={volverAlMenu}
-                className="inicio-btn"
-                style={{
-                    position: 'fixed',
-                    top: 32,
-                    left: 32,
-                    zIndex: 100
-                }}
-            >
-                INICIO
-            </button>
-            <div className="compras-container">
-                {confirmando && <IndicadorCarga mensaje="Registrando compra..." />}
-                <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
-                
-                {mensajeError && (
-                    <div style={{
-                        background: "#ffe0e0",
-                        color: "#a32020",
-                        padding: "10px 18px",
-                        borderRadius: "8px",
-                        marginBottom: "18px",
-                        fontWeight: "bold",
-                        textAlign: "center"
-                    }}>
-                        {mensajeError}
-                    </div>
-                )}
-                
-                <div className="nueva-compra">
-                    <h2>Registrar Factura de Compra</h2>
+            {/*NAVBAR */}
+            <Navbar />
+
+            {/* WRAPPER CON PADDING */}
+            <div style={{ paddingTop: "84px" }}>
+                <div className="compras-container">
+                    {confirmando && <IndicadorCarga mensaje="Registrando compra..." />}
+                    <h1 style={{ color: '#fff', fontWeight: 700, fontSize: '2.5rem', marginBottom: '32px', letterSpacing: '2px', textAlign: 'center' }}>Compras</h1>
                     
-                    {/* 1. PROVEEDOR (OBLIGATORIO PRIMERO) */}
-                    <div className="form-row">
-                        <label>
-                            Proveedor *
-                            {errorProveedor && <span style={{ color: '#ff4444', marginLeft: 4 }}>(obligatorio)</span>}
-                        </label>
-                        <select
-                            value={proveedorSeleccionado}
-                            onChange={e => {
-                                setProveedorSeleccionado(e.target.value);
-                                setErrorProveedor(false);
-                            }}
-                            style={errorProveedor ? { border: '2px solid #ff4444' } : undefined}
-                        >
-                            <option value="">Seleccione el proveedor de la factura</option>
-                            {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
-                        </select>
-                    </div>
+                    {mensajeError && (
+                        <div style={{
+                            background: "#ffe0e0",
+                            color: "#a32020",
+                            padding: "10px 18px",
+                            borderRadius: "8px",
+                            marginBottom: "18px",
+                            fontWeight: "bold",
+                            textAlign: "center"
+                        }}>
+                            {mensajeError}
+                        </div>
+                    )}
+                    
+                    <div className="nueva-compra">
+                        <h2>Registrar Factura de Compra</h2>
+                        
+                        {/* 1. PROVEEDOR (OBLIGATORIO PRIMERO) */}
+                        <div className="form-row">
+                            <label>
+                                Proveedor *
+                                {errorProveedor && <span style={{ color: '#ff4444', marginLeft: 4 }}>(obligatorio)</span>}
+                            </label>
+                            <select
+                                value={proveedorSeleccionado}
+                                onChange={e => {
+                                    setProveedorSeleccionado(e.target.value);
+                                    setErrorProveedor(false);
+                                }}
+                                style={errorProveedor ? { border: '2px solid #ff4444' } : undefined}
+                            >
+                                <option value="">Seleccione el proveedor de la factura</option>
+                                {proveedores.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
+                            </select>
+                        </div>
 
-                    {/* 2. TIPO DE COMPROBANTE */}
-                    <div className="form-row">
-                        <label>Tipo de Comprobante *</label>
-                        <select
-                            value={tipoComprobante}
-                            onChange={e => setTipoComprobante(e.target.value)}
-                        >
-                            <option value="Factura A">Factura A</option>
-                            <option value="Factura B">Factura B</option>
-                            <option value="Factura C">Factura C</option>
-                            <option value="Remito">Remito</option>
-                        </select>
-                    </div>
+                        {/* 2. TIPO DE COMPROBANTE */}
+                        <div className="form-row">
+                            <label>Tipo de Comprobante *</label>
+                            <select
+                                value={tipoComprobante}
+                                onChange={e => setTipoComprobante(e.target.value)}
+                            >
+                                <option value="Factura A">Factura A</option>
+                                <option value="Factura B">Factura B</option>
+                                <option value="Factura C">Factura C</option>
+                                <option value="Remito">Remito</option>
+                            </select>
+                        </div>
 
-                    {/* 3. NÚMERO DE COMPROBANTE (SIEMPRE OBLIGATORIO) */}
-                    <div className="form-row">
-                        <label>
-                            Nº de Comprobante *
-                            <span style={{ color: '#888', fontSize: '0.9rem', marginLeft: 8 }}>
-                                (según factura en papel)
-                            </span>
-                        </label>
-                        <input
-                            type="text"
-                            value={numeroComprobante}
-                            onChange={e => {
-                                setNumeroComprobante(e.target.value);
-                                setErrorNumeroComprobante(false);
-                            }}
-                            placeholder="Ej: 0001-00001234"
-                            maxLength={50}
-                            style={errorNumeroComprobante ? { border: '2px solid #ff4444' } : undefined}
-                        />
-                    </div>
+                        {/* 3. NÚMERO DE COMPROBANTE (SIEMPRE OBLIGATORIO) */}
+                        <div className="form-row">
+                            <label>
+                                Nº de Comprobante *
+                                <span style={{ color: '#888', fontSize: '0.9rem', marginLeft: 8 }}>
+                                    (según factura en papel)
+                                </span>
+                            </label>
+                            <input
+                                type="text"
+                                value={numeroComprobante}
+                                onChange={e => {
+                                    setNumeroComprobante(e.target.value);
+                                    setErrorNumeroComprobante(false);
+                                }}
+                                placeholder="Ej: 0001-00001234"
+                                maxLength={50}
+                                style={errorNumeroComprobante ? { border: '2px solid #ff4444' } : undefined}
+                            />
+                        </div>
 
-                    {/* 4. FECHA DE EMISIÓN */}
-                    <div className="form-row">
-                        <label>Fecha de Emisión *</label>
-                        <input
-                            type="date"
-                            value={fechaEmision}
-                            onChange={e => setFechaEmision(e.target.value)}
-                            max={new Date().toISOString().split('T')[0]}
-                        />
-                    </div>
+                        {/* 4. FECHA DE EMISIÓN */}
+                        <div className="form-row">
+                            <label>Fecha de Emisión *</label>
+                            <input
+                                type="date"
+                                value={fechaEmision}
+                                onChange={e => setFechaEmision(e.target.value)}
+                                max={new Date().toISOString().split('T')[0]}
+                            />
+                        </div>
 
-                    <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #353535' }} />
+                        <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #353535' }} />
 
-                    <h3 style={{ color: '#fff', marginBottom: '16px' }}>Productos de la factura</h3>
+                        <h3 style={{ color: '#fff', marginBottom: '16px' }}>Productos de la factura</h3>
 
-                    {/* FILTROS OPCIONALES */}
-                    <div className="form-row">
-                        <label>Tipo de Producto (filtro opcional)</label>
-                        <select value={tipo} onChange={e => setTipo(e.target.value)}>
-                            <option value="">Todos los tipos</option>
-                            {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                        </select>
-                    </div>
+                        {/* FILTROS OPCIONALES */}
+                        <div className="form-row">
+                            <label>Tipo de Producto (filtro opcional)</label>
+                            <select value={tipo} onChange={e => setTipo(e.target.value)}>
+                                <option value="">Todos los tipos</option>
+                                {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                            </select>
+                        </div>
 
-                    <div className="form-row">
-                        <label>Marca (filtro opcional)</label>
-                        <select
-                            value={marcaSeleccionada}
-                            onChange={e => setMarcaSeleccionada(e.target.value)}
-                        >
-                            <option value="">Todas las marcas</option>
-                            {marcas.map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
-                        </select>
-                    </div>
+                        <div className="form-row">
+                            <label>Marca (filtro opcional)</label>
+                            <select
+                                value={marcaSeleccionada}
+                                onChange={e => setMarcaSeleccionada(e.target.value)}
+                            >
+                                <option value="">Todas las marcas</option>
+                                {marcas.map(m => <option key={m.id} value={m.nombre}>{m.nombre}</option>)}
+                            </select>
+                        </div>
 
-                    {/* 5. PRODUCTO */}
-                    <div className="form-row">
-                        <label>Producto *</label>
-                        <select
-                            value={productoSeleccionado ?? ''}
-                            onChange={e => {
-                                const prodId = Number(e.target.value);
-                                setProductoSeleccionado(prodId);
-                                const prod = productos.find(p => p.id === prodId);
-                                if (prod) setPrecioUnitario(prod.precio.toString());
-                            }}
-                            disabled={!proveedorSeleccionado}
-                        >
-                            <option value="">
-                                {proveedorSeleccionado ? 'Seleccione un producto' : 'Primero seleccione un proveedor'}
+                        {/* 5. PRODUCTO */}
+                        <div className="form-row">
+                            <label>Producto *</label>
+                            <select
+                                value={productoSeleccionado ?? ''}
+                                onChange={e => {
+                                    const prodId = Number(e.target.value);
+                                    setProductoSeleccionado(prodId);
+                                    const prod = productos.find(p => p.id === prodId);
+                                    if (prod) setPrecioUnitario(prod.precio.toString());
+                                }}
+                                disabled={!proveedorSeleccionado}
+                            >
+                                <option value="">
+                                    {proveedorSeleccionado ? 'Seleccione un producto' : 'Primero seleccione un proveedor'}
                             </option>
                             {productos
                                 .filter(p => {
@@ -512,6 +506,7 @@ const Compras = () => {
                 >
                     {confirmando ? "REGISTRANDO..." : "REGISTRAR COMPRA"}
                 </button>
+                </div>
             </div>
         </div>
     );
