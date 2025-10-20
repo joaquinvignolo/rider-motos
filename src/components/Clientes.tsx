@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Clientes.css";
 import PaginacionUnificada from "./PaginacionUnificada";
+import Navbar from "./Navbar";
 
 type Cliente = {
   id: number;
@@ -139,141 +140,158 @@ const Clientes: React.FC = () => {
   return (
     <>
       <div className="clientes-container">
-        <div style={{ position: "fixed", top: 32, left: 32, zIndex: 100, display: "flex", flexDirection: "column", gap: 12 }}>
-          <button
-            className="inicio-btn"
-            style={{
-              fontSize: "1.18rem",
-              padding: "10px 28px",
-              borderRadius: 8,
-              fontWeight: 700,
-              background: "#a32020",
-              color: "#fff",
-              border: "none",
-              boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
-              cursor: "pointer",
-              transition: "background 0.18s, box-shadow 0.18s"
-            }}
-            onClick={() => navigate("/menu")}
-          >
-            INICIO
-          </button>
-          <button
-            className="inicio-btn"
-            style={{
-              fontSize: "1.18rem",
-              padding: "10px 28px",
-              borderRadius: 8,
-              fontWeight: 700,
-              background: "#a32020",
-              color: "#fff",
-              border: "none",
-              boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
-              cursor: "pointer",
-              transition: "background 0.18s, box-shadow 0.18s"
-            }}
-            onClick={() => navigate("/ventas")}
-          >
-            VENTAS
-          </button>
-        </div>
-        <h1>Clientes</h1>
-        <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
-          <button
-            className="clientes-btn agregar"
-            onClick={abrirFormNuevo}
-          >
-            <span style={{display: "inline-flex", alignItems: "center", gap: 8}}>
-              <svg width="20" height="20" viewBox="0 0 22 22" style={{marginRight: 2}}>
-                <circle cx="11" cy="11" r="11" fill="#a32020"/>
-                <rect x="10" y="5" width="2" height="12" rx="1" fill="white"/>
-                <rect x="5" y="10" width="12" height="2" rx="1" fill="white"/>
-              </svg>
-              Agregar Cliente
-            </span>
-          </button>
-          <input
-            type="text"
-            placeholder="Buscar cliente..."
-            value={busqueda}
-            onChange={e => {
-              setBusqueda(e.target.value);
-              setPagina(1);
-            }}
-            style={{
-              padding: "7px 12px",
-              borderRadius: 6,
-              border: "1.5px solid #a32020",
-              background: "#232526",
-              color: "#fff",
-              fontSize: "1rem",
-              minWidth: 220
-            }}
-          />
-          <button
-            className="clientes-btn"
-            style={{ marginLeft: 8, background: "#353535" }}
-            onClick={() => {
-              setMostrarInactivos(v => !v);
-              setPagina(1);
-            }}
-            title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
-          >
-            {mostrarInactivos ? (
-              // Cruz para inactivos
-              <svg width="22" height="22" viewBox="0 0 22 22">
-                <circle cx="11" cy="11" r="11" fill="#a32020"/>
-                <path d="M7 7l8 8M15 7l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            ) : (
-              // Tilde para activos
-              <svg width="22" height="22" viewBox="0 0 22 22">
-                <circle cx="11" cy="11" r="11" fill="#80c481ff"/>
-                <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              </svg>
-            )}
-          </button>
-        </div>
-        <ul className="clientes-lista">
-          {clientesPagina.map(cliente => (
-            <li
-              key={cliente.id}
-              className={cliente.activo ? "cliente-activo" : "cliente-inactivo"}
-            >
-              <span>
-                <b>{cliente.nombre} {cliente.apellido}</b> - {cliente.telefono} - {cliente.correo}
-                {cliente.activo ? "" : " (Inactivo)"}
-              </span>
-              <span style={{ display: "flex", gap: 8 }}>
-                <button
-                  className="clientes-btn editar"
-                  onClick={() => abrirFormEditar(cliente)}
-                  title="Editar"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                </button>
-                <button
-                  className="clientes-btn"
-                  style={{ background: cliente.activo ? "#a32020" : "#80c481ff" }}
-                  onClick={() => cambiarEstado(cliente)}
-                  title={cliente.activo ? "Inactivar" : "Activar"}
-                >
-                  {cliente.activo ? "Inactivar" : "Activar"}
-                </button>
-              </span>
-            </li>
-          ))}
-        </ul>
-        {/* Paginación */}
-        {totalPaginas > 1 && (
-          <PaginacionUnificada
-            pagina={pagina}
-            totalPaginas={totalPaginas}
-            onAnterior={() => setPagina(pagina - 1)}
-            onSiguiente={() => setPagina(pagina + 1)}
-          />
-        )}
+        {/* AGREGAR NAVBAR */}
+        <Navbar />
 
+        {/* PADDING TOP Y WRAPPER */}
+        <div style={{ paddingTop: "84px" }}>
+          <h1 style={{
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "2.5rem",
+            marginBottom: "32px",
+            letterSpacing: "2px",
+            textAlign: "center"
+          }}>
+            Clientes
+          </h1>
+
+          {/* BOTÓN RÁPIDO A VENTAS */}
+          <div style={{
+            maxWidth: 1200,
+            margin: "0 auto 24px auto",
+            display: "flex",
+            justifyContent: "flex-end"
+          }}>
+            <button
+              onClick={() => navigate("/ventas")}
+              style={{
+                background: "#a32020",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "10px 20px",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#8a1a1a";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#a32020";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              <span>VENTAS</span>
+            </button>
+          </div>
+
+          {/* Contenido existente */}
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
+              <button
+                className="clientes-btn agregar"
+                onClick={abrirFormNuevo}
+              >
+                <span style={{display: "inline-flex", alignItems: "center", gap: 8}}>
+                  <svg width="20" height="20" viewBox="0 0 22 22" style={{marginRight: 2}}>
+                    <circle cx="11" cy="11" r="11" fill="#a32020"/>
+                    <rect x="10" y="5" width="2" height="12" rx="1" fill="white"/>
+                    <rect x="5" y="10" width="12" height="2" rx="1" fill="white"/>
+                  </svg>
+                  Agregar Cliente
+                </span>
+              </button>
+              <input
+                type="text"
+                placeholder="Buscar cliente..."
+                value={busqueda}
+                onChange={e => {
+                  setBusqueda(e.target.value);
+                  setPagina(1);
+                }}
+                style={{
+                  padding: "7px 12px",
+                  borderRadius: 6,
+                  border: "1.5px solid #a32020",
+                  background: "#232526",
+                  color: "#fff",
+                  fontSize: "1rem",
+                  minWidth: 220
+                }}
+              />
+              <button
+                className="clientes-btn"
+                style={{ marginLeft: 8, background: "#353535" }}
+                onClick={() => {
+                  setMostrarInactivos(v => !v);
+                  setPagina(1);
+                }}
+                title={mostrarInactivos ? "Ver activos" : "Ver inactivos"}
+              >
+                {mostrarInactivos ? (
+                  <svg width="22" height="22" viewBox="0 0 22 22">
+                    <circle cx="11" cy="11" r="11" fill="#a32020"/>
+                    <path d="M7 7l8 8M15 7l-8 8" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 22 22">
+                    <circle cx="11" cy="11" r="11" fill="#80c481ff"/>
+                    <path d="M6 12l4 4 6-8" stroke="#fff" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            <ul className="clientes-lista">
+              {clientesPagina.map(cliente => (
+                <li
+                  key={cliente.id}
+                  className={cliente.activo ? "cliente-activo" : "cliente-inactivo"}
+                >
+                  <span>
+                    <b>{cliente.nombre} {cliente.apellido}</b> - {cliente.telefono} - {cliente.correo}
+                    {cliente.activo ? "" : " (Inactivo)"}
+                  </span>
+                  <span style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="clientes-btn editar"
+                      onClick={() => abrirFormEditar(cliente)}
+                      title="Editar"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zm17.71-10.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </button>
+                    <button
+                      className="clientes-btn"
+                      style={{ background: cliente.activo ? "#a32020" : "#80c481ff" }}
+                      onClick={() => cambiarEstado(cliente)}
+                      title={cliente.activo ? "Inactivar" : "Activar"}
+                    >
+                      {cliente.activo ? "Inactivar" : "Activar"}
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {totalPaginas > 1 && (
+              <PaginacionUnificada
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                onAnterior={() => setPagina(pagina - 1)}
+                onSiguiente={() => setPagina(pagina + 1)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Modales existentes */}
         {showForm && (
           <div className="clientes-modal-backdrop">
             <form className="clientes-modal" onSubmit={handleSubmit}>
