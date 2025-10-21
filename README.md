@@ -1,54 +1,78 @@
-# React + TypeScript + Vite
+# Rider Motos - Sistema de Gestión
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema integral para gestionar ventas, compras, inventario y patentamientos de una concesionaria de motos.
 
-Currently, two official plugins are available:
+## 🚀 Despliegue en Producción
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend (React + Vite):** https://rider-motos-ten.vercel.app
+- **Backend (Node.js + Express):** https://rider-motos.onrender.com
+- **Base de Datos:** MySQL en Railway
 
-## Expanding the ESLint configuration
+## 🛠️ Tecnologías
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Frontend
+- React 18
+- Vite
+- React Router
+- Axios
+- CSS Modules
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Backend
+- Node.js
+- Express
+- MySQL2
+- PDFKit
+- Nodemailer
+
+### Base de Datos
+- MySQL 8.4
+- Railway
+
+## 📦 Estructura del Proyecto
+
+```
+rider-motos/
+├── src/              # Frontend React
+├── backend/          # Backend Express
+└── database/         # Scripts SQL
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## ⚙️ Variables de Entorno
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Frontend (Vercel)
+- `VITE_API_URL`: URL del backend
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+### Backend (Render)
+- `DB_HOST`: Host de MySQL (Railway)
+- `DB_USER`: Usuario de MySQL
+- `DB_PASSWORD`: Contraseña de MySQL
+- `DB_NAME`: Nombre de la base de datos
+- `DB_PORT`: Puerto de MySQL
+- `NODE_ENV`: production
+- `FRONTEND_URL`: URL del frontend (para CORS)
+- `PORT`: 10000
+
+## 🔧 Desarrollo Local
+
+### Frontend
+```bash
+npm install
+npm run dev
 ```
+
+### Backend
+```bash
+cd backend
+npm install
+node index.js
+```
+
+## 📝 Notas
+
+- El backend está desplegado en **Render** (en lugar de Vercel serverless) debido a las conexiones persistentes de MySQL y operaciones de larga duración (PDFs, emails).
+- Primera carga del backend puede tardar 30-60 segundos (Render Free Tier hiberna después de 15 minutos de inactividad).
+
+## 👥 Equipo
+
+- [Vignolo Joaquín y Ceballos Genaro]
+- [Rider Motos]
