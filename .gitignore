@@ -14,6 +14,12 @@ dist-ssr
 
 # Environment variables
 backend/.env
+.env
+.env.local
+.env.production
+
+# Database backups (opcional)
+database/
 
 # Editor directories and files
 .vscode/*
@@ -25,12 +31,3 @@ backend/.env
 *.njsproj
 *.sln
 *.sw?
-
-node_modules/
-dist/
-.env
-.env.local
-.env.production
-*.log
-.DS_Store
-backend/.env
