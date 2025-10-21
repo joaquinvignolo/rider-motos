@@ -7,8 +7,24 @@ const nodemailer = require('nodemailer');
 const { generarPDFVenta } = require('./pdfVenta');
 
 const app = express();
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.FRONTEND_URL, // URL de producción desde variable de entorno
+].filter(Boolean); // Elimina valores undefined
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function(origin, callback) {
+    // Permitir requests sin origin (Postman, apps móviles, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(bodyParser.json());
