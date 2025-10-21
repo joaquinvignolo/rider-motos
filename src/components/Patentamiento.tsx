@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 import "./Patentamiento.css";
 import PaginacionUnificada from "./PaginacionUnificada";
 import IndicadorCarga from "./IndicadorCarga";
@@ -42,12 +43,12 @@ const Patentamiento: React.FC = () => {
 
   // Función para traer trámites con datos únicos
   const actualizarTramitesConDatos = async () => {
-    const res = await fetch("http://localhost:3001/api/patentamientos");
+    const res = await fetch(`${API_URL}/api/patentamientos`);
     const data = await res.json();
     const tramitesConDatos = await Promise.all(
       data.map(async tramite => {
         try {
-          const res = await fetch(`http://localhost:3001/api/motos-entregadas/${tramite.id}`);
+          const res = await fetch(`${API_URL}/api/motos-entregadas/${tramite.id}`);
           if (res.ok) {
             const datosMoto = await res.json();
             return { ...tramite, datosMoto };
@@ -61,7 +62,7 @@ const Patentamiento: React.FC = () => {
 
   // Traer ventas disponibles para patentamiento
   useEffect(() => {
-    fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
+    fetch(`${API_URL}/api/ventas-disponibles-patentamiento`)
       .then(res => res.json())
       .then(data => setVentasDisponibles(data));
   }, []);
@@ -126,7 +127,7 @@ const Patentamiento: React.FC = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/patentamientos", {
+      const res = await fetch(`${API_URL}/api/patentamientos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -154,7 +155,7 @@ const Patentamiento: React.FC = () => {
         await actualizarTramitesConDatos();
         
         // Actualizar ventas disponibles
-        fetch("http://localhost:3001/api/ventas-disponibles-patentamiento")
+        fetch(`${API_URL}/api/ventas-disponibles-patentamiento`)
           .then(res => res.json())
           .then(data => setVentasDisponibles(data));
       } else {
@@ -189,7 +190,7 @@ const Patentamiento: React.FC = () => {
 
   useEffect(() => {
     if (tramiteEdit) {
-      fetch(`http://localhost:3001/api/motos-entregadas/${tramiteEdit.id}`)
+      fetch(`${API_URL}/api/motos-entregadas/${tramiteEdit.id}`)
         .then(res => res.ok ? res.json() : null)
         .then(data => setDatosMoto(data))
         .catch(() => setDatosMoto(null));
@@ -893,7 +894,7 @@ const Patentamiento: React.FC = () => {
                     setCargandoEstado(true);
                     try {
                       // Actualizar el estado a "En Proceso"
-                      const res = await fetch(`http://localhost:3001/api/patentamientos/${tramiteEdit.id}`, {
+                      const res = await fetch(`${API_URL}/api/patentamientos/${tramiteEdit.id}`, {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ estado: nuevoEstado })
@@ -910,7 +911,7 @@ const Patentamiento: React.FC = () => {
                       // Guardar expediente si es necesario
                       if (nuevoEstado === "En Proceso" && numeroExpediente.trim() && !datosMoto?.numero_expediente) {
                         const resExp = await fetch(
-                          `http://localhost:3001/api/patentamientos/${tramiteEdit.id}/expediente`,
+                          `${API_URL}/api/patentamientos/${tramiteEdit.id}/expediente`,
                           {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },

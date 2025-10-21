@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 import PaginacionUnificada from "./PaginacionUnificada";
-import Navbar from "./Navbar"; // ← ✅ IMPORTAR
+import Navbar from "./Navbar";
 import "./Proveedores.css";
 
 interface Proveedor {
@@ -27,7 +28,7 @@ const Proveedores: React.FC = () => {
   const [proveedorEdit, setProveedorEdit] = useState<Proveedor | null>(null);
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
-  // ✅ NUEVO: Estado para modal de confirmación
+  // Estado para modal de confirmación
   const [modalConfirmacion, setModalConfirmacion] = useState({
     visible: false,
     titulo: "",
@@ -62,7 +63,7 @@ const Proveedores: React.FC = () => {
 
   const cargarProveedores = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/proveedores");
+      const response = await fetch(`${API_URL}/api/proveedores`);
       const data = await response.json();
       setProveedores(data);
     } catch (error) {
@@ -110,7 +111,7 @@ const Proveedores: React.FC = () => {
     });
   };
 
-  // ✅ NUEVO: Función para confirmar acción
+  // Función para confirmar acción
   const confirmarAccion = () => {
     modalConfirmacion.accion();
     cerrarModalConfirmacion();
@@ -223,8 +224,8 @@ const Proveedores: React.FC = () => {
 
     try {
       const url = modoEdicion
-        ? `http://localhost:3001/api/proveedores/${proveedorEdit?.id}`
-        : "http://localhost:3001/api/proveedores";
+        ? `${API_URL}/api/proveedores/${proveedorEdit?.id}`
+        : `${API_URL}/api/proveedores`;
 
       const response = await fetch(url, {
         method: modoEdicion ? "PUT" : "POST",
@@ -250,7 +251,6 @@ const Proveedores: React.FC = () => {
     }
   };
 
-  // ✅ MODIFICADO: Usar modal de confirmación en lugar de window.confirm
   const toggleActivo = (proveedor: Proveedor) => {
     const nuevoEstado = proveedor.activo === 1 ? 0 : 1;
     const accion = nuevoEstado === 0 ? "desactivar" : "activar";
@@ -260,7 +260,7 @@ const Proveedores: React.FC = () => {
       `¿Está seguro de ${accion} el proveedor "${proveedor.nombre}"?`,
       async () => {
         try {
-          const response = await fetch(`http://localhost:3001/api/proveedores/${proveedor.id}/toggle`, {
+          const response = await fetch(`${API_URL}/api/proveedores/${proveedor.id}/toggle`, {
             method: "PUT",
           });
 
@@ -281,34 +281,10 @@ const Proveedores: React.FC = () => {
 
   return (
     <div className="proveedores-container">
-      {/* ✅ AGREGAR NAVBAR */}
+      {/* AGREGAR NAVBAR */}
       <Navbar />
 
-      {/* ❌ ELIMINAR ESTE BLOQUE */}
-      {/* <button
-        className="inicio-btn"
-        style={{
-          position: "fixed",
-          top: 32,
-          left: 10,
-          zIndex: 100,
-          fontSize: "1.18rem",
-          padding: "6px 18px",
-          borderRadius: 8,
-          fontWeight: 700,
-          background: "#a32020",
-          color: "#fff",
-          border: "none",
-          boxShadow: "0 2px 8px rgba(163,32,32,0.08)",
-          cursor: "pointer",
-          transition: "background 0.18s, box-shadow 0.18s"
-        }}
-        onClick={() => navigate("/menu")}
-      >
-        INICIO
-      </button> */}
-
-      {/* ✅ AGREGAR WRAPPER CON PADDING */}
+      {/* WRAPPER CON PADDING */}
       <div style={{ paddingTop: "84px" }}>
         {/* Título */}
         <h1 style={{
@@ -780,7 +756,7 @@ const Proveedores: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ NUEVO: Modal de Confirmación */}
+      {/* Modal de Confirmación */}
       {modalConfirmacion.visible && (
         <div 
           className="modal-backdrop"

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { API_URL } from '../config';
 import "./Reportes.css";
 import jsPDF from "jspdf";
 import PaginacionUnificada from "./PaginacionUnificada";
 import IndicadorCarga from "./IndicadorCarga";
-import Navbar from "./Navbar"; //
+import Navbar from "./Navbar";
 
 function formatearFecha(fecha: string): string {
   if (!fecha) return "";
@@ -118,8 +119,8 @@ const Reportes: React.FC = () => {
     setCargando(true); 
     
     Promise.all([
-      fetch("http://localhost:3001/api/ventas").then(res => res.json()),
-      fetch("http://localhost:3001/api/compras").then(res => res.json())
+      fetch(`${API_URL}/api/ventas`).then(res => res.json()),
+      fetch(`${API_URL}/api/compras`).then(res => res.json())
     ])
     .then(([ventasData, comprasData]) => {
       setVentas(Array.isArray(ventasData) ? ventasData : []);
@@ -684,7 +685,6 @@ const Reportes: React.FC = () => {
                 minWidth: 100,
                 textAlign: "right"
               }}>
-                {/* ✅ USAR función de formateo */}
                 {detalleDia.fecha 
                   ? formatearFecha(detalleDia.fecha)
                   : ""}

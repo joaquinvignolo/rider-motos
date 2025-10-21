@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 import "./Ventas.css";
 import IndicadorCarga from "./IndicadorCarga";
 import Navbar from "./Navbar";
@@ -42,7 +43,7 @@ const Ventas: React.FC = () => {
 
   // Cargar productos según tipo seleccionado (SOLO ACTIVOS)
   useEffect(() => {
-    let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}&inactivos=0`;
+    let url = `${API_URL}/api/productos?tipo=${tipoSeleccionado}&inactivos=0`;
     if (searchTerm) {
       url += `&search=${encodeURIComponent(searchTerm)}`;
     }
@@ -63,7 +64,7 @@ const Ventas: React.FC = () => {
 
   // Cargar clientes
   useEffect(() => {
-    fetch("http://localhost:3001/api/clientes")
+    fetch(`${API_URL}/api/clientes`)
       .then(res => res.json())
       .then(data => setClientes(data));
   }, []);
@@ -71,7 +72,7 @@ const Ventas: React.FC = () => {
   // Buscar clientes en tiempo real por nombre
   useEffect(() => {
     if (busquedaCliente.length > 1) {
-      fetch(`http://localhost:3001/api/clientes?search=${encodeURIComponent(busquedaCliente)}`)
+      fetch(`${API_URL}/api/clientes?search=${encodeURIComponent(busquedaCliente)}`)
         .then(res => res.json())
         .then(data => setClientesSugeridos(data));
     } else {
@@ -187,7 +188,7 @@ const Ventas: React.FC = () => {
     setCargando(true);
 
     try {
-      const res = await fetch("http://localhost:3001/api/ventas", {
+      const res = await fetch(`${API_URL}/api/ventas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -209,7 +210,7 @@ const Ventas: React.FC = () => {
         setClientesSugeridos([]);
 
         // Recargar productos para actualizar el stock visual (SOLO ACTIVOS)
-        let url = `http://localhost:3001/api/productos?tipo=${tipoSeleccionado}&inactivos=0`;
+        let url = `${API_URL}/api/productos?tipo=${tipoSeleccionado}&inactivos=0`;
         if (searchTerm) {
           url += `&search=${encodeURIComponent(searchTerm)}`;
         }

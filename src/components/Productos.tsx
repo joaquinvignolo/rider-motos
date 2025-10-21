@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 import riderLogo from "../assets/rider-logo.png";
 import "./Productos.css";
 import PaginacionUnificada from "./PaginacionUnificada";
@@ -66,7 +67,7 @@ const Productos: React.FC = () => {
 
   // Cargar productos, marcas y proveedores desde el backend
   useEffect(() => {
-    let url = "http://localhost:3001/api/productos?tipo=" + (
+    let url = `${API_URL}/api/productos?tipo=` + (
       seccion === "motos" ? "moto" :
       seccion === "accesorios" ? "accesorio" :
       "repuesto"
@@ -79,13 +80,13 @@ const Productos: React.FC = () => {
 
   // Cargar TODAS las marcas (sin filtrar)
   useEffect(() => {
-    fetch("http://localhost:3001/api/marcas")
+    fetch(`${API_URL}/api/marcas`)
       .then(res => res.json())
       .then(data => setMarcas(data));
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/proveedores/activos")
+    fetch(`${API_URL}/api/proveedores/activos`)
       .then(res => res.json())
       .then(data => setProveedores(data));
   }, []);
@@ -139,7 +140,7 @@ const Productos: React.FC = () => {
 
     if (editId !== null) {
       // Editar producto
-      await fetch(`http://localhost:3001/api/productos/${editId}`, {
+      await fetch(`${API_URL}/api/productos/${editId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevoProducto)
@@ -147,7 +148,7 @@ const Productos: React.FC = () => {
       setProductos(productos.map(p => p.id === editId ? { ...nuevoProducto, id: editId } : p));
     } else {
       // Agregar producto
-      const res = await fetch("http://localhost:3001/api/productos", {
+      const res = await fetch(`${API_URL}/api/productos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevoProducto)
@@ -160,7 +161,7 @@ const Productos: React.FC = () => {
 
   // Eliminar producto
   const handleEliminar = async (id: number) => {
-    await fetch(`http://localhost:3001/api/productos/${id}`, { method: "DELETE" });
+    await fetch(`${API_URL}/api/productos/${id}`, { method: "DELETE" });
     setProductos(productos.map(p => p.id === id ? { ...p, activo: 0 } : p));
   };
 
@@ -334,7 +335,7 @@ const Productos: React.FC = () => {
     Number(producto.cantidad) > 0 && Number(producto.cantidad) <= getMinimoStock(producto);
 
   const recargarProductos = () => {
-    let url = "http://localhost:3001/api/productos?tipo=" + (
+    let url = `${API_URL}/api/productos?tipo=` + (
       seccion === "motos" ? "moto" :
       seccion === "accesorios" ? "accesorio" :
       "repuesto"
@@ -346,7 +347,7 @@ const Productos: React.FC = () => {
   };
 
   const cambiarEstadoProducto = async (producto: Producto, nuevoEstado: number) => {
-    await fetch(`http://localhost:3001/api/productos/${producto.id}/activo`, {
+    await fetch(`${API_URL}/api/productos/${producto.id}/activo`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ activo: nuevoEstado })
@@ -712,7 +713,7 @@ const Productos: React.FC = () => {
                   className="motos-bar-btn"
                   style={{background: "#43a047", minWidth: 110}}
                   onClick={async () => {
-                    await fetch(`http://localhost:3001/api/productos/${productoAReactivar.id}/activo`, {
+                    await fetch(`${API_URL}/api/productos/${productoAReactivar.id}/activo`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ activo: 1 })

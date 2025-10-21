@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../config';
 import './Compras.css';
 import IndicadorCarga from './IndicadorCarga';
 import Navbar from './Navbar';
@@ -63,18 +64,18 @@ const Compras = () => {
     const volverAlMenu = () => navigate('/menu');
 
     useEffect(() => {
-        fetch('http://localhost:3001/api/marcas')
+        fetch(`${API_URL}/api/marcas`)
             .then(res => res.json())
             .then((data: Marca[]) => setMarcas(data));
         
-        fetch('http://localhost:3001/api/proveedores/activos')
+        fetch(`${API_URL}/api/proveedores/activos`)
             .then(res => res.json())
             .then((data: Proveedor[]) => setProveedores(data));
     }, []);
 
     useEffect(() => {
         const tipoQuery = tipo ? `?tipo=${tipo}` : '';
-        fetch(`http://localhost:3001/api/productos${tipoQuery}`)
+        fetch(`${API_URL}/api/productos${tipoQuery}`)
             .then(res => res.json())
             .then((data: Producto[]) => setProductos(data));
         setProductoSeleccionado(null);
@@ -184,7 +185,7 @@ const Compras = () => {
         
         try {
             setConfirmando(true);
-            const res = await fetch('http://localhost:3001/api/compras', {
+            const res = await fetch(`${API_URL}/api/compras`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

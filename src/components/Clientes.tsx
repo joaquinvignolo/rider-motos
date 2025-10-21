@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from '../config';
 import "./Clientes.css";
 import PaginacionUnificada from "./PaginacionUnificada";
 import Navbar from "./Navbar";
@@ -34,7 +35,7 @@ const Clientes: React.FC = () => {
 
   // Refresca la lista según el filtro actual
   const cargarClientes = () => {
-    fetch(`http://localhost:3001/api/clientes${mostrarInactivos ? '?inactivos=1' : ''}`)
+    fetch(`${API_URL}/api/clientes${mostrarInactivos ? '?inactivos=1' : ''}`)
       .then(res => res.json())
       .then(data => setClientes(data));
   };
@@ -95,13 +96,13 @@ const Clientes: React.FC = () => {
     setError("");
     const body = { nombre: nombre.trim(), apellido: apellido.trim(), telefono: telefono.trim(), correo: correo.trim() };
     if (editCliente) {
-      await fetch(`http://localhost:3001/api/clientes/${editCliente.id}`, {
+      await fetch(`${API_URL}/api/clientes/${editCliente.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
     } else {
-      await fetch("http://localhost:3001/api/clientes", {
+      await fetch(`${API_URL}/api/clientes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
@@ -390,7 +391,7 @@ const Clientes: React.FC = () => {
                   className="clientes-btn"
                   style={{ background: "#a32020" }}
                   onClick={async () => {
-                    await fetch(`http://localhost:3001/api/clientes/${confirmarDesactivar.id}/activo`, {
+                    await fetch(`${API_URL}/api/clientes/${confirmarDesactivar.id}/activo`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ activo: 0 })
@@ -426,7 +427,7 @@ const Clientes: React.FC = () => {
                   className="clientes-btn"
                   style={{ background: "#80c481", color: "#232526" }}
                   onClick={async () => {
-                    await fetch(`http://localhost:3001/api/clientes/${confirmarReactivar.id}/activo`, {
+                    await fetch(`${API_URL}/api/clientes/${confirmarReactivar.id}/activo`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ activo: 1 })
