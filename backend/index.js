@@ -7,14 +7,19 @@ const nodemailer = require('nodemailer');
 const { generarPDFVenta } = require('./pdfVenta');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'q1w2e3r4',
-  database: 'rider_motos'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'q1w2e3r4',
+  database: process.env.DB_NAME || 'rider_motos',
+  port: process.env.DB_PORT || 3306,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
 });
 
 db.connect((err) => {
@@ -1342,6 +1347,7 @@ app.patch('/api/patentamientos/:id/expediente', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log('Servidor corriendo en http://localhost:3001');
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });

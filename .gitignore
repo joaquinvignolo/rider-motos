@@ -25,3 +25,12 @@ backend/.env
 *.njsproj
 *.sln
 *.sw?
+
+node_modules/
+dist/
+.env
+.env.local
+.env.production
+*.log
+.DS_Store
+backend/.env
