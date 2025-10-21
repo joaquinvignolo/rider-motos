@@ -11,17 +11,18 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-  process.env.FRONTEND_URL, // URL de producción desde variable de entorno
-].filter(Boolean); // Elimina valores undefined
+  'https://rider-motos-ten.vercel.app/',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Permitir requests sin origin (Postman, apps móviles, etc.)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`Origen bloqueado por CORS: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
